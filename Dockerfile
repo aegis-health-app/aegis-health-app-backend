@@ -10,7 +10,7 @@ RUN yarn --frozen-lockfile
 
 COPY . .
 
-RUN yarn build:prod
+RUN yarn build
 
 FROM node:16.13-alpine as production
 
@@ -27,5 +27,6 @@ RUN yarn install --prod=true && yarn cache clean
 COPY . .
 
 COPY --from=development /usr/src/app/dist ./dist
+EXPOSE 8000
 
 CMD ["node", "dist/main"]
