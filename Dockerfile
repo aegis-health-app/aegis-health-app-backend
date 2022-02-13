@@ -1,27 +1,31 @@
-# Base Image
-FROM node:16.13-alpine AS base
+FROM node:16.13-alpine AS development
 
-# Initialize working directory
 WORKDIR /usr/src/app
 
-# Prepare for installing dependencies
 COPY ["package.json", "yarn.lock", "./"]
 
-# Install dependencies
+RUN yarn add glob rimraf
+
 RUN yarn --frozen-lockfile
 
-# Build Image
-FROM base AS build
-
-# Copy File from source to workdir
 COPY . .
 
-# Build application
-RUN yarn build
-ENV NODE_ENV production
+RUN yarn build:prod
 
-# Expose listening port
-EXPOSE 8000
+FROM node:16.13-alpine as production
 
-# Starting scripts
-CMD yarn typeorm:prod | yarn start:prod
+ENV NODE_ENV=production
+
+WORKDIR /usr/src/app
+
+COPY --from=development /usr/src/app/package.json ./package.json
+COPY --from=development /usr/src/app/yarn.lock ./yarn.lock
+
+
+RUN yarn install --prod=true && yarn cache clean
+
+COPY . .
+
+COPY --from=development /usr/src/app/dist ./dist
+
+CMD ["node", "dist/main"]
