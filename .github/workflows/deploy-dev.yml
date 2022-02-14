@@ -1,12 +1,12 @@
 on:
   push:
     branches:
-      - master
+      - dev
 
 name: Build and Deploy a Container
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT }}
-  SERVICE: aegis-alpine-dev
+  SERVICE: aegis-alpine
   REGION: asia-east1
 
 jobs:
@@ -28,14 +28,14 @@ jobs:
 
       - name: Build and Push Container
         run: |-
-          docker build ./ -t asia-southeast1-docker.pkg.dev/${{ env.PROJECT_ID }}/aegis/aegis-alpine-dev:${{ github.sha }}
-          docker push asia-southeast1-docker.pkg.dev/${{ env.PROJECT_ID }}/aegis/aegis-alpine-dev:${{ github.sha }}
+          docker build ./ -t docker asia-southeast1-docker.pkg.dev/${{ env.PROJECT_ID }}/aegis/aegis-alpine:${{ github.sha }}
+          docker push asia-southeast1-docker.pkg.dev/${{ env.PROJECT_ID }}/aegis/aegis-alpine:${{ github.sha }}
       - name: Deploy to Cloud Run
         id: deploy
         uses: google-github-actions/deploy-cloudrun@v0
         with:
           service: ${{ env.SERVICE }}
-          image: asia-southeast1-docker.pkg.dev/${{ env.PROJECT_ID }}/aegis/aegis-alpine-dev:${{ github.sha }}
+          image: gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{  github.sha }}
           region: ${{ env.REGION }}
 
       - name: Show Output
