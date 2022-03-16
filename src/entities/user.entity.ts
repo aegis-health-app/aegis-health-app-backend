@@ -5,12 +5,15 @@ import {
   OneToMany,
   ManyToMany,
   JoinTable,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { Emotional_Records } from './emotionalRecord.entity';
 import { Health_Records } from './healthRecord.entity';
 import { Memory_Practice_Answers } from './memoryPracticeAnswer.entity';
 import { Memory_Practice_Questions } from './memoryPracticeQuestion.entity';
 import { Modules } from './module.entity';
+import { Multiple_Choice_Questions } from './multipleChoiceQuestion.entity';
 import { Reminders } from './reminder.entity';
 
 @Entity()
@@ -45,9 +48,6 @@ export class Users {
   @Column()
   is_elderly: boolean;
 
-  @ManyToMany(() => Users, (users) => users.responsible_for)
-  responsible_for: Users[];
-
   @OneToMany(() => Reminders, (reminder) => reminder.users)
   reminders: Reminders[];
 
@@ -69,4 +69,15 @@ export class Users {
   @ManyToMany((type) => Modules, (modules) => modules.users)
   @JoinTable({name: 'Selected'})
   modules: Modules[];
+
+  @ManyToMany((type) => Users, (taking_care_of) => taking_care_of.taken_care_by)
+  @JoinTable({name: 'Responsible_For'})
+  taking_care_of: Users[];
+
+  @ManyToMany(type => Users, (taken_care_by) => taken_care_by.taking_care_of)
+  taken_care_by: Users[];
+
+  @OneToOne(() => Multiple_Choice_Questions)
+  @JoinColumn()
+  multiple_choice_questions: Multiple_Choice_Questions;
 }

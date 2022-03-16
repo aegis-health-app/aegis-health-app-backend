@@ -1,22 +1,20 @@
-// import {Entity, PrimaryGeneratedColumn, Column} from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm';
 
-// @Entity()
-// export class Multiple_Choice_Questions {
-//   @PrimaryGeneratedColumn()
-//   mid: number;
+@Entity()
+export class Multiple_Choice_Questions {
+  @Column()
+  choice1: string;
 
-//   @Column()
-//   choice1: string;
+  @Column()
+  choice2: string;
 
-//   @Column()
-//   choice2: string;
+  @Column()
+  choice3: string;
 
-//   @Column()
-//   choice3: string;
+  @Column()
+  choice4: string;
 
-//   @Column()
-//   choice4: string;
-
-//   @Column()
-//   correct_answer: string;
-// }
+  @Column()
+  correct_answer: string;
+  memory_practice_questions: any;
+}
