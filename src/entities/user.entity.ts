@@ -16,12 +16,12 @@ import { Module } from './module.entity';
 import { Multiple_Choice_Question } from './multipleChoiceQuestion.entity';
 import { Reminder } from './reminder.entity';
 
-@Entity()
+@Entity({ name: 'User' })
 export class User {
   @PrimaryGeneratedColumn()
   uid: number;
 
-  @Column({unique: true})
+  @Column({ unique: true })
   phone: string;
 
   @Column()
@@ -82,13 +82,21 @@ export class User {
   health_records: Health_Record[];
 
   @ManyToMany((type) => Module, (module) => module.users)
-  @JoinTable({name: 'Selected'})
+  @JoinTable({
+    name: 'Selected',
+    joinColumn: { name: 'uid', referencedColumnName: 'uid' },
+    inverseJoinColumn: { name: 'moduleid', referencedColumnName: 'moduleid' },
+  })
   modules: Module[];
 
   @ManyToMany((type) => User, (taking_care_of) => taking_care_of.taken_care_by)
-  @JoinTable({name: 'Responsible_For'})
+  @JoinTable({
+    name: 'Responsible_For',
+    joinColumn: { name: 'uid_elderly', referencedColumnName: 'uid' },
+    inverseJoinColumn: { name: 'uid_caretaker', referencedColumnName: 'uid' },
+  })
   taking_care_of: User[];
 
-  @ManyToMany(type => User, (taken_care_by) => taken_care_by.taking_care_of)
+  @ManyToMany((type) => User, (taken_care_by) => taken_care_by.taking_care_of)
   taken_care_by: User[];
 }

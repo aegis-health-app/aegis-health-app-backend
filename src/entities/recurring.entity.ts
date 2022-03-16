@@ -1,7 +1,7 @@
 import { Entity, PrimaryColumn, ManyToOne } from 'typeorm';
 import { Reminder } from './reminder.entity';
 
-@Entity()
+@Entity({name: 'Recurring'})
 export class Recurring {
   @PrimaryColumn({ default: 0 })
   recurring_date_of_month: number;

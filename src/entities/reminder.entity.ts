@@ -4,11 +4,12 @@ import {
   Column,
   ManyToOne,
   OneToMany,
+  JoinColumn,
 } from 'typeorm';
 import { Recurring } from './recurring.entity';
 import { User } from './user.entity';
 
-@Entity()
+@Entity({name: 'Reminder'})
 export class Reminder {
   @PrimaryGeneratedColumn()
   rid: number;
@@ -39,6 +40,7 @@ export class Reminder {
     onUpdate: 'NO ACTION',
     nullable: false,
   })
+  @JoinColumn({name: 'uid', referencedColumnName: 'uid'})
   user: User;
 
   @OneToMany(() => Recurring, (recurring) => recurring.reminder)

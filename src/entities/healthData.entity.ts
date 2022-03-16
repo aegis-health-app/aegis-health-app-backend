@@ -5,22 +5,17 @@ import {
   ManyToOne,
   PrimaryColumn,
   Timestamp,
+  JoinColumn,
 } from 'typeorm';
 import { Health_Column } from './healthColumn.entity';
 
-@Entity()
+@Entity({name: 'Health_Data'})
 export class Health_Data {
   @CreateDateColumn({ primary: true })
   timestamp: Timestamp;
 
   @Column('double')
   value: number;
-
-  @PrimaryColumn()
-  column_id: number;
-
-  @PrimaryColumn()
-  hr_name: string;
 
   //   @Column()
   //   uid: string;
@@ -35,5 +30,6 @@ export class Health_Data {
       primary: true,
     },
   )
+  // @JoinColumn([{name: 'column_id', referencedColumnName: ''}, {name: 'hr_name'}, {name: 'uid'}])
   health_column: Health_Column;
 }

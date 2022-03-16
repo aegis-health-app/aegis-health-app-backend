@@ -1,7 +1,7 @@
 import { Entity, CreateDateColumn, Column, ManyToOne, Timestamp } from 'typeorm';
 import { Memory_Practice_Question } from './memoryPracticeQuestion.entity';
 
-@Entity()
+@Entity({name: 'Memory_Practice_Answer'})
 export class Memory_Practice_Answer {
   @CreateDateColumn({ primary: true })
   timestamp: Timestamp;

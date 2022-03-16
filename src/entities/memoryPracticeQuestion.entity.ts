@@ -11,7 +11,7 @@ import { Memory_Practice_Answer } from './memoryPracticeAnswer.entity';
 import { Multiple_Choice_Question } from './multipleChoiceQuestion.entity';
 import { User } from './user.entity';
 
-@Entity()
+@Entity({name: 'Memory_Practice_Question'})
 export class Memory_Practice_Question {
   @PrimaryGeneratedColumn()
   mid: string;
@@ -33,6 +33,7 @@ export class Memory_Practice_Question {
     onDelete: 'CASCADE',
     nullable: false,
   })
+  @JoinColumn({name: 'uid', referencedColumnName: 'uid'})
   users: User;
 
   @OneToMany(

@@ -1,8 +1,8 @@
-import { Entity, PrimaryColumn, Column, ManyToOne, OneToMany } from 'typeorm';
+import { Entity, PrimaryColumn, Column, ManyToOne, OneToMany, JoinColumn, Index } from 'typeorm';
 import { Health_Column } from './healthColumn.entity';
 import { User } from './user.entity';
 
-@Entity()
+@Entity({name: 'Health_Record'})
 export class Health_Record {
   @PrimaryColumn()
   hr_name: string;
@@ -10,15 +10,13 @@ export class Health_Record {
   @Column({ nullable: true })
   imageid: string;
 
-  @Column()
-  uid: string;
-
   @ManyToOne(() => User, (user) => user.health_records, {
     onUpdate: 'NO ACTION',
     onDelete: 'CASCADE',
     nullable: false,
     primary: true,
   })
+  @JoinColumn({ name: 'uid', referencedColumnName: 'uid' })
   user: User;
 
   @OneToMany(

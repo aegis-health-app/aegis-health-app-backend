@@ -1,7 +1,7 @@
-import { Entity, CreateDateColumn, ManyToOne, Column } from 'typeorm';
+import { Entity, CreateDateColumn, ManyToOne, Column, JoinColumn } from 'typeorm';
 import { User } from './user.entity';
 
-@Entity()
+@Entity({name: 'Emotional_Record'})
 export class Emotional_Record {
   @CreateDateColumn({ primary: true })
   date: Date;
@@ -15,6 +15,7 @@ export class Emotional_Record {
     nullable: false,
     primary: true,
   })
+  @JoinColumn({ name: 'uid', referencedColumnName: 'uid' })
   user: User;
 
   // @PrimaryColumn()

@@ -4,11 +4,12 @@ import {
   Column,
   ManyToOne,
   OneToMany,
+  JoinColumn,
 } from 'typeorm';
 import { Health_Data } from './healthData.entity';
 import { Health_Record } from './healthRecord.entity';
 
-@Entity()
+@Entity({ name: 'Health_Column' })
 export class Health_Column {
   @PrimaryGeneratedColumn()
   column_id: number;
@@ -18,9 +19,6 @@ export class Health_Column {
 
   @Column()
   unit: string;
-
-  @Column()
-  hr_name: string;
 
   //   @Column()
   //   uid: number;
@@ -35,6 +33,10 @@ export class Health_Column {
       primary: true,
     },
   )
+  @JoinColumn([
+    // { name: 'hr_name', referencedColumnName: 'hr_name' },
+    // { name: 'uid', referencedColumnName: 'uid' },
+  ])
   health_record: Health_Record;
 
   @OneToMany(() => Health_Data, (health_data) => health_data.health_column)
