@@ -1,21 +1,22 @@
-// import {Entity, CreateDateColumn, ManyToOne, Column} from 'typeorm'
-// import { Users } from './user.entity';
+import { Entity, CreateDateColumn, ManyToOne, Column } from 'typeorm';
+import { Users } from './user.entity';
 
-// @Entity()
-// export class Emotional_Records {
-//   @CreateDateColumn()
-//   timestamp: Date;
+@Entity()
+export class Emotional_Records {
+  @CreateDateColumn({ primary: true })
+  timestamp: Date;
 
-//   @Column()
-//   emotional_level: string;
+  @Column()
+  emotional_level: string;
 
-//   @ManyToOne(() => Users, (users) => users.emtional_records, {
-//     onUpdate: 'NO ACTION',
-//     onDelete: 'CASCADE',
-//     nullable: false,
-//   })
-//   users: Users;
+  @ManyToOne(() => Users, (users) => users.emtional_records, {
+    onUpdate: 'NO ACTION',
+    onDelete: 'CASCADE',
+    nullable: false,
+    primary: true,
+  })
+  users: Users;
 
-//   // @PrimaryColumn()
-//   // uid: number;
-// }
+  // @PrimaryColumn()
+  // uid: number;
+}
