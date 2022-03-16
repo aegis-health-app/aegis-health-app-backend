@@ -17,6 +17,7 @@ export class Health_Records {
     onUpdate: 'NO ACTION',
     onDelete: 'CASCADE',
     nullable: false,
+    primary: true,
   })
   users: Users;
 

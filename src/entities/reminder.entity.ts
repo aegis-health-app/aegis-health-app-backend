@@ -14,7 +14,7 @@ export class Reminders {
   rid: number;
 
   @Column()
-  starting_timestamp: Date;
+  starting_date: Date;
 
   @Column()
   title: string;
@@ -25,7 +25,7 @@ export class Reminders {
   @Column()
   is_remind_caretaker: boolean;
 
-  @Column()
+  @Column({ default: 'Low'})
   importance_level: string;
 
   @Column({ nullable: true })

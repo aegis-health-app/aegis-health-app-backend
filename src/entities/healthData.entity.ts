@@ -4,13 +4,14 @@ import {
   Column,
   ManyToOne,
   PrimaryColumn,
+  Timestamp,
 } from 'typeorm';
 import { Health_Columns } from './healthColumn.entity';
 
 @Entity()
 export class Health_Data {
   @CreateDateColumn({ primary: true })
-  timestamp: Date;
+  timestamp: Timestamp;
 
   @Column('double')
   value: number;

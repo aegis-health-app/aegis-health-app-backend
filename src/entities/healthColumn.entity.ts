@@ -28,7 +28,12 @@ export class Health_Columns {
   @ManyToOne(
     () => Health_Records,
     (health_records) => health_records.health_columns,
-    { onUpdate: 'NO ACTION', onDelete: 'CASCADE', nullable: false },
+    {
+      onUpdate: 'NO ACTION',
+      onDelete: 'CASCADE',
+      nullable: false,
+      primary: true,
+    },
   )
   health_records: Health_Records;
 

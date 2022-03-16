@@ -1,10 +1,10 @@
-import { Entity, CreateDateColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, CreateDateColumn, Column, ManyToOne, Timestamp } from 'typeorm';
 import { Memory_Practice_Questions } from './memoryPracticeQuestion.entity';
 
 @Entity()
 export class Memory_Practice_Answers {
   @CreateDateColumn({ primary: true })
-  timestamp: Date;
+  timestamp: Timestamp;
 
   @Column()
   elder_answer: string;

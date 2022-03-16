@@ -18,7 +18,7 @@ export class Users {
   @PrimaryGeneratedColumn()
   uid: number;
 
-  @Column()
+  @Column({unique: true})
   phone: string;
 
   @Column()
@@ -67,6 +67,6 @@ export class Users {
   health_records: Health_Records[];
 
   @ManyToMany((type) => Modules, (modules) => modules.users)
-  @JoinTable()
+  @JoinTable({name: 'Selected'})
   modules: Modules[];
 }

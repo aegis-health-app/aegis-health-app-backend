@@ -4,7 +4,7 @@ import { Users } from './user.entity';
 @Entity()
 export class Emotional_Records {
   @CreateDateColumn({ primary: true })
-  timestamp: Date;
+  date: Date;
 
   @Column()
   emotional_level: string;
