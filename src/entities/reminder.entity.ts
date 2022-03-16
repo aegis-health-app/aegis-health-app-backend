@@ -5,11 +5,11 @@ import {
   ManyToOne,
   OneToMany,
 } from 'typeorm';
-import { Recurrings } from './recurring.entity';
-import { Users } from './user.entity';
+import { Recurring } from './recurring.entity';
+import { User } from './user.entity';
 
 @Entity()
-export class Reminders {
+export class Reminder {
   @PrimaryGeneratedColumn()
   rid: number;
 
@@ -34,13 +34,13 @@ export class Reminders {
   @Column()
   is_done: boolean;
 
-  @ManyToOne(() => Users, (users) => users.reminders, {
+  @ManyToOne(() => User, (user) => user.reminders, {
     onDelete: 'CASCADE',
     onUpdate: 'NO ACTION',
     nullable: false,
   })
-  users: Users;
+  user: User;
 
-  @OneToMany(() => Recurrings, (recurrings) => recurrings.reminders)
-  recurrings: Recurrings[];
+  @OneToMany(() => Recurring, (recurring) => recurring.reminder)
+  recurrings: Recurring[];
 }

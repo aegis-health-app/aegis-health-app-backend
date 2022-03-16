@@ -8,16 +8,16 @@ import {
   OneToOne,
   JoinColumn,
 } from 'typeorm';
-import { Emotional_Records } from './emotionalRecord.entity';
-import { Health_Records } from './healthRecord.entity';
-import { Memory_Practice_Answers } from './memoryPracticeAnswer.entity';
-import { Memory_Practice_Questions } from './memoryPracticeQuestion.entity';
-import { Modules } from './module.entity';
-import { Multiple_Choice_Questions } from './multipleChoiceQuestion.entity';
-import { Reminders } from './reminder.entity';
+import { Emotional_Record } from './emotionalRecord.entity';
+import { Health_Record } from './healthRecord.entity';
+import { Memory_Practice_Answer } from './memoryPracticeAnswer.entity';
+import { Memory_Practice_Question } from './memoryPracticeQuestion.entity';
+import { Module } from './module.entity';
+import { Multiple_Choice_Question } from './multipleChoiceQuestion.entity';
+import { Reminder } from './reminder.entity';
 
 @Entity()
-export class Users {
+export class User {
   @PrimaryGeneratedColumn()
   uid: number;
 
@@ -48,36 +48,47 @@ export class Users {
   @Column()
   is_elderly: boolean;
 
-  @OneToMany(() => Reminders, (reminder) => reminder.users)
-  reminders: Reminders[];
+  @Column({ nullable: true })
+  health_condition: string;
+
+  @Column({ nullable: true })
+  blood_type: string;
+
+  @Column({ nullable: true })
+  personal_medication: string;
+
+  @Column({ nullable: true })
+  allergy: string;
+
+  @Column({ nullable: true })
+  vaccine: string;
+
+  @OneToMany(() => Reminder, (reminder) => reminder.user)
+  reminders: Reminder[];
 
   @OneToMany(
-    () => Emotional_Records,
-    (emotional_records) => emotional_records.users,
+    () => Emotional_Record,
+    (emotional_record) => emotional_record.user,
   )
-  emtional_records: Emotional_Records[];
+  emtional_records: Emotional_Record[];
 
   @OneToMany(
-    () => Memory_Practice_Questions,
-    (memory_practice_questions) => memory_practice_questions.users,
+    () => Memory_Practice_Question,
+    (memory_practice_question) => memory_practice_question.users,
   )
-  memory_practice_questions: Memory_Practice_Answers[];
+  memory_practice_questions: Memory_Practice_Answer[];
 
-  @OneToMany(() => Health_Records, (health_records) => health_records.users)
-  health_records: Health_Records[];
+  @OneToMany(() => Health_Record, (health_record) => health_record.user)
+  health_records: Health_Record[];
 
-  @ManyToMany((type) => Modules, (modules) => modules.users)
+  @ManyToMany((type) => Module, (module) => module.users)
   @JoinTable({name: 'Selected'})
-  modules: Modules[];
+  modules: Module[];
 
-  @ManyToMany((type) => Users, (taking_care_of) => taking_care_of.taken_care_by)
+  @ManyToMany((type) => User, (taking_care_of) => taking_care_of.taken_care_by)
   @JoinTable({name: 'Responsible_For'})
-  taking_care_of: Users[];
+  taking_care_of: User[];
 
-  @ManyToMany(type => Users, (taken_care_by) => taken_care_by.taking_care_of)
-  taken_care_by: Users[];
-
-  @OneToOne(() => Multiple_Choice_Questions)
-  @JoinColumn()
-  multiple_choice_questions: Multiple_Choice_Questions;
+  @ManyToMany(type => User, (taken_care_by) => taken_care_by.taking_care_of)
+  taken_care_by: User[];
 }

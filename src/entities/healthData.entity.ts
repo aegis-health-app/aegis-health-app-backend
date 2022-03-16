@@ -6,7 +6,7 @@ import {
   PrimaryColumn,
   Timestamp,
 } from 'typeorm';
-import { Health_Columns } from './healthColumn.entity';
+import { Health_Column } from './healthColumn.entity';
 
 @Entity()
 export class Health_Data {
@@ -26,8 +26,8 @@ export class Health_Data {
   //   uid: string;
 
   @ManyToOne(
-    () => Health_Columns,
-    (health_columns) => health_columns.health_data,
+    () => Health_Column,
+    (health_column) => health_column.health_data,
     {
       onUpdate: 'NO ACTION',
       onDelete: 'CASCADE',
@@ -35,5 +35,5 @@ export class Health_Data {
       primary: true,
     },
   )
-  health_columns: Health_Columns;
+  health_column: Health_Column;
 }

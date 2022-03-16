@@ -1,21 +1,21 @@
 import { Entity, CreateDateColumn, ManyToOne, Column } from 'typeorm';
-import { Users } from './user.entity';
+import { User } from './user.entity';
 
 @Entity()
-export class Emotional_Records {
+export class Emotional_Record {
   @CreateDateColumn({ primary: true })
   date: Date;
 
   @Column()
   emotional_level: string;
 
-  @ManyToOne(() => Users, (users) => users.emtional_records, {
+  @ManyToOne(() => User, (user) => user.emtional_records, {
     onUpdate: 'NO ACTION',
     onDelete: 'CASCADE',
     nullable: false,
     primary: true,
   })
-  users: Users;
+  user: User;
 
   // @PrimaryColumn()
   // uid: number;

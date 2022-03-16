@@ -1,14 +1,14 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from 'typeorm';
-import { Users } from './user.entity';
+import { User } from './user.entity';
 
 @Entity()
-export class Modules {
+export class Module {
   @PrimaryGeneratedColumn()
   moduleid: number;
 
   @Column()
   mname: string;
 
-  @ManyToMany((type) => Users, (users) => users.modules)
-  users: Users[];
+  @ManyToMany((type) => User, (user) => user.modules)
+  users: User[];
 }

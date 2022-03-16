@@ -7,12 +7,12 @@ import {
   OneToOne,
   JoinColumn,
 } from 'typeorm';
-import { Memory_Practice_Answers } from './memoryPracticeAnswer.entity';
-import { Multiple_Choice_Questions } from './multipleChoiceQuestion.entity';
-import { Users } from './user.entity';
+import { Memory_Practice_Answer } from './memoryPracticeAnswer.entity';
+import { Multiple_Choice_Question } from './multipleChoiceQuestion.entity';
+import { User } from './user.entity';
 
 @Entity()
-export class Memory_Practice_Questions {
+export class Memory_Practice_Question {
   @PrimaryGeneratedColumn()
   mid: string;
 
@@ -28,19 +28,19 @@ export class Memory_Practice_Questions {
   // @Column()
   // uid: string;
 
-  @ManyToOne(() => Users, (users) => users.memory_practice_questions, {
+  @ManyToOne(() => User, (user) => user.memory_practice_questions, {
     onUpdate: 'NO ACTION',
     onDelete: 'CASCADE',
     nullable: false,
   })
-  users: Users;
+  users: User;
 
   @OneToMany(
-    () => Memory_Practice_Answers,
-    (memory_practice_answers) =>
-      memory_practice_answers.memory_practice_questions,
+    () => Memory_Practice_Answer,
+    (memory_practice_answer) =>
+      memory_practice_answer.memory_practice_question,
   )
-  memory_practice_answers: Memory_Practice_Answers[];
+  memory_practice_answers: Memory_Practice_Answer[];
 
   // @OneToMany(
   //   () => Multiple_Choice_Questions,
@@ -48,7 +48,7 @@ export class Memory_Practice_Questions {
   // )
   // multiple_choice_questions: Multiple_Choice_Questions;
 
-  // @OneToOne(() => Multiple_Choice_Questions)
-  // @JoinColumn()
-  // multiple_choice_questions: Multiple_Choice_Questions;
+  @OneToOne(() => Multiple_Choice_Question)
+  @JoinColumn()
+  multiple_choice_question: Multiple_Choice_Question;
 }

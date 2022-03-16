@@ -1,9 +1,9 @@
 import { Entity, PrimaryColumn, Column, ManyToOne, OneToMany } from 'typeorm';
-import { Health_Columns } from './healthColumn.entity';
-import { Users } from './user.entity';
+import { Health_Column } from './healthColumn.entity';
+import { User } from './user.entity';
 
 @Entity()
-export class Health_Records {
+export class Health_Record {
   @PrimaryColumn()
   hr_name: string;
 
@@ -13,17 +13,17 @@ export class Health_Records {
   @Column()
   uid: string;
 
-  @ManyToOne(() => Users, (users) => users.health_records, {
+  @ManyToOne(() => User, (user) => user.health_records, {
     onUpdate: 'NO ACTION',
     onDelete: 'CASCADE',
     nullable: false,
     primary: true,
   })
-  users: Users;
+  user: User;
 
   @OneToMany(
-    () => Health_Columns,
-    (health_columns) => health_columns.health_records,
+    () => Health_Column,
+    (health_column) => health_column.health_record,
   )
-  health_columns: Health_Columns[];
+  health_columns: Health_Column[];
 }

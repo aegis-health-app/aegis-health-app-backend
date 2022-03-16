@@ -1,8 +1,8 @@
 import { Entity, CreateDateColumn, Column, ManyToOne, Timestamp } from 'typeorm';
-import { Memory_Practice_Questions } from './memoryPracticeQuestion.entity';
+import { Memory_Practice_Question } from './memoryPracticeQuestion.entity';
 
 @Entity()
-export class Memory_Practice_Answers {
+export class Memory_Practice_Answer {
   @CreateDateColumn({ primary: true })
   timestamp: Timestamp;
 
@@ -13,9 +13,9 @@ export class Memory_Practice_Answers {
   // mid: number
 
   @ManyToOne(
-    () => Memory_Practice_Questions,
-    (memory_practice_questions) =>
-      memory_practice_questions.memory_practice_answers,
+    () => Memory_Practice_Question,
+    (memory_practice_question) =>
+      memory_practice_question.memory_practice_answers,
     {
       onUpdate: 'NO ACTION',
       onDelete: 'CASCADE',
@@ -23,5 +23,5 @@ export class Memory_Practice_Answers {
       primary: true,
     },
   )
-  memory_practice_questions: Memory_Practice_Questions;
+  memory_practice_question: Memory_Practice_Question;
 }
