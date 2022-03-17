@@ -14,7 +14,7 @@ export class Reminder {
   @PrimaryGeneratedColumn()
   rid: number;
 
-  @Column()
+  @Column({type: "date"})
   starting_date: Date;
 
   @Column()

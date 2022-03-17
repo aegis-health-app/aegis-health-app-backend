@@ -21,7 +21,7 @@ export class User {
   @PrimaryGeneratedColumn()
   uid: number;
 
-  @Column({ unique: true })
+  @Column({ unique: true, length: 10 })
   phone: string;
 
   @Column()
@@ -39,7 +39,7 @@ export class User {
   @Column({ nullable: true })
   dname: string;
 
-  @Column()
+  @Column({type: "date"})
   bday: Date;
 
   @Column()
@@ -70,7 +70,7 @@ export class User {
     () => Emotional_Record,
     (emotional_record) => emotional_record.user,
   )
-  emtional_records: Emotional_Record[];
+  emotional_records: Emotional_Record[];
 
   @OneToMany(
     () => Memory_Practice_Question,

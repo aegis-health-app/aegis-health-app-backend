@@ -9,8 +9,8 @@ export class Recurring {
   @PrimaryColumn({ default: 0})
   recurring_day: number;
 
-  @PrimaryColumn()
-  recurring_time: string;
+  @PrimaryColumn({type: "time"})
+  recurring_time
 
   @ManyToOne(() => Reminder, (reminder) => reminder.recurrings, {
     onUpdate: 'NO ACTION',
