@@ -1,4 +1,4 @@
-import { Entity, PrimaryColumn, ManyToOne } from 'typeorm';
+import { Entity, PrimaryColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Reminder } from './reminder.entity';
 
 @Entity({name: 'Recurring'})
@@ -18,5 +18,6 @@ export class Recurring {
     nullable: false,
     primary: true,
   })
+  @JoinColumn({name: 'rid', referencedColumnName: 'rid'})
   reminder: Reminder;
 }

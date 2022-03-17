@@ -10,6 +10,9 @@ export class Health_Record {
   @Column({ nullable: true })
   imageid: string;
 
+  @PrimaryColumn()
+  uid: number;
+  
   @ManyToOne(() => User, (user) => user.health_records, {
     onUpdate: 'NO ACTION',
     onDelete: 'CASCADE',

@@ -14,6 +14,15 @@ export class Health_Data {
   @PrimaryColumn({ type: 'datetime' })
   timestamp: Timestamp;
 
+  @PrimaryColumn()
+  column_id: number;
+
+  @PrimaryColumn()
+  uid: number;
+
+  @PrimaryColumn()
+  hr_name: string;
+
   @Column('float')
   value: number;
 
@@ -31,8 +40,9 @@ export class Health_Data {
     },
   )
   @JoinColumn([
-    { name: 'column_id', referencedColumnName: '' },
-    // {name: 'hr_name'}, {name: 'uid'}
+    { name: 'column_id', referencedColumnName: 'column_id' },
+    { name: 'hr_name', referencedColumnName: 'hr_name' },
+    { name: 'uid', referencedColumnName: 'uid' },
   ])
   health_column: Health_Column;
 }
