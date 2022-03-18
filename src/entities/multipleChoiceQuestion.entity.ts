@@ -1,6 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  JoinColumn,
+  PrimaryColumn,
+} from 'typeorm';
+import { Memory_Practice_Question } from './memoryPracticeQuestion.entity';
 
-@Entity({name: 'Multiple_Choice_Question'})
+@Entity({ name: 'Multiple_Choice_Question' })
 export class Multiple_Choice_Question {
   @Column()
   choice1: string;
@@ -16,8 +24,16 @@ export class Multiple_Choice_Question {
 
   @Column()
   correct_answer: string;
-  memory_practice_questions: any;
 
-  @PrimaryGeneratedColumn()
+  @PrimaryColumn()
   mid: string;
+
+  @OneToOne(
+    () => Memory_Practice_Question,
+    (memory_practice_question) =>
+      memory_practice_question.multiple_choice_question,
+    { primary: true, onUpdate: 'NO ACTION', onDelete: 'CASCADE' },
+  )
+  @JoinColumn({ name: 'mid', referencedColumnName: 'mid' })
+  memory_practice_question: Memory_Practice_Question;
 }
