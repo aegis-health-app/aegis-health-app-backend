@@ -1,10 +1,10 @@
-import { Entity, CreateDateColumn, ManyToOne, Column, JoinColumn, PrimaryColumn } from 'typeorm';
+import { Entity, ManyToOne, Column, JoinColumn, PrimaryColumn } from 'typeorm';
 import { User } from './user.entity';
 
-@Entity({name: 'Emotional_Record'})
+@Entity({ name: 'Emotional_Record' })
 export class Emotional_Record {
   @PrimaryColumn({ type: 'date' })
-  date
+  date;
 
   @Column()
   emotional_level: string;
@@ -17,7 +17,4 @@ export class Emotional_Record {
   })
   @JoinColumn({ name: 'uid', referencedColumnName: 'uid' })
   user: User;
-
-  // @PrimaryColumn()
-  // uid: number;
 }

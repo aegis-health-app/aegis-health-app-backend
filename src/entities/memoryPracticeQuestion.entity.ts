@@ -25,9 +25,6 @@ export class Memory_Practice_Question {
   @Column({ nullable: true })
   imageid: string;
 
-  // @Column()
-  // uid: string;
-
   @ManyToOne(() => User, (user) => user.memory_practice_questions, {
     onUpdate: 'NO ACTION',
     onDelete: 'CASCADE',
@@ -42,12 +39,6 @@ export class Memory_Practice_Question {
       memory_practice_answer.memory_practice_question,
   )
   memory_practice_answers: Memory_Practice_Answer[];
-
-  // @OneToMany(
-  //   () => Multiple_Choice_Questions,
-  //   (multiple_choice_questions) => multiple_choice_questions.memory_practice_questions
-  // )
-  // multiple_choice_questions: Multiple_Choice_Questions;
 
   @OneToOne(() => Multiple_Choice_Question)
   @JoinColumn()

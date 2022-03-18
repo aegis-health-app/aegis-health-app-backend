@@ -1,6 +1,5 @@
 import {
   Entity,
-  CreateDateColumn,
   Column,
   ManyToOne,
   PrimaryColumn,
@@ -25,9 +24,6 @@ export class Health_Data {
 
   @Column('float')
   value: number;
-
-  //   @Column()
-  //   uid: string;
 
   @ManyToOne(
     () => Health_Column,

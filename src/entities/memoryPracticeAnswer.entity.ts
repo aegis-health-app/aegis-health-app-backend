@@ -9,9 +9,6 @@ export class Memory_Practice_Answer {
   @Column()
   elder_answer: string;
 
-  // @Column()
-  // mid: number
-
   @ManyToOne(
     () => Memory_Practice_Question,
     (memory_practice_question) =>

@@ -27,9 +27,6 @@ export class Health_Column {
   @Column()
   unit: string;
 
-  //   @Column()
-  //   uid: number;
-
   @ManyToOne(
     () => Health_Record,
     (health_record) => health_record.health_columns,

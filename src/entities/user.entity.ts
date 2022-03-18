@@ -5,15 +5,12 @@ import {
   OneToMany,
   ManyToMany,
   JoinTable,
-  OneToOne,
-  JoinColumn,
 } from 'typeorm';
 import { Emotional_Record } from './emotionalRecord.entity';
 import { Health_Record } from './healthRecord.entity';
 import { Memory_Practice_Answer } from './memoryPracticeAnswer.entity';
 import { Memory_Practice_Question } from './memoryPracticeQuestion.entity';
 import { Module } from './module.entity';
-import { Multiple_Choice_Question } from './multipleChoiceQuestion.entity';
 import { Reminder } from './reminder.entity';
 
 @Entity({ name: 'User' })
