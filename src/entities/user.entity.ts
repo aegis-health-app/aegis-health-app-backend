@@ -1,99 +1,98 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  OneToMany,
-  ManyToMany,
-  JoinTable,
-} from 'typeorm';
-import { Emotional_Record } from './emotionalRecord.entity';
-import { Health_Record } from './healthRecord.entity';
-import { Memory_Practice_Answer } from './memoryPracticeAnswer.entity';
-import { Memory_Practice_Question } from './memoryPracticeQuestion.entity';
-import { Module } from './module.entity';
-import { Reminder } from './reminder.entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany, JoinTable } from 'typeorm'
+import { Emotional_Record } from './emotionalRecord.entity'
+import { Health_Record } from './healthRecord.entity'
+import { Memory_Practice_Answer } from './memoryPracticeAnswer.entity'
+import { Memory_Practice_Question } from './memoryPracticeQuestion.entity'
+import { Module } from './module.entity'
+import { Reminder } from './reminder.entity'
 
 @Entity({ name: 'User' })
 export class User {
   @PrimaryGeneratedColumn()
-  uid: number;
+  uid: number
 
   @Column({ unique: true, length: 10 })
-  phone: string;
+  phone: string
 
   @Column()
-  password: string;
+  password: string
 
   @Column({ nullable: true })
-  imageid: string;
+  imageid: string
 
   @Column()
-  fname: string;
+  fname: string
 
   @Column()
-  lname: string;
+  lname: string
 
   @Column({ nullable: true })
-  dname: string;
+  dname: string
 
-  @Column({type: "date"})
-  bday: Date;
+  @Column({ type: 'date' })
+  bday: Date
 
   @Column()
-  gender: string;
+  gender: string
 
   @Column()
-  is_elderly: boolean;
+  is_elderly: boolean
 
   @Column({ nullable: true })
-  health_condition: string;
+  health_condition: string
+
+  @Column({ nullable: true, length: 2 })
+  blood_type: string
 
   @Column({ nullable: true })
-  blood_type: string;
+  personal_medication: string
 
   @Column({ nullable: true })
-  personal_medication: string;
+  allergy: string
 
   @Column({ nullable: true })
-  allergy: string;
-
-  @Column({ nullable: true })
-  vaccine: string;
+  vaccine: string
 
   @OneToMany(() => Reminder, (reminder) => reminder.user)
-  reminders: Reminder[];
+  reminders: Reminder[]
 
-  @OneToMany(
-    () => Emotional_Record,
-    (emotional_record) => emotional_record.user,
-  )
-  emotional_records: Emotional_Record[];
+  @OneToMany(() => Emotional_Record, (emotional_record) => emotional_record.user)
+  emotional_records: Emotional_Record[]
 
-  @OneToMany(
-    () => Memory_Practice_Question,
-    (memory_practice_question) => memory_practice_question.users,
-  )
-  memory_practice_questions: Memory_Practice_Answer[];
+  @OneToMany(() => Memory_Practice_Question, (memory_practice_question) => memory_practice_question.users)
+  memory_practice_questions: Memory_Practice_Answer[]
 
   @OneToMany(() => Health_Record, (health_record) => health_record.user)
-  health_records: Health_Record[];
+  health_records: Health_Record[]
 
-  @ManyToMany((type) => Module, (module) => module.users)
+  @ManyToMany((type) => Module, (module) => module.users, {
+    onUpdate: 'NO ACTION',
+    onDelete: 'CASCADE',
+    nullable: false,
+  })
   @JoinTable({
     name: 'Selected',
     joinColumn: { name: 'uid', referencedColumnName: 'uid' },
     inverseJoinColumn: { name: 'moduleid', referencedColumnName: 'moduleid' },
   })
-  modules: Module[];
+  modules: Module[]
 
-  @ManyToMany((type) => User, (taking_care_of) => taking_care_of.taken_care_by)
+  @ManyToMany((type) => User, (taking_care_of) => taking_care_of.taken_care_by, {
+    onUpdate: 'NO ACTION',
+    onDelete: 'CASCADE',
+    nullable: false,
+  })
   @JoinTable({
     name: 'Responsible_For',
     joinColumn: { name: 'uid_elderly', referencedColumnName: 'uid' },
     inverseJoinColumn: { name: 'uid_caretaker', referencedColumnName: 'uid' },
   })
-  taking_care_of: User[];
+  taking_care_of: User[]
 
-  @ManyToMany((type) => User, (taken_care_by) => taken_care_by.taking_care_of)
-  taken_care_by: User[];
+  @ManyToMany((type) => User, (taken_care_by) => taken_care_by.taking_care_of, {
+    onUpdate: 'NO ACTION',
+    onDelete: 'CASCADE',
+    nullable: false,
+  })
+  taken_care_by: User[]
 }

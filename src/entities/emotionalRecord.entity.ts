@@ -6,7 +6,7 @@ export class Emotional_Record {
   @PrimaryColumn({ type: 'date' })
   date;
 
-  @Column()
+  @Column({length: 1})
   emotional_level: string;
 
   @ManyToOne(() => User, (user) => user.emotional_records, {

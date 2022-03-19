@@ -1,4 +1,4 @@
-import { Entity, CreateDateColumn, Column, ManyToOne, Timestamp } from 'typeorm';
+import { Entity, CreateDateColumn, Column, ManyToOne, Timestamp, JoinColumn } from 'typeorm';
 import { Memory_Practice_Question } from './memoryPracticeQuestion.entity';
 
 @Entity({name: 'Memory_Practice_Answer'})
@@ -20,5 +20,6 @@ export class Memory_Practice_Answer {
       primary: true,
     },
   )
+  @JoinColumn({name: 'mid', referencedColumnName: 'mid'})
   memory_practice_question: Memory_Practice_Question;
 }
