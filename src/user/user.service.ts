@@ -14,7 +14,7 @@ export class UserService {
     if (
       options &&
       options.shouldBeElderly !== undefined &&
-      ((user.is_elderly && !options.shouldBeElderly) || (!user.is_elderly && options.shouldBeElderly))
+      ((user.isElderly && !options.shouldBeElderly) || (!user.isElderly && options.shouldBeElderly))
     )
       throw new InvalidUserTypeException()
     return user
@@ -22,25 +22,25 @@ export class UserService {
   async addRelationship({ eid, cid }: UpdateRelationshipDto) {
     //TODO: validate uid from auth
     const caretaker = await this.findOne({ uid: cid }, { shouldBeElderly: false })
-    const elderly = await this.findOne({ uid: eid }, { relations: ['taken_care_by'], shouldBeElderly: true })
-    if (elderly.taken_care_by.find((currentCaretaker) => currentCaretaker.uid === cid))
+    const elderly = await this.findOne({ uid: eid }, { relations: ['takenCareBy'], shouldBeElderly: true })
+    if (elderly.takenCareBy.find((currentCaretaker) => currentCaretaker.uid === cid))
       throw new DuplicateRelationshipException()
-    elderly.taken_care_by.push(caretaker)
+    elderly.takenCareBy.push(caretaker)
     return await this.userRepository.save(elderly)
   }
   async removeRelationship({ eid, cid }: UpdateRelationshipDto) {
     //TODO: validate uid from auth
     await this.findOne({ uid: cid }, { shouldBeElderly: false })
-    const elderly = await this.findOne({ uid: eid }, { relations: ['taken_care_by'], shouldBeElderly: true })
-    elderly.taken_care_by = elderly.taken_care_by.filter((c) => c.uid !== cid)
+    const elderly = await this.findOne({ uid: eid }, { relations: ['takenCareBy'], shouldBeElderly: true })
+    elderly.takenCareBy = elderly.takenCareBy.filter((c) => c.uid !== cid)
     return await this.userRepository.save(elderly)
   }
   async findCaretakerByElderlyId(eid: number) {
-    const elderly = await this.findOne({ uid: eid }, { relations: ['taken_care_by'], shouldBeElderly: true })
-    return elderly.taken_care_by
+    const elderly = await this.findOne({ uid: eid }, { relations: ['takenCareBy'], shouldBeElderly: true })
+    return elderly.takenCareBy
   }
   async findElderlyByCaretakerId(cid: number) {
-    const caretaker = await this.findOne({ uid: cid }, { relations: ['taking_care_of'], shouldBeElderly: false })
-    return caretaker.taking_care_of
+    const caretaker = await this.findOne({ uid: cid }, { relations: ['takingCareOf'], shouldBeElderly: false })
+    return caretaker.takingCareOf
   }
 }
