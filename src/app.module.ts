@@ -5,6 +5,9 @@ import { AppService } from './app.service';
 import { ExamplesModule } from './examples/examples.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Connection } from 'typeorm';
+import { SettingController } from './setting/setting.controller';
+import { SettingService } from './setting/setting.service';
+import { SettingModule } from './setting/setting.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -22,9 +25,10 @@ import { Connection } from 'typeorm';
         synchronize: true,
       }),
     }),
+    SettingModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, SettingController],
+  providers: [AppService, SettingService],
 })
 export class AppModule {
   constructor(private connection: Connection) {}
