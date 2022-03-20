@@ -15,7 +15,7 @@ export class Reminder {
   rid: number;
 
   @Column({type: "date"})
-  starting_date: Date;
+  startingDate: Date;
 
   @Column()
   title: string;
@@ -24,16 +24,16 @@ export class Reminder {
   note: string;
 
   @Column()
-  is_remind_caretaker: boolean;
+  isRemindCaretaker: boolean;
 
   @Column({ default: 'Low'})
-  importance_level: string;
+  importanceLevel: string;
 
   @Column({ nullable: true })
   imageid: string;
 
   @Column()
-  is_done: boolean;
+  isDone: boolean;
 
   @ManyToOne(() => User, (user) => user.reminders, {
     onDelete: 'CASCADE',

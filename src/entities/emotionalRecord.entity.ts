@@ -1,15 +1,15 @@
 import { Entity, ManyToOne, Column, JoinColumn, PrimaryColumn } from 'typeorm';
 import { User } from './user.entity';
 
-@Entity({ name: 'Emotional_Record' })
-export class Emotional_Record {
+@Entity({ name: 'EmotionalRecord' })
+export class EmotionalRecord {
   @PrimaryColumn({ type: 'date' })
   date;
 
   @Column({length: 1})
-  emotional_level: string;
+  emotionalLevel: string;
 
-  @ManyToOne(() => User, (user) => user.emotional_records, {
+  @ManyToOne(() => User, (user) => user.emotionalRecords, {
     onUpdate: 'NO ACTION',
     onDelete: 'CASCADE',
     nullable: false,

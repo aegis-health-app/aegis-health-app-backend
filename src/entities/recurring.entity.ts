@@ -4,13 +4,13 @@ import { Reminder } from './reminder.entity';
 @Entity({name: 'Recurring'})
 export class Recurring {
   @PrimaryColumn({ default: 0 })
-  recurring_date_of_month: number;
+  recurringDateOfMonth: number;
 
   @PrimaryColumn({ default: 0})
-  recurring_day: number;
+  recurringDay: number;
 
   @PrimaryColumn({type: "time"})
-  recurring_time
+  recurringTime
 
   @ManyToOne(() => Reminder, (reminder) => reminder.recurrings, {
     onUpdate: 'NO ACTION',
