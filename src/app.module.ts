@@ -22,7 +22,6 @@ import { Connection } from 'typeorm';
         synchronize: true,
       }),
     }),
-    ExamplesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
