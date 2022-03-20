@@ -12,3 +12,9 @@ export class ElderlyHomeController {
         const elderly = await this.elderlyHomeService.getElderlyProfile(req.user.uid)
         return elderly
     }
+
+    @Get("/moduleList")
+    async getModuleList(): Promise<Module[]> {
+        const moduleList = await this.elderlyHomeService.getModuleList()
+        return moduleList
+    }

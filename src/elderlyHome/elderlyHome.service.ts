@@ -10,6 +10,8 @@ export class ElderlyHomeService {
     constructor(
         @InjectRepository(User)
         private userRepository: Repository<User>,
+        @InjectRepository(Module)
+        private moduleRepository : Repository<Module>,
     ) { }
 
     async findOne(uid: number): Promise<User> {
@@ -38,4 +40,8 @@ export class ElderlyHomeService {
                 return i.moduleid;
             })
         }
+    }
+
+    async getModuleList(): Promise<Module[]>{
+        return await this.moduleRepository.find()
     }
