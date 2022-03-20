@@ -18,7 +18,7 @@ import { Connection } from 'typeorm';
         password: process.env.DBPASSWORD,
         database: 'aegis',
         entities: ['dist/**/*.entity{.ts,.js}'],
-        synchronize: true,
+        synchronize: false,
       }),
     }),
   ],

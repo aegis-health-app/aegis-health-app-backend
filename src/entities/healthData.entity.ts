@@ -37,8 +37,8 @@ export class HealthData {
   )
   @JoinColumn([
     { name: 'columnId', referencedColumnName: 'columnId' },
+    { name: 'uid', referencedColumnName: 'uid' },
     { name: 'hrName', referencedColumnName: 'hrName' },
-    { name: 'uid', referencedColumnName: 'uid' }
   ])
   healthColumn: HealthColumn;
 }
