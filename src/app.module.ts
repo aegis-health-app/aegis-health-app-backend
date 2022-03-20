@@ -2,12 +2,10 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ExamplesModule } from './examples/examples.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Connection } from 'typeorm';
-import { SettingController } from './setting/setting.controller';
-import { SettingService } from './setting/setting.service';
 import { SettingModule } from './setting/setting.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -25,11 +23,11 @@ import { SettingModule } from './setting/setting.module';
         synchronize: true,
       }),
     }),
-    SettingModule,
+    SettingModule
   ],
-  controllers: [AppController, SettingController],
-  providers: [AppService, SettingService],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {
-  constructor(private connection: Connection) {}
+  constructor(private connection: Connection) { }
 }
