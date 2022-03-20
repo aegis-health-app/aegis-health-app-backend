@@ -84,8 +84,8 @@ export class User {
   })
   @JoinTable({
     name: 'Responsible_For',
-    joinColumn: { name: 'uid_elderly', referencedColumnName: 'uid' },
-    inverseJoinColumn: { name: 'uid_caretaker', referencedColumnName: 'uid' },
+    joinColumn: { name: 'uid_caretaker', referencedColumnName: 'uid' },
+    inverseJoinColumn: { name: 'uid_elderly', referencedColumnName: 'uid' },
   })
   taking_care_of: User[]
 
