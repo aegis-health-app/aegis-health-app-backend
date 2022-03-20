@@ -2,9 +2,11 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ExamplesModule } from './examples/examples.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Connection } from 'typeorm';
+import { ElderlyHomeController } from './elderlyHome/elderlyHome.controller';
+import { ElderlyHomeService } from './elderlyHome/elderlyHome.service';
+import { ElderlyHomeModule } from './elderlyHome/elderlyHome.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
