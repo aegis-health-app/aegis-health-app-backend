@@ -1,6 +1,6 @@
 import { Body, Controller, Put, Req, Res } from '@nestjs/common';
 import { SettingService } from './setting.service';
-import { ChangePasswordDto } from './dto/setting.dto';
+import { ChangePasswordDto, ChangePhoneNoDto } from './dto/setting.dto';
 
 @Controller('setting')
 export class SettingController {
@@ -8,7 +8,7 @@ export class SettingController {
   constructor(private readonly settingService: SettingService) { }
 
   @Put("/changePassword")
-  async changeUserPassword(@Body() passwordDto: ChangePasswordDto, @Req() req, @Res() res): Promise<string> { // string? 
+  async changeUserPassword(@Body() passwordDto: ChangePasswordDto, @Req() req, @Res() res): Promise<string> {
     await this.settingService.changeUserPassword(passwordDto, req.user.uid)
     return res.status(200).json({
       statusCode: 200,
@@ -16,11 +16,11 @@ export class SettingController {
     })
   }
   @Put("/changePhoneNumber")
-  async changePhoneNumber(@Body() password_dto: ChangePasswordDto, @Req() req, @Res() res): Promise<string> { // string? 
-    await this.settingService.changeUserPassword(password_dto, req.user.uid)
+  async changePhoneNumber(@Body() phoneDto: ChangePhoneNoDto, @Req() req, @Res() res): Promise<string> {
+    await this.settingService.changePhoneNumber(phoneDto, req.user.uid)
     return res.status(200).json({
       statusCode: 200,
-      message: "Changed password successfully"
+      message: "Changed phone number successfully"
     })
   }
 }

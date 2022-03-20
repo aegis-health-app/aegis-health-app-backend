@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity'
-import { ChangePasswordDto } from './dto/setting.dto';
+import { ChangePasswordDto, ChangePhoneNoDto } from './dto/setting.dto';
 import * as bcrypt from 'bcrypt'
 
 @Injectable()
@@ -30,6 +30,16 @@ export class SettingService {
     if (realOldPasswordHashed === newPasswordHashed)
       throw new HttpException("New password is the old password", HttpStatus.BAD_REQUEST)
     this.settingRepository.update(uid, { password: newPasswordHashed })
+    return true;
+  }
+
+  async changePhoneNumber(phoneDto: ChangePhoneNoDto, uid: number): Promise<boolean>  {
+    const oldPhoneNumber = (await this.findOne(uid)).phone
+    const newPhoneNumber = phoneDto.newPhone
+    if (oldPhoneNumber === newPhoneNumber)
+      throw new HttpException("Old phone number is the new phone number", HttpStatus.BAD_REQUEST)
+    // NEED TO CHECK FOR OTP LATER
+    this.settingRepository.update(uid, { phone: newPhoneNumber })
     return true;
   }
 }
