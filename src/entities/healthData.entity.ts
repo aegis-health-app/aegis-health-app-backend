@@ -6,28 +6,28 @@ import {
   Timestamp,
   JoinColumn,
 } from 'typeorm';
-import { Health_Column } from './healthColumn.entity';
+import { HealthColumn } from './healthColumn.entity';
 
-@Entity({ name: 'Health_Data' })
-export class Health_Data {
+@Entity({ name: 'HealthData' })
+export class HealthData {
   @PrimaryColumn({ type: 'datetime' })
   timestamp: Timestamp;
 
   @PrimaryColumn()
-  column_id: number;
+  columnId: number;
 
   @PrimaryColumn()
   uid: number;
 
   @PrimaryColumn()
-  hr_name: string;
+  hrName: string;
 
   @Column('float')
   value: number;
 
   @ManyToOne(
-    () => Health_Column,
-    (health_column) => health_column.health_data,
+    () => HealthColumn,
+    (healthColumn) => healthColumn.healthData,
     {
       onUpdate: 'NO ACTION',
       onDelete: 'CASCADE',
@@ -36,9 +36,9 @@ export class Health_Data {
     },
   )
   @JoinColumn([
-    { name: 'column_id', referencedColumnName: 'column_id' },
-    { name: 'hr_name', referencedColumnName: 'hr_name' },
+    { name: 'columnId', referencedColumnName: 'columnId' },
+    { name: 'hrName', referencedColumnName: 'hrName' },
     { name: 'uid', referencedColumnName: 'uid' },
   ])
-  health_column: Health_Column;
+  healthColumn: HealthColumn;
 }

@@ -7,29 +7,29 @@ import {
   JoinColumn,
   PrimaryColumn,
 } from 'typeorm';
-import { Health_Data } from './healthData.entity';
-import { Health_Record } from './healthRecord.entity';
+import { HealthData } from './healthData.entity';
+import { HealthRecord } from './healthRecord.entity';
 
-@Entity({ name: 'Health_Column' })
-export class Health_Column {
+@Entity({ name: 'HealthColumn' })
+export class HealthColumn {
   @PrimaryGeneratedColumn()
-  column_id: number;
+  columnId: number;
 
   @PrimaryColumn()
   uid: number;
 
   @PrimaryColumn()
-  hr_name: string;
+  hrName: string;
 
   @Column()
-  column_name: string;
+  columnName: string;
 
   @Column()
   unit: string;
 
   @ManyToOne(
-    () => Health_Record,
-    (health_record) => health_record.health_columns,
+    () => HealthRecord,
+    (healthRecord) => healthRecord.healthColumns,
     {
       onUpdate: 'NO ACTION',
       onDelete: 'CASCADE',
@@ -38,11 +38,11 @@ export class Health_Column {
     },
   )
   @JoinColumn([
-    { name: 'hr_name', referencedColumnName: 'hr_name' },
+    { name: 'hrName', referencedColumnName: 'hrName' },
     { name: 'uid', referencedColumnName: 'uid' },
   ])
-  health_record: Health_Record;
+  healthRecord: HealthRecord;
 
-  @OneToMany(() => Health_Data, (health_data) => health_data.health_column)
-  health_data: Health_Data[];
+  @OneToMany(() => HealthData, (healthData) => healthData.healthColumn)
+  healthData: HealthData[];
 }
