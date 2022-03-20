@@ -24,6 +24,7 @@ import { ElderlyHomeModule } from './elderlyHome/elderlyHome.module';
         synchronize: true,
       }),
     }),
+    ElderlyHomeModule,
   ],
   controllers: [AppController],
   providers: [AppService],
