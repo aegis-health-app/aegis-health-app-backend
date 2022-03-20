@@ -7,6 +7,7 @@ import { Connection } from 'typeorm';
 import { UserModule } from './user/user.module';
 import { HomeModule } from './home/home.module';
 import { OtpModule } from './otp/otp.module'
+import { LinkModule } from './link/link.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { OtpModule } from './otp/otp.module'
     HomeModule,
     OtpModule,
     UserModule,
+    LinkModule
   ],
   controllers: [AppController],
   providers: [AppService],
