@@ -7,7 +7,7 @@ export class OtpDTO {
     @IsString()
     token: String
 
-    @ApiProperty({minLength: 4, maxLength: 4})
+    @ApiProperty({minLength: 6, maxLength: 6})
     @IsString()
     pin: String
 }
