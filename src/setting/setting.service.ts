@@ -12,6 +12,7 @@ export class SettingService {
   constructor(
     @InjectRepository(User)
     private settingRepository: Repository<User>,
+    private authController: AuthController,
   ) { }
 
   async findOne(uid: number): Promise<User> {
@@ -39,8 +40,7 @@ export class SettingService {
     const newPhoneNumber = phoneDto.newPhone
     if (oldPhoneNumber === newPhoneNumber)
       throw new HttpException("Old phone number is the new phone number", HttpStatus.BAD_REQUEST)
-    // NEED TO CHECK FOR OTP LATER
-    const otpVerified = verifyOTP(token, phoneDto.enteredPin)
+    const otpVerified = this.authController.verifyOTP(token, phoneDto.enteredPin)
     if (!otpVerified)
       throw new HttpException("PIN entered is incorrect", HttpStatus.BAD_REQUEST)
     this.settingRepository.update(uid, { phone: newPhoneNumber })
