@@ -1,6 +1,6 @@
 import { HttpStatus, HttpException, Injectable } from '@nestjs/common'
 @Injectable()
-export class AuthService {
+export class OtpService {
   async getOtp(phoneNumber: string) {
     // try {
     //   const sdk = require('api')('@thaibulksms/v1.0#3s3hunt2tktwn9w2l')
