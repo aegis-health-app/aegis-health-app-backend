@@ -10,8 +10,8 @@ export class InvalidUserTypeException extends HttpException {
     super('Invalid user type', HttpStatus.BAD_REQUEST)
   }
 }
-export class DuplicateRelationshipException extends HttpException {
-  constructor() {
-    super('Relationship already exist', HttpStatus.BAD_REQUEST)
+export class DuplicateElementException extends HttpException {
+  constructor(element: string) {
+    super(`${element} already exists`, HttpStatus.BAD_REQUEST)
   }
 }

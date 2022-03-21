@@ -5,6 +5,7 @@ import { AppService } from './app.service'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { Connection } from 'typeorm'
 import { OtpModule } from './otp/otp.module'
+import { UserModule } from './user/user.module'
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -23,6 +24,7 @@ import { OtpModule } from './otp/otp.module'
       }),
     }),
     OtpModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],

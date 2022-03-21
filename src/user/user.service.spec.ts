@@ -2,8 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { getRepositoryToken } from '@nestjs/typeorm'
 import { User } from '../entities/user.entity'
 import { MockType, repositoryMockFactory } from '../utils/mock.repository'
-import { EntitySchema, Repository } from 'typeorm'
-import { DuplicateRelationshipException, InvalidUserTypeException, UserNotFoundException } from './user.exception'
+import { Repository } from 'typeorm'
+import { DuplicateElementException, InvalidUserTypeException, UserNotFoundException } from './user.exception'
 import { UserService } from './user.service'
 import { resolveSoa } from 'dns'
 describe('UserService', () => {
@@ -27,41 +27,45 @@ describe('UserService', () => {
     repositoryMock = module.get(getRepositoryToken(User))
   })
   describe('findOne', () => {
-    it('should return user when user is found and pass type constraint', async () => {
+    it('should return user when passing all constraints', async () => {
       repositoryMock.findOne.mockReturnValue(mockElderly[0])
       await expect(service.findOne({ uid: mockElderly[0].uid })).resolves.toBe(mockElderly[0])
-      expect(repositoryMock.findOne).toHaveBeenCalledWith({ uid: mockElderly[0].uid }, undefined)
 
       repositoryMock.findOne.mockReturnValue(mockCaretakers[0])
-      await expect(service.findOne({ uid: mockCaretakers[0].uid })).resolves.toBe(mockCaretakers[0])
-      expect(repositoryMock.findOne).toHaveBeenCalledWith({ uid: mockCaretakers[0].uid }, undefined)
+      await expect(service.findOne({ uid: mockCaretakers[0].uid }, { shouldExist: true })).resolves.toBe(
+        mockCaretakers[0]
+      )
 
       repositoryMock.findOne.mockReturnValue(mockElderly[1])
       await expect(service.findOne({ uid: mockElderly[1].uid }, { shouldBeElderly: true })).resolves.toBe(
         mockElderly[1]
       )
-      expect(repositoryMock.findOne).toHaveBeenCalledWith({ uid: mockElderly[1].uid }, { shouldBeElderly: true })
-    })
-    it('should throw user not found exception when user is not found', async () => {
+
+      repositoryMock.findOne.mockReturnValue(mockElderly[1])
+      await expect(
+        service.findOne({ uid: mockElderly[1].uid }, { shouldBeElderly: true, shouldExist: true })
+      ).resolves.toBe(mockElderly[1])
+
       repositoryMock.findOne.mockReturnValue(undefined)
-      await expect(service.findOne({ uid: mockElderly[0].uid })).rejects.toThrowError(UserNotFoundException)
-      expect(repositoryMock.findOne).toHaveBeenCalledWith({ uid: mockElderly[0].uid }, undefined)
+      await expect(service.findOne({ uid: 99 }, { shouldExist: false })).resolves.toBe(undefined)
+    })
+    it('should throw user not found exception when result doesnt pass exist constraint', async () => {
+      repositoryMock.findOne.mockReturnValue(undefined)
+      await expect(service.findOne({ uid: 99 }, { shouldExist: true })).rejects.toThrowError(UserNotFoundException)
     })
     it('should throw invalid user type exception when user does not pass type constraint', async () => {
       repositoryMock.findOne.mockReturnValue(mockElderly[0])
       await expect(service.findOne({ uid: mockElderly[0].uid }, { shouldBeElderly: false })).rejects.toThrowError(
         InvalidUserTypeException
       )
-      expect(repositoryMock.findOne).toHaveBeenCalledWith({ uid: mockElderly[0].uid }, { shouldBeElderly: false })
 
       repositoryMock.findOne.mockReturnValue(mockCaretakers[0])
       await expect(service.findOne({ uid: mockCaretakers[0].uid }, { shouldBeElderly: true })).rejects.toThrowError(
         InvalidUserTypeException
       )
-      expect(repositoryMock.findOne).toHaveBeenCalledWith({ uid: mockCaretakers[0].uid }, { shouldBeElderly: true })
     })
   })
-  describe('addRelationship', () => {
+  describe('createRelationship', () => {
     beforeEach(() => {
       mockElderly[0].taken_care_by = [mockCaretakers[0], mockCaretakers[1]]
       mockElderly[1].taken_care_by = [mockCaretakers[0]]
@@ -74,7 +78,7 @@ describe('UserService', () => {
       repositoryMock.findOne.mockReturnValueOnce(mockElderly[2])
       repositoryMock.save.mockReturnValueOnce(true)
       await expect(
-        service.addRelationship({ eid: mockElderly[2].uid, cid: mockCaretakers[0].uid })
+        service.createRelationship({ eid: mockElderly[2].uid, cid: mockCaretakers[0].uid })
       ).resolves.toBeTruthy()
     })
     it('should throw dupliate relationship error when elderly is already taken care by the caretaker', async () => {
@@ -82,8 +86,8 @@ describe('UserService', () => {
       repositoryMock.findOne.mockReturnValueOnce(mockElderly[0])
       repositoryMock.save.mockReturnValueOnce(true)
       await expect(
-        service.addRelationship({ eid: mockElderly[0].uid, cid: mockCaretakers[0].uid })
-      ).rejects.toThrowError(DuplicateRelationshipException)
+        service.createRelationship({ eid: mockElderly[0].uid, cid: mockCaretakers[0].uid })
+      ).rejects.toThrowError(DuplicateElementException)
     })
   })
 })
