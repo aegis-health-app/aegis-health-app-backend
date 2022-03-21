@@ -8,6 +8,7 @@ import { UserModule } from './user/user.module';
 import { HomeModule } from './home/home.module';
 import { OtpModule } from './otp/otp.module'
 import { LinkModule } from './link/link.module';
+import { SettingModule } from './setting/setting.module';
 
 @Module({
   imports: [
@@ -31,7 +32,8 @@ import { LinkModule } from './link/link.module';
     HomeModule,
     OtpModule,
     UserModule,
-    LinkModule
+    LinkModule,
+    SettingModule
   ],
   controllers: [AppController],
   providers: [AppService],
