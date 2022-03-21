@@ -6,10 +6,10 @@ import {
   JoinColumn,
   PrimaryColumn,
 } from 'typeorm';
-import { Memory_Practice_Question } from './memoryPracticeQuestion.entity';
+import { MemoryPracticeQuestion } from './memoryPracticeQuestion.entity';
 
-@Entity({ name: 'Multiple_Choice_Question' })
-export class Multiple_Choice_Question {
+@Entity({ name: 'MultipleChoiceQuestion' })
+export class MultipleChoiceQuestion {
   @Column()
   choice1: string;
 
@@ -23,17 +23,17 @@ export class Multiple_Choice_Question {
   choice4: string;
 
   @Column()
-  correct_answer: string;
+  correctAnswer: string;
 
   @PrimaryColumn()
   mid: string;
 
   @OneToOne(
-    () => Memory_Practice_Question,
-    (memory_practice_question) =>
-      memory_practice_question.multiple_choice_question,
+    () => MemoryPracticeQuestion,
+    (memoryPracticeQuestion) =>
+      memoryPracticeQuestion.multipleChoiceQuestion,
     { primary: true, onUpdate: 'NO ACTION', onDelete: 'CASCADE' },
   )
   @JoinColumn({ name: 'mid', referencedColumnName: 'mid' })
-  memory_practice_question: Memory_Practice_Question;
+  memoryPracticeQuestion: MemoryPracticeQuestion;
 }

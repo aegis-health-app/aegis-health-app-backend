@@ -1,8 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany, JoinTable } from 'typeorm'
-import { Emotional_Record } from './emotionalRecord.entity'
-import { Health_Record } from './healthRecord.entity'
-import { Memory_Practice_Answer } from './memoryPracticeAnswer.entity'
-import { Memory_Practice_Question } from './memoryPracticeQuestion.entity'
+import { EmotionalRecord } from './emotionalRecord.entity'
+import { HealthRecord } from './healthRecord.entity'
+import { MemoryPracticeAnswer } from './memoryPracticeAnswer.entity'
+import { MemoryPracticeQuestion } from './memoryPracticeQuestion.entity'
 import { Module } from './module.entity'
 import { Reminder } from './reminder.entity'
 
@@ -36,16 +36,16 @@ export class User {
   gender: string
 
   @Column()
-  is_elderly: boolean
+  isElderly: boolean
 
   @Column({ nullable: true })
-  health_condition: string
+  healthCondition: string
 
   @Column({ nullable: true, length: 2 })
-  blood_type: string
+  bloodType: string
 
   @Column({ nullable: true })
-  personal_medication: string
+  personalMedication: string
 
   @Column({ nullable: true })
   allergy: string
@@ -56,14 +56,14 @@ export class User {
   @OneToMany(() => Reminder, (reminder) => reminder.user)
   reminders: Reminder[]
 
-  @OneToMany(() => Emotional_Record, (emotional_record) => emotional_record.user)
-  emotional_records: Emotional_Record[]
+  @OneToMany(() => EmotionalRecord, (emotionalRecord) => emotionalRecord.user)
+  emotionalRecords: EmotionalRecord[]
 
-  @OneToMany(() => Memory_Practice_Question, (memory_practice_question) => memory_practice_question.users)
-  memory_practice_questions: Memory_Practice_Answer[]
+  @OneToMany(() => MemoryPracticeQuestion, (memoryPracticeQuestion) => memoryPracticeQuestion.users)
+  memoryPracticeQuestions: MemoryPracticeAnswer[]
 
-  @OneToMany(() => Health_Record, (health_record) => health_record.user)
-  health_records: Health_Record[]
+  @OneToMany(() => HealthRecord, (healthRecord) => healthRecord.user)
+  healthRecords: HealthRecord[]
 
   @ManyToMany((type) => Module, (module) => module.users, {
     onUpdate: 'NO ACTION',
@@ -77,22 +77,22 @@ export class User {
   })
   modules: Module[]
 
-  @ManyToMany((type) => User, (taking_care_of) => taking_care_of.taken_care_by, {
+  @ManyToMany((type) => User, (takingCareOf) => takingCareOf.takenCareBy, {
     onUpdate: 'NO ACTION',
     onDelete: 'CASCADE',
     nullable: false,
   })
   @JoinTable({
-    name: 'Responsible_For',
-    joinColumn: { name: 'uid_caretaker', referencedColumnName: 'uid' },
-    inverseJoinColumn: { name: 'uid_elderly', referencedColumnName: 'uid' },
+    name: 'ResponsibleFor',
+    joinColumn: { name: 'uidCaretaker', referencedColumnName: 'uid' },
+    inverseJoinColumn: { name: 'uidElderly', referencedColumnName: 'uid' },
   })
-  taking_care_of: User[]
+  takingCareOf: User[]
 
-  @ManyToMany((type) => User, (taken_care_by) => taken_care_by.taking_care_of, {
+  @ManyToMany((type) => User, (takenCareBy) => takenCareBy.takingCareOf, {
     onUpdate: 'NO ACTION',
     onDelete: 'CASCADE',
     nullable: false,
   })
-  taken_care_by: User[]
+  takenCareBy: User[]
 }
