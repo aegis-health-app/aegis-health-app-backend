@@ -16,6 +16,13 @@ export class ElderlyHomeService {
 
     async findOne(uid: number): Promise<User> {
         return await this.userRepository.findOne({ uid: uid });
+    
+    showName(user: User): string {
+        if (user.dname != null) {
+            return user.dname
+        } else {
+            return user.fname
+        }
     }
 
     async getElderlyProfile(uid: number): Promise<ElderlyHome> {
@@ -86,4 +93,29 @@ export class ElderlyHomeService {
         return selectedModuleList.modules.map(function (i) {
             return i.moduleid;
         })
+    }
+
+    async getCaretakerHome(uid: number): Promise<CaretakerHome> {
+        const caretaker = await this.userRepository.findOne({ uid: uid }, {
+            relations: ["takingCareOf"]
+        })
+
+        if(!caretaker){
+            throw new HttpException("This user doesn't exist", HttpStatus.BAD_REQUEST)
+        }
+
+        const temShowName = this.showName
+        const elderlyList =  caretaker.takingCareOf.map(function (elderly) {
+            return {
+                uid: elderly.uid,
+                dname: temShowName(elderly),
+                imageid: elderly.imageid
+            }
+        })
+
+        return {
+            dname: this.showName(caretaker),
+            imageid: caretaker.imageid,
+            listElderly: elderlyList
+        }
     }
