@@ -10,8 +10,25 @@ export class LinkService {
     constructor(
         @InjectRepository(User)
         private userRepository: Repository<User>,
-
     ) {}
+
+    async getElderly(uid: number): Promise<UserInfo>{
+        const elderly = await this.userRepository.findOne({uid, isElderly: true});
+        if(elderly){
+            delete elderly.password;
+            return elderly;
+        }
+        throw new HttpException('Invalid uid', HttpStatus.BAD_REQUEST);
+    }
+
+    async getCaretaker(uid: number): Promise<UserInfo>{
+        const caretaker = await this.userRepository.findOne({uid, isElderly: false});
+        if(caretaker){
+            delete caretaker.password;
+            return caretaker;
+        }
+        throw new HttpException('Invalid uid', HttpStatus.BAD_REQUEST);
+    }
 
     async getElderlyCode(uid: number): Promise<ElderlyCode> { //figure out response format
         const user = await this.userRepository.findOne({uid});
@@ -22,28 +39,10 @@ export class LinkService {
                 const code = hashids.encode(uid);
                 return {code};
             } else{
-                throw new HttpException('invalid elderly id', HttpStatus.BAD_REQUEST);
+                throw new HttpException('Invalid elderly id', HttpStatus.BAD_REQUEST);
             }
         } else {
-            throw new HttpException('invalid elderly id', HttpStatus.BAD_REQUEST);
+            throw new HttpException('Invalid elderly id', HttpStatus.BAD_REQUEST);
         }
-    }
-
-    async getElderly(uid: number): Promise<UserInfo>{
-        const elderly = await this.userRepository.findOne({uid, isElderly: true});
-        if(elderly){
-            delete elderly.password;
-            return elderly;
-        }
-        throw new HttpException('invalid uid', HttpStatus.BAD_REQUEST);
-    }
-
-    async getCaretaker(uid: number): Promise<UserInfo>{
-        const caretaker = await this.userRepository.findOne({uid, isElderly: false});
-        if(caretaker){
-            delete caretaker.password;
-            return caretaker;
-        }
-        throw new HttpException('invalid uid', HttpStatus.BAD_REQUEST);
     }
 }
