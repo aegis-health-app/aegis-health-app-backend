@@ -1,7 +1,7 @@
 import { Body, Controller, Put, Req, Res } from '@nestjs/common';
 import { SettingService } from './setting.service';
 import { ChangePasswordDto, ChangePhoneNoDto } from './dto/setting.dto';
-import { ApiParam, ApiBody, ApiOkResponse, ApiUnauthorizedResponse, ApiBadRequestResponse } from '@nestjs/swagger'
+import { ApiBody, ApiOkResponse, ApiUnauthorizedResponse } from '@nestjs/swagger'
 
 @Controller('setting')
 export class SettingController {
