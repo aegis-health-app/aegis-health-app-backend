@@ -9,7 +9,7 @@ import { HomeModule } from './home/home.module';
 import { OtpModule } from './otp/otp.module'
 import { LinkModule } from './link/link.module';
 import { SettingModule } from './setting/setting.module';
-import { OtpModule } from './dto/otp.module';
+import { OtpModule } from './otp/otp.module';
 
 @Module({
   imports: [
