@@ -8,7 +8,6 @@ import { plainToInstance } from 'class-transformer'
 
 @Injectable()
 export class UserService {
-  private salt = 10
   constructor(@InjectRepository(User) private userRepository: Repository<User>) {}
   schemaToDto(schema: User, dtoClass?: IDto<Partial<Omit<User, 'password'>> & { uid: number }>) {
     return plainToInstance(dtoClass, schema, { excludeExtraneousValues: true })
