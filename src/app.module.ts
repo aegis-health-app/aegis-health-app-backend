@@ -4,13 +4,13 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Connection } from 'typeorm';
-import { ElderlyHomeController } from './elderlyHome/elderlyHome.controller';
-import { ElderlyHomeService } from './elderlyHome/elderlyHome.service';
 import { ElderlyHomeModule } from './elderlyHome/elderlyHome.module';
+import { OtpModule } from './otp/otp.module'
+
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true
+      isGlobal: true,
     }),
     TypeOrmModule.forRootAsync({
       useFactory: () => ({
@@ -25,6 +25,7 @@ import { ElderlyHomeModule } from './elderlyHome/elderlyHome.module';
       }),
     }),
     ElderlyHomeModule,
+    OtpModule,
   ],
   controllers: [AppController],
   providers: [AppService],
