@@ -12,13 +12,20 @@ export class LinkService {
         private userRepository: Repository<User>,
     ) {}
 
-    async getElderly(uid: number): Promise<UserInfo>{
-        const elderly = await this.userRepository.findOne({uid, isElderly: true});
+    async getElderly(elderlyCode: string): Promise<UserInfo>{
+        const hashids = new Hashids('aegis', 6, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890');
+        const eid = hashids.decode(elderlyCode)[0];
+        const elderly = await this.userRepository.findOne({
+            where: {
+                uid: eid,
+                isElderly: true
+            }
+        })
         if(elderly){
             delete elderly.password;
             return elderly;
         }
-        throw new HttpException('Invalid uid', HttpStatus.BAD_REQUEST);
+        throw new HttpException('Invalid elderlyCode', HttpStatus.BAD_REQUEST);
     }
 
     async getCaretaker(uid: number): Promise<UserInfo>{
@@ -45,4 +52,5 @@ export class LinkService {
             throw new HttpException('Invalid elderly id', HttpStatus.BAD_REQUEST);
         }
     }
+
 }
