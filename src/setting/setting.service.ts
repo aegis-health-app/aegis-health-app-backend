@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity'
 import { ChangePasswordDto, ChangePhoneNoDto } from './dto/setting.dto';
 import * as bcrypt from 'bcrypt'
-import { OtpService } from '../dto/otp.service'
+import { OtpService } from '../otp/otp.service'
 
 @Injectable()
 export class SettingService {
