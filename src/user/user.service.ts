@@ -47,7 +47,7 @@ export class UserService {
       { relations: ['takenCareBy'], shouldBeElderly: true, shouldExist: true }
     )
     const newCaretakers = elderly.takenCareBy.filter((c) => c.uid !== cid)
-    return await this.userRepository.save({ uid: elderly.uid, ...elderly, takenCareBy: newCaretakers })
+    return await this.userRepository.save({ ...elderly, takenCareBy: newCaretakers })
   }
   async findCaretakerByElderlyId(uid: number): Promise<User[]> {
     const elderly = await this.findOne(
