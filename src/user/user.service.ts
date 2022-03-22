@@ -2,17 +2,15 @@ import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { User } from '../entities/user.entity'
 import { FindConditions, FindOneOptions, Repository } from 'typeorm'
-import { UpdateRelationshipDto, CreateUserDto, GetUserDto } from './dto/user.dto'
+import { UpdateRelationshipDto, CreateUserDto, IDto } from './dto/user.dto'
 import { DuplicateElementException, InvalidUserTypeException, UserNotFoundException } from './user.exception'
+import { plainToInstance } from 'class-transformer'
 
 @Injectable()
 export class UserService {
   constructor(@InjectRepository(User) private userRepository: Repository<User>) {}
-  schemaToDto(schema: User): GetUserDto {
-    //remove sensitive data
-    const dto = { ...schema }
-    delete dto.password
-    return dto
+  schemaToDto(schema: User, dtoClass?: IDto<Partial<Omit<User, 'password'>> & { uid: number }>) {
+    return plainToInstance(dtoClass, schema, { excludeExtraneousValues: true })
   }
   async findOne(
     conditions: FindConditions<User>,
@@ -77,7 +75,7 @@ export class UserService {
       takingCareOf: [],
       takenCareBy: [],
     })
-    return (await this.userRepository.insert(user)).identifiers.map((i) => i.uid)
+    return (await this.userRepository.insert(user)).identifiers.map((i) => ({ uid: i.uid }))
   }
   async updateUser({ uid, ...newInfo }: Partial<User>): Promise<User> {
     const { uid: foundUid } = await this.findOne({ uid: uid }, { shouldExist: true })
