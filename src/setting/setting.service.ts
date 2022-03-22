@@ -4,15 +4,15 @@ import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity'
 import { ChangePasswordDto, ChangePhoneNoDto } from './dto/setting.dto';
 import * as bcrypt from 'bcrypt'
-import { AuthController } from '../auth/auth.controller.ts' 
+import { OtpService } from '../dto/otp.service'
 
 @Injectable()
 export class SettingService {
 
   constructor(
+    private authService: OtpService,
     @InjectRepository(User)
     private settingRepository: Repository<User>,
-    private authController: AuthController,
   ) { }
 
   async findOne(uid: number): Promise<User> {
@@ -40,7 +40,7 @@ export class SettingService {
     const newPhoneNumber = phoneDto.newPhone
     if (oldPhoneNumber === newPhoneNumber)
       throw new HttpException("Old phone number is the new phone number", HttpStatus.BAD_REQUEST)
-    const otpVerified = this.authController.verifyOTP(token, phoneDto.enteredPin)
+    const otpVerified = this.authService.verifyOtp(token, phoneDto.enteredPin)
     if (!otpVerified)
       throw new HttpException("PIN entered is incorrect", HttpStatus.BAD_REQUEST)
     this.settingRepository.update(uid, { phone: newPhoneNumber })
