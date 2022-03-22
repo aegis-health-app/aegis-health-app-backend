@@ -4,7 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Connection } from 'typeorm';
-import { ElderlyHomeModule } from './elderlyHome/elderlyHome.module';
+import { HomeModule } from './home/home.module';
 import { OtpModule } from './otp/otp.module'
 
 @Module({
@@ -24,7 +24,7 @@ import { OtpModule } from './otp/otp.module'
         synchronize: false,
       }),
     }),
-    ElderlyHomeModule,
+    HomeModule,
     OtpModule,
   ],
   controllers: [AppController],
