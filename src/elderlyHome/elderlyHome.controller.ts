@@ -23,3 +23,9 @@ export class ElderlyHomeController {
         const selectedModule = await this.homeService.deleteModule(req.user.uid, moduleid)
         return selectedModule
     }
+
+    @Post('/module')
+    async addSelectedModule(@Req() req, @Body() moduleid: number): Promise<number[]> {
+        const selectedModule = await this.homeService.addModule(req.user.uid, moduleid)
+        return selectedModule
+    }
