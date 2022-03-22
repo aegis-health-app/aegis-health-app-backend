@@ -1,10 +1,7 @@
-import { Controller, Get, Post, Body, Param, Delete, UsePipes, ValidationPipe, Put, HttpCode } from '@nestjs/common'
+import { Controller, Get, Post, Body, Param, Delete, UsePipes, ValidationPipe, HttpCode } from '@nestjs/common'
 import { UserService } from './user.service'
-import { CreateUserResponse, UserDto, UpdateRelationshipDto, GetUserRequest } from './dto/user.dto'
-import { CreateUserDto } from './dto/user.dto'
-import { ApiBadRequestResponse, ApiOkResponse, refs } from '@nestjs/swagger'
-import { PersonalInfo } from './user.interface'
-import { plainToInstance } from 'class-transformer'
+import { UserDto, UpdateRelationshipDto } from './dto/user.dto'
+import { ApiBadRequestResponse, ApiOkResponse } from '@nestjs/swagger'
 
 @Controller('user')
 export class UserController {
@@ -16,21 +13,6 @@ export class UserController {
     //TODO: Get uid from token
     const user = await this.userService.findOne({ uid }, { shouldExist: true })
     return this.userService.schemaToDto(user, UserDto)
-  }
-  @Put()
-  @ApiOkResponse({ type: UserDto })
-  @UsePipes(new ValidationPipe({ transform: true, transformOptions: { excludeExtraneousValues: true } }))
-  async updatePersonalInfo(@Body() body: UserDto) {
-    const updatedUser = await this.userService.updateUser(body)
-    return this.userService.schemaToDto(updatedUser, UserDto)
-  }
-  @Post()
-  @HttpCode(201)
-  @ApiOkResponse({ type: CreateUserResponse })
-  @ApiBadRequestResponse({ description: 'Phone number already exists' })
-  @UsePipes(new ValidationPipe({ transform: true }))
-  async createUser(@Body() body: CreateUserDto) {
-    return await this.userService.createUser(body)
   }
   @Get('/relationship/caretaker/:eid')
   @ApiOkResponse({ type: [UserDto] })
