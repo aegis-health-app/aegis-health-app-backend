@@ -25,24 +25,18 @@ export class ElderlyHomeService {
         }
     }
 
-    async getElderlyProfile(uid: number): Promise<ElderlyHome> {
-        const user = await this.findOne(uid)
+    async getElderlyHome(uid: number): Promise<ElderlyHome> {
+        const user = await this.userRepository.findOne({ uid: uid });
         if(!user){
             throw new HttpException("This user doesn't exist", HttpStatus.BAD_REQUEST)
         }
         const selectedModuleList = await this.userRepository.findOne({ uid: uid }, {
             relations: ["Selected"]
         })
-        let dname = ""
-        if (user.dname != null) {
-            dname = user.dname
-        } else {
-            dname = user.fname
-        }
 
         return {
-            dname: dname,
-            imageid: user.blood_type,
+            dname: this.showName(user),
+            imageid: user.imageid,
             listModuleid: selectedModuleList.modules.map(function (i) {
                 return i.moduleid;
             })
