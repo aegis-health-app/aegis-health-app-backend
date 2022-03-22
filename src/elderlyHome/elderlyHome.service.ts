@@ -52,6 +52,7 @@ export class ElderlyHomeService {
     async getModuleList(): Promise<Module[]>{
         return await this.moduleRepository.find()
     }
+
     async deleteModule(uid: number, moduleid: number): Promise<number[]>{
         let selectedModuleList = await this.userRepository.findOne({ uid: uid }, {
             relations: ["Selected"]
@@ -71,6 +72,7 @@ export class ElderlyHomeService {
             return i.moduleid;
         })
     }
+
     async addModule(uid: number, moduleid: number): Promise<number[]>{
         let selectedModuleList = await this.userRepository.findOne({ uid: uid }, {
             relations: ["Selected"]
@@ -119,3 +121,36 @@ export class ElderlyHomeService {
             listElderly: elderlyList
         }
     }
+
+    async getElderlyInfo(cid: number, eid: number): Promise<ElderlyInfo>{
+        const elderly = await this.userRepository.findOne({ uid: eid }, {
+            relations: ["takenCareBy", "Selected"]
+        })
+
+        const caretaker = elderly.takenCareBy.filter(function (caretaker) {
+            return caretaker.uid === cid;
+        })
+
+        if( !caretaker){
+            throw new HttpException("This caretaker doesn't take care this elderly", HttpStatus.BAD_REQUEST)
+        }
+
+        return {
+            imageid: elderly.imageid,
+            fname: elderly.fname,
+            lname: elderly.lname,
+            dname: elderly.dname,
+            gender: elderly.gender,
+            bday: elderly.bday,
+            healthCondition: elderly.healthCondition,
+            bloodType: elderly.bloodType,
+            personalMedication: elderly.personalMedication,
+            allergy: elderly.allergy,
+            vaccine: elderly.vaccine,
+            phone: elderly.phone,
+            listModuleid: elderly.modules.map(function (i) {
+                return i.moduleid;
+            })
+        }
+    }
+}
