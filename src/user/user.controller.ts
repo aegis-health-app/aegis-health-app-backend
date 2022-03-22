@@ -16,7 +16,7 @@ export class UserController {
   }
   @Get('/relationship/caretaker/:eid')
   @ApiOkResponse({ type: [UserDto] })
-  @ApiBadRequestResponse({ description: 'User not found' })
+  @ApiBadRequestResponse({ description: 'User not found OR Invalid user type' })
   async getCaretakersByElderlyId(@Param('eid') eid: number) {
     //TODO: Get uid from token
     const users = await this.userService.findCaretakerByElderlyId(eid)
@@ -24,7 +24,7 @@ export class UserController {
   }
   @Get('/relationship/elderly/:cid')
   @ApiOkResponse({ type: [UserDto] })
-  @ApiBadRequestResponse({ description: 'User not found' })
+  @ApiBadRequestResponse({ description: 'User not found OR Invalid user type' })
   async getElderlyByCaretakerId(@Param('cid') cid: number) {
     //TODO: Get uid from token
     const users = await this.userService.findElderlyByCaretakerId(cid)
@@ -32,7 +32,7 @@ export class UserController {
   }
   @Post('relationship')
   @HttpCode(201)
-  @ApiBadRequestResponse({ description: 'Relatioship already exists' })
+  @ApiBadRequestResponse({ description: 'User not found OR Invalid user type' })
   @ApiOkResponse({ type: UserDto })
   @UsePipes(new ValidationPipe({ transform: true }))
   async createRelationship(@Body() body: UpdateRelationshipDto) {
@@ -41,6 +41,7 @@ export class UserController {
   }
   @Delete('relationship')
   @ApiOkResponse({ type: UserDto })
+  @ApiBadRequestResponse({ description: 'User not found OR Invalid user type' })
   @UsePipes(new ValidationPipe({ transform: true }))
   async deleteRelationship(@Body() body: UpdateRelationshipDto) {
     const updatedUser = await this.userService.deleteRelationship(body)
