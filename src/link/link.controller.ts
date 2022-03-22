@@ -18,11 +18,11 @@ export class LinkController {
     }
 
     
-    @Get('/elderly/:uid')
+    @Get('/elderly/:elderlycode')
     @ApiOkResponse({ type: UserInfoDto })
-    @ApiBadRequestResponse({ description: 'Invalid uid'})
-    async getElderly(@Param('uid') uid:number){
-        return this.linkService.getElderly(uid);
+    @ApiBadRequestResponse({ description: 'Invalid elderlycode'})
+    async getElderly(@Param('elderlycode') elderlyCode:string){
+        return this.linkService.getElderly(elderlyCode);
     }
 
     @Get('/caretaker/:uid')
