@@ -18,3 +18,8 @@ export class ElderlyHomeController {
         const moduleList = await this.elderlyHomeService.getModuleList()
         return moduleList
     }
+    @Delete("/module")
+    async deleteSelectedModule(@Req() req, @Body() moduleid: number): Promise<number[]> {
+        const selectedModule = await this.homeService.deleteModule(req.user.uid, moduleid)
+        return selectedModule
+    }
