@@ -3,19 +3,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Module } from 'src/entities/module.entity';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity'
-import { ElderlyHome } from './interface/elderlyHome.interface';
+import { CaretakerHome, ElderlyHome, ElderlyInfo } from './interface/home.interface';
 
 @Injectable()
-export class ElderlyHomeService {
+export class HomeService {
     constructor(
         @InjectRepository(User)
         private userRepository: Repository<User>,
         @InjectRepository(Module)
         private moduleRepository : Repository<Module>,
     ) { }
-
-    async findOne(uid: number): Promise<User> {
-        return await this.userRepository.findOne({ uid: uid });
     
     showName(user: User): string {
         if (user.dname != null) {
