@@ -45,3 +45,22 @@ export class ElderlyHomeService {
     async getModuleList(): Promise<Module[]>{
         return await this.moduleRepository.find()
     }
+    async deleteModule(uid: number, moduleid: number): Promise<number[]>{
+        let selectedModuleList = await this.userRepository.findOne({ uid: uid }, {
+            relations: ["Selected"]
+        })
+
+        if(!selectedModuleList){
+            throw new HttpException("This user doesn't exist", HttpStatus.BAD_REQUEST)
+        }
+        
+        selectedModuleList.modules = selectedModuleList.modules.filter(function(i) {
+            return i.moduleid !== moduleid
+        })
+
+        await this.userRepository.save(selectedModuleList)
+
+        return selectedModuleList.modules.map(function (i) {
+            return i.moduleid;
+        })
+    }
