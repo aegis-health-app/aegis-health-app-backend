@@ -29,3 +29,8 @@ export class ElderlyHomeController {
         const selectedModule = await this.homeService.addModule(req.user.uid, moduleid)
         return selectedModule
     }
+    @Get('/caretakerHome')
+    async getCaretakerHome(@Req() req): Promise<CaretakerHomeDTO> {
+        const elderly = await this.homeService.getCaretakerHome(req.user.uid)
+        return elderly
+    }
