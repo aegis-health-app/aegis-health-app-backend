@@ -10,7 +10,7 @@ import { OtpService } from '../dto/otp.service'
 export class SettingService {
 
   constructor(
-    private authService: OtpService,
+    private otpService: OtpService,
     @InjectRepository(User)
     private settingRepository: Repository<User>,
   ) { }
@@ -40,7 +40,7 @@ export class SettingService {
     const newPhoneNumber = phoneDto.newPhone
     if (oldPhoneNumber === newPhoneNumber)
       throw new HttpException("Old phone number is the new phone number", HttpStatus.BAD_REQUEST)
-    const otpVerified = this.authService.verifyOtp(token, phoneDto.enteredPin)
+    const otpVerified = this.otpService.verifyOtp(token, phoneDto.enteredPin)
     if (!otpVerified)
       throw new HttpException("PIN entered is incorrect", HttpStatus.BAD_REQUEST)
     this.settingRepository.update(uid, { phone: newPhoneNumber })
