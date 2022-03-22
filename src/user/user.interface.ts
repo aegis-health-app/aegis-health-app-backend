@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger'
 import { Expose, Type } from 'class-transformer'
 import { IsNotEmpty, IsDate, IsEnum, IsOptional } from 'class-validator'
 import { ToBoolean } from 'src/utils/transformer'
@@ -14,41 +15,51 @@ export enum BloodType {
 }
 @Expose()
 export class PersonalInfo {
+  @ApiProperty()
   @Expose()
-  imageId: string
-  @Expose()
-  @IsNotEmpty()
-  @IsValidName()
-  firstName: string
+  imageid: string
+  @ApiProperty()
   @Expose()
   @IsNotEmpty()
   @IsValidName()
-  lastName: string
+  fname: string
+  @ApiProperty()
   @Expose()
   @IsNotEmpty()
-  displayName: string
+  @IsValidName()
+  lname: string
+  @ApiProperty()
+  @Expose()
+  @IsNotEmpty()
+  dname: string
+  @ApiProperty()
   @Expose()
   @IsNotEmpty()
   @Type(() => Date)
   @IsDate()
-  birthDate: Date
+  bday: Date
+  @ApiProperty({ enum: ['F', 'M'] })
   @Expose()
   @IsNotEmpty()
-  @IsEnum(Gender)
-  gender: Gender
+  gender: string
+  @ApiProperty()
   @Expose()
   @ToBoolean()
-  isElderly: any
+  isElderly: boolean
+  @ApiProperty()
   @Expose()
   healthCondition: string
+  @ApiProperty({ enum: ['A', 'B', 'O', 'AB'] })
   @Expose()
   @IsOptional()
-  @IsEnum(BloodType)
-  bloodType: BloodType
+  bloodType: string
+  @ApiProperty()
   @Expose()
   personalMedication: string
+  @ApiProperty()
   @Expose()
   allergy: string
+  @ApiProperty()
   @Expose()
   vaccine: string
 }

@@ -1,35 +1,23 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { User } from '../entities/user.entity'
 import { FindConditions, FindOneOptions, Repository } from 'typeorm'
-import { UpdateRelationshipDto, UpdateUserDto, CreateUserDto } from './dto/user.dto'
+import { UpdateRelationshipDto, CreateUserDto, GetUserDto } from './dto/user.dto'
 import { DuplicateElementException, InvalidUserTypeException, UserNotFoundException } from './user.exception'
-import { PersonalInfo } from './user.interface'
 
 @Injectable()
 export class UserService {
   constructor(@InjectRepository(User) private userRepository: Repository<User>) {}
-  private dtoToSchema(dto: Partial<PersonalInfo>) {
-    return {
-      imageid: dto.imageId,
-      fname: dto.firstName,
-      lname: dto.lastName,
-      dname: dto.displayName,
-      bday: dto.birthDate,
-      gender: dto.gender,
-      isElderly: dto.isElderly,
-      healthCondition: dto.healthCondition,
-      bloodType: dto.bloodType,
-      personalMedication: dto.personalMedication,
-      allergy: dto.allergy,
-      vaccine: dto.vaccine,
-      ...dto,
-    }
+  schemaToDto(schema: User): GetUserDto {
+    //remove sensitive data
+    const dto = { ...schema }
+    delete dto.password
+    return dto
   }
   async findOne(
     conditions: FindConditions<User>,
     options?: FindOneOptions<User> & { shouldBeElderly?: boolean; shouldExist?: boolean }
-  ) {
+  ): Promise<User> {
     const user = await this.userRepository.findOne(conditions, options)
     if (!options) return user
     if (options.shouldExist && !user) throw new UserNotFoundException()
@@ -40,7 +28,7 @@ export class UserService {
       throw new InvalidUserTypeException()
     return user
   }
-  async createRelationship({ eid, cid }: UpdateRelationshipDto) {
+  async createRelationship({ eid, cid }: UpdateRelationshipDto): Promise<User> {
     //TODO: validate uid from auth
     const caretaker = await this.findOne({ uid: cid }, { shouldBeElderly: false, shouldExist: true })
     const elderly = await this.findOne(
@@ -52,7 +40,7 @@ export class UserService {
     elderly.takenCareBy.push(caretaker)
     return await this.userRepository.save(elderly)
   }
-  async deleteRelationship({ eid, cid }: UpdateRelationshipDto) {
+  async deleteRelationship({ eid, cid }: UpdateRelationshipDto): Promise<User> {
     //TODO: validate uid from auth
     await this.findOne({ uid: cid }, { shouldBeElderly: false })
     const elderly = await this.findOne(
@@ -62,26 +50,25 @@ export class UserService {
     const newCaretakers = elderly.takenCareBy.filter((c) => c.uid !== cid)
     return await this.userRepository.save({ uid: elderly.uid, ...elderly, takenCareBy: newCaretakers })
   }
-  async findCaretakerByElderlyId(uid: number) {
+  async findCaretakerByElderlyId(uid: number): Promise<User[]> {
     const elderly = await this.findOne(
       { uid: uid },
       { relations: ['takenCareBy'], shouldBeElderly: true, shouldExist: true }
     )
     return elderly.takenCareBy
   }
-  async findElderlyByCaretakerId(uid: number) {
+  async findElderlyByCaretakerId(uid: number): Promise<User[]> {
     const caretaker = await this.findOne(
       { uid: uid },
       { relations: ['takingCareOf'], shouldBeElderly: false, shouldExist: true }
     )
     return caretaker.takingCareOf
   }
-  async createUser(dto: CreateUserDto) {
+  async createUser(dto: CreateUserDto): Promise<{ uid: number }[]> {
     const existingUser = await this.findOne({ phone: dto.phone })
     if (existingUser) throw new DuplicateElementException('Phone number')
-    const userInfo = this.dtoToSchema(dto)
     const user = this.userRepository.create({
-      ...userInfo,
+      ...dto,
       reminders: [],
       emotionalRecords: [],
       memoryPracticeQuestions: [],
@@ -90,13 +77,13 @@ export class UserService {
       takingCareOf: [],
       takenCareBy: [],
     })
-    return await this.userRepository.insert(user)
+    return (await this.userRepository.insert(user)).identifiers.map((i) => i.uid)
   }
-  async updateUser({ uid, ...newInfo }: UpdateUserDto) {
+  async updateUser({ uid, ...newInfo }: Partial<User>): Promise<User> {
     const { uid: foundUid } = await this.findOne({ uid: uid }, { shouldExist: true })
     return await this.userRepository.save({
       uid: foundUid,
-      ...this.dtoToSchema(newInfo),
+      ...newInfo,
     })
   }
 }
