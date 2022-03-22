@@ -11,9 +11,14 @@ export class LinkController {
         return this.linkService.getElderlyCode(uid);
     }
 
-    @Get('/user')
-    async getUser(@Query('uid') uid:number){
-        return this.linkService.getUser(uid);
+    @Get('/elderly')
+    async getElderly(@Query('uid') uid:number){
+        return this.linkService.getElderly(uid);
+    }
+
+    @Get('/caretaker')
+    async getCaretaker(@Query('uid') uid:number){
+        return this.linkService.getCaretaker(uid);
     }
 
 }
