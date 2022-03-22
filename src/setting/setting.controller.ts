@@ -8,7 +8,7 @@ export class SettingController {
 
   constructor(private readonly settingService: SettingService) { }
 
-  // @ApiBody({ type: ChangePasswordDto })
+  @ApiBody({ type: ChangePasswordDto })
   @ApiOkResponse({ description: 'Succesful In Changing Password' }) // 200
   @ApiUnauthorizedResponse({ description: 'Failed To Change Password' }) // 401
   @Put("/changePassword")
@@ -20,6 +20,7 @@ export class SettingController {
     })
   }
 
+  @ApiBody({ type: ChangePhoneNoDto })
   @ApiOkResponse({ description: 'Succesful In Changing Phone Number' })
   @ApiUnauthorizedResponse({ description: 'Failed To Change Password' })
   @Put("/changePhoneNumber")

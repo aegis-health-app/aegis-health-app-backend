@@ -13,7 +13,7 @@ export class ChangePhoneNoDto {
   @ApiProperty()
   @IsString()
   newPhone: string
-  @ApiProperty()
+  @ApiProperty(({minLength: 6, maxLength: 6}))
   @IsString()
   enteredPin: string
 }
