@@ -7,8 +7,8 @@ import { User } from '../entities/user.entity';
 
 @Module({
     imports: [TypeOrmModule.forFeature([User])],
-    exports: [TypeOrmModule],
     controllers: [LinkController],
-    providers: [LinkService]
+    providers: [LinkService],
+    exports: [LinkService],
 })
 export class LinkModule {}

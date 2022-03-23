@@ -54,7 +54,6 @@ export class LinkService {
 
     async getElderlyCode(uid: number): Promise<ElderlyCode> { //figure out response format
         const user = await this.userRepository.findOne({uid});
-        console.log(user);
         if (user) {
             if(user['isElderly']){
                 const hashids = new Hashids('aegis', 6, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890');
