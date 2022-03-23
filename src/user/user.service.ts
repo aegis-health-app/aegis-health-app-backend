@@ -5,6 +5,7 @@ import { FindConditions, FindOneOptions, Repository } from 'typeorm'
 import { UpdateRelationshipDto, CreateUserDto, IDto } from './dto/user.dto'
 import { DuplicateElementException, InvalidUserTypeException, UserNotFoundException } from './user.exception'
 import { plainToInstance } from 'class-transformer'
+import bcrypt from 'bcrypt'
 
 @Injectable()
 export class UserService {
@@ -65,8 +66,10 @@ export class UserService {
   async createUser(dto: CreateUserDto): Promise<{ uid: number }[]> {
     const existingUser = await this.findOne({ phone: dto.phone })
     if (existingUser) throw new DuplicateElementException('Phone number')
+    const hashedPassword = await bcrypt.hash(dto.password, process.env.HASH_SALT)
     const user = this.userRepository.create({
       ...dto,
+      password: hashedPassword,
       reminders: [],
       emotionalRecords: [],
       memoryPracticeQuestions: [],
