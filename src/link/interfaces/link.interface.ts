@@ -2,7 +2,7 @@ export interface ElderlyCode {
     code: string;
 }
 
-export interface UserInfo{
+export interface CaretakerInfo{
     uid: number;
     phone: string;
     imageid?: string;
@@ -11,10 +11,12 @@ export interface UserInfo{
     dname?: string;
     bday: Date;
     gender: string;
-    isElderly: boolean;
-    healthCondition?: string;
-    bloodType?: string;
-    personalMedication?: string;
-    allergy?: string;
-    vaccine?: string;
+}
+
+export interface ElderlyProfile{
+    uid: number;
+    imageid?: string;
+    fname: string;
+    lname: string;
+    dname?: string;
 }
