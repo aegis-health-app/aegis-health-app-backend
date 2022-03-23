@@ -1,21 +1,19 @@
 import { Module } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { Connection } from 'typeorm'
 import { OtpModule } from './otp/otp.module'
-<<<<<<< HEAD
 import { UserModule } from './user/user.module'
-=======
-import { UsersModule } from './users/users.module';
->>>>>>> implement guards
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '.env'
     }),
     TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
       useFactory: () => ({
         type: 'mysql',
         host: process.env.DBHOST,
@@ -28,11 +26,7 @@ import { UsersModule } from './users/users.module';
       }),
     }),
     OtpModule,
-<<<<<<< HEAD
     UserModule,
-=======
-    UsersModule,
->>>>>>> implement guards
   ],
   controllers: [AppController],
   providers: [AppService],

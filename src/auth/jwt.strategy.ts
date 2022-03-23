@@ -6,15 +6,15 @@ import { Role } from '../common/roles'
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private configService: ConfigService) {
+  constructor(configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>(process.env.JWT_SECRET_KEY),
+      secretOrKey: configService.get<string>('JWT_SECRET_KEY'),
     })
   }
 
-  async validate(payload: {userId: string, role: Role}) {
+  async validate(payload: {userId: number, role: Role}) {
     return { userId: payload.userId, role: payload.role }
   }
 }

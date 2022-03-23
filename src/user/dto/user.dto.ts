@@ -2,6 +2,7 @@ import { ApiProperty, PartialType } from '@nestjs/swagger'
 import { Exclude, Expose, Type } from 'class-transformer'
 import { IsDate, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsPhoneNumber, IsString } from 'class-validator'
 import { PersonalInfo } from '../user.interface'
+import { Role } from '../../common/roles'
 
 export class CreateUserDto extends PersonalInfo {
   @ApiProperty()
@@ -74,4 +75,25 @@ export class CreateUserResponse {
   @ApiProperty()
   @IsNumber()
   uid: number
+}
+
+export class LoginDto {
+  @ApiProperty()
+  @IsPhoneNumber()
+  @IsNotEmpty()
+  phone: string
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  password: string
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  role: Role
+}
+
+export class AuthResponse {
+  token: string
 }

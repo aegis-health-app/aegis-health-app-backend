@@ -7,7 +7,7 @@ import { Role } from "src/common/roles";
 export class AuthService {
   constructor(private jwtService: JwtService) { }
 
-  generateJWT(userId: string, role: Role) {
+  generateJWT(userId: number, role: Role) {
     return this.jwtService.sign({ userId, role });
   }
 
