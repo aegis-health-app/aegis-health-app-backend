@@ -20,18 +20,22 @@ export class SettingService {
   }
 
   async hashPassword(password: string): Promise<string> {
-    return await bcrypt.hash(password, Number(process.env.HASH_SALT))
+    return await bcrypt.hash(password, Number(process.env.HASH_SALT));
+  }
+
+  async comparePassword(data: string, encrypted: string) {
+    return await bcrypt.compare(data, encrypted);
   }
 
   async changeUserPassword(passwordDto: ChangePasswordDto, uid: number): Promise<boolean> {
-    const realOldPasswordHashed = (await this.findOne(uid)).password
-    const newPasswordHashed = await this.hashPassword(passwordDto.newPassword)
-    const oldPasswordHashed = await this.hashPassword(passwordDto.oldPassword) // user entered value
-    if (realOldPasswordHashed !== oldPasswordHashed)
-      throw new HttpException("Old password entered is incorrect", HttpStatus.BAD_REQUEST)
-    if (realOldPasswordHashed === newPasswordHashed)
+    const realOldPassword = (await this.findOne(uid)).password // pw in DB should be hashed
+    const oldPassword = passwordDto.oldPassword
+    const isMatched = this.comparePassword(oldPassword,realOldPassword)
+    if (!isMatched)
+      throw new HttpException("Old password entered is incorrect", HttpStatus.CONFLICT)
+    if (passwordDto.oldPassword === passwordDto.newPassword)
       throw new HttpException("New password is the old password", HttpStatus.BAD_REQUEST)
-    this.settingRepository.update(uid, { password: newPasswordHashed })
+    this.settingRepository.update(uid, { password: await this.hashPassword(passwordDto.newPassword) })
     return true;
   }
 
@@ -42,9 +46,8 @@ export class SettingService {
       throw new HttpException("Old phone number is the new phone number", HttpStatus.BAD_REQUEST)
     const otpVerified = this.otpService.verifyOtp(token, phoneDto.enteredPin)
     if (!otpVerified)
-      throw new HttpException("PIN entered is incorrect", HttpStatus.BAD_REQUEST)
+      throw new HttpException("PIN entered is incorrect", HttpStatus.UNAUTHORIZED)
     this.settingRepository.update(uid, { phone: newPhoneNumber })
     return true;
   }
 }
-
