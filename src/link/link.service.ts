@@ -2,7 +2,7 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
-import { ElderlyCode, UserInfo } from './interfaces/link.interface'
+import { ElderlyCode, ElderlyProfile, CaretakerInfo } from './interfaces/link.interface'
 import Hashids from 'hashids';
 
 @Injectable()
@@ -12,7 +12,7 @@ export class LinkService {
         private userRepository: Repository<User>,
     ) {}
 
-    async getElderly(elderlyCode: string): Promise<UserInfo>{
+    async getElderly(elderlyCode: string): Promise<ElderlyProfile>{
         const hashids = new Hashids('aegis', 6, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890');
         const eid = hashids.decode(elderlyCode)[0];
         const elderly = await this.userRepository.findOne({
@@ -22,17 +22,32 @@ export class LinkService {
             }
         })
         if(elderly){
-            delete elderly.password;
-            return elderly;
+            const elderlyProfile = {
+                uid: elderly['uid'],
+                imageid: elderly['imageid'],
+                fname: elderly['fname'],
+                lname: elderly['lname'],
+                dname: elderly['dname']
+            }
+            return elderlyProfile;
         }
         throw new HttpException('Invalid elderlyCode', HttpStatus.BAD_REQUEST);
     }
 
-    async getCaretaker(uid: number): Promise<UserInfo>{
+    async getCaretaker(uid: number): Promise<CaretakerInfo>{
         const caretaker = await this.userRepository.findOne({uid, isElderly: false});
         if(caretaker){
-            delete caretaker.password;
-            return caretaker;
+            const caretakerInfo = {
+                uid: caretaker['uid'],
+                phone: caretaker['phone'],
+                imageid: caretaker['imageid'],
+                fname: caretaker['fname'],
+                lname: caretaker['lname'],
+                dname: caretaker['dname'],
+                bday: caretaker['bday'],
+                gender: caretaker['gender']
+            }
+            return caretakerInfo;
         }
         throw new HttpException('Invalid uid', HttpStatus.BAD_REQUEST);
     }
