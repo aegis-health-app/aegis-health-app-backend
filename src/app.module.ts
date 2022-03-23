@@ -5,7 +5,11 @@ import { AppService } from './app.service'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { Connection } from 'typeorm'
 import { OtpModule } from './otp/otp.module'
+<<<<<<< HEAD
 import { UserModule } from './user/user.module'
+=======
+import { UsersModule } from './users/users.module';
+>>>>>>> implement guards
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -24,7 +28,11 @@ import { UserModule } from './user/user.module'
       }),
     }),
     OtpModule,
+<<<<<<< HEAD
     UserModule,
+=======
+    UsersModule,
+>>>>>>> implement guards
   ],
   controllers: [AppController],
   providers: [AppService],
