@@ -1,4 +1,4 @@
-import { Body, Controller, Put, Req, Res } from '@nestjs/common';
+import { Body, Param, Controller, Put, Req, Res } from '@nestjs/common';
 import { SettingService } from './setting.service';
 import { ChangePasswordDto, ChangePhoneNoDto } from './dto/setting.dto';
 import { ApiBody, ApiOkResponse, ApiUnauthorizedResponse } from '@nestjs/swagger'
@@ -8,12 +8,24 @@ export class SettingController {
 
   constructor(private readonly settingService: SettingService) { }
 
-  @ApiBody({ type: ChangePasswordDto })
+  // @ApiBody({ type: ChangePasswordDto })
+  // @ApiOkResponse({ description: 'Succesful In Changing Password' }) // 200
+  // @ApiUnauthorizedResponse({ description: 'Failed To Change Password' }) // 401
+  // @Put("/changePassword")
+  // async changeUserPassword(@Body() passwordDto: ChangePasswordDto, @Req() req, @Res() res): Promise<string> {
+  //   await this.settingService.changeUserPassword(passwordDto, req.user.uid)
+  //   return res.status(200).json({
+  //     statusCode: 200,
+  //     message: "Changed password successfully"
+  //   })
+  // }
+
+  // @ApiBody({ type: ChangePasswordDto })
   @ApiOkResponse({ description: 'Succesful In Changing Password' }) // 200
   @ApiUnauthorizedResponse({ description: 'Failed To Change Password' }) // 401
-  @Put("/changePassword")
-  async changeUserPassword(@Body() passwordDto: ChangePasswordDto, @Req() req, @Res() res): Promise<string> {
-    await this.settingService.changeUserPassword(passwordDto, req.user.uid)
+  @Put('/changePassword/:uid')
+  async changeUserPassword(@Body() passwordDto: ChangePasswordDto, @Res() res,@Param() uid: number): Promise<string> {
+    await this.settingService.changeUserPassword(passwordDto, uid)
     return res.status(200).json({
       statusCode: 200,
       message: "Changed password successfully"
