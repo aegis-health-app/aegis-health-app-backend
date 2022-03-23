@@ -23,19 +23,19 @@ export class HomeService {
     }
 
     async getElderlyHome(uid: number): Promise<ElderlyHome> {
-        const user = await this.userRepository.findOne({ uid: uid });
-        if(!user){
-            throw new HttpException("This user doesn't exist", HttpStatus.BAD_REQUEST)
-        }
-        const selectedModuleList = await this.userRepository.findOne({ uid: uid }, {
+        const user = await this.userRepository.findOne({ uid: uid }, {
             relations: ["Selected"]
         })
+
+        if(!user){
+            throw new HttpException("User not found", HttpStatus.NOT_FOUND)
+        }
 
         return {
             dname: this.showName(user),
             imageid: user.imageid,
-            listModuleid: selectedModuleList.modules.map(function (i) {
-                return i.moduleid;
+            listModuleid: user.modules.map(function (module) {
+                return module.moduleid;
             })
         }
     }
@@ -45,22 +45,28 @@ export class HomeService {
     }
 
     async deleteModule(uid: number, moduleid: number): Promise<number[]>{
-        let selectedModuleList = await this.userRepository.findOne({ uid: uid }, {
+        const user = await this.userRepository.findOne({ uid: uid }, {
             relations: ["Selected"]
         })
 
-        if(!selectedModuleList){
-            throw new HttpException("This user doesn't exist", HttpStatus.BAD_REQUEST)
+        if(!user){
+            throw new HttpException("User not found", HttpStatus.NOT_FOUND)
         }
         
-        selectedModuleList.modules = selectedModuleList.modules.filter(function(i) {
-            return i.moduleid !== moduleid
+        const deleteModule = user.modules.find(function(module) { module.moduleid === moduleid })
+    
+        if( !deleteModule ){
+            throw new HttpException("This module is not in this elderly's module list", HttpStatus.CONFLICT)
+        }
+
+        user.modules = user.modules.filter(function(module) {
+            return module.moduleid !== moduleid
         })
 
-        await this.userRepository.save(selectedModuleList)
+        await this.userRepository.save(user)
 
-        return selectedModuleList.modules.map(function (i) {
-            return i.moduleid;
+        return user.modules.map(function (module) {
+            return module.moduleid;
         })
     }
 
@@ -69,22 +75,22 @@ export class HomeService {
             relations: ["Selected"]
         })
 
-        if( selectedModuleList.modules.find(function(i) {i.moduleid === moduleid}) ) {
-            throw new HttpException("This module is already selected", HttpStatus.BAD_REQUEST)
+        if( selectedModuleList.modules.find(function(module) {module.moduleid === moduleid}) ) {
+            throw new HttpException("This module is already selected", HttpStatus.CONFLICT)
         }
         
         const selectedModule = (await this.moduleRepository.findOne(moduleid))
 
         if( !selectedModule ){
-            throw new HttpException("This module is not exist", HttpStatus.BAD_REQUEST)
+            throw new HttpException("This module doesn't not exist", HttpStatus.BAD_REQUEST)
         }
 
         selectedModuleList.modules.push(selectedModule)
 
         await this.userRepository.save(selectedModuleList)
 
-        return selectedModuleList.modules.map(function (i) {
-            return i.moduleid;
+        return selectedModuleList.modules.map(function (module) {
+            return module.moduleid;
         })
     }
 
@@ -94,7 +100,7 @@ export class HomeService {
         })
 
         if(!caretaker){
-            throw new HttpException("This user doesn't exist", HttpStatus.BAD_REQUEST)
+            throw new HttpException("User not found", HttpStatus.NOT_FOUND)
         }
 
         const temShowName = this.showName
@@ -118,12 +124,14 @@ export class HomeService {
             relations: ["takenCareBy", "Selected"]
         })
 
-        const caretaker = elderly.takenCareBy.filter(function (caretaker) {
-            return caretaker.uid === cid;
-        })
+        if( !elderly){
+            throw new HttpException("This elderly doesn't exist", HttpStatus.NOT_FOUND)
+        }
+
+        const caretaker = elderly.takenCareBy.find(function (caretaker) { return caretaker.uid === cid;})
 
         if( !caretaker){
-            throw new HttpException("This caretaker doesn't take care this elderly", HttpStatus.BAD_REQUEST)
+            throw new HttpException("This caretaker doesn't take care this elderly", HttpStatus.FORBIDDEN)
         }
 
         return {
@@ -139,8 +147,8 @@ export class HomeService {
             allergy: elderly.allergy,
             vaccine: elderly.vaccine,
             phone: elderly.phone,
-            listModuleid: elderly.modules.map(function (i) {
-                return i.moduleid;
+            listModuleid: elderly.modules.map(function (module) {
+                return module.moduleid;
             })
         }
     }
