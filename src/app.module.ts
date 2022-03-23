@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Connection } from 'typeorm';
 import { HomeModule } from './home/home.module';
 import { OtpModule } from './otp/otp.module'
+import { UserModule } from './user/user.module'
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { OtpModule } from './otp/otp.module'
     }),
     HomeModule,
     OtpModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
