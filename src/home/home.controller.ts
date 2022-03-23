@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post, Req } from '@nestjs/common'
 import { Module } from '../entities/module.entity'
-import { CaretakerHomeDTO, ElderlyHomeDTO, ElderlyInfoDTO } from './dto/home.dto'
+import { AddModuleDTO, CaretakerHomeDTO, DeleteModuleDTO, ElderlyHomeDTO, ElderlyInfoDTO } from './dto/home.dto'
 import { HomeService } from './home.service'
 import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger"
 
@@ -30,24 +30,26 @@ export class HomeController {
 
     //@ApiBearerAuth()
     @ApiNotFoundResponse({ description: "User not found" })
+    @ApiBadRequestResponse({ description: "This module is not exist" })
     @ApiConflictResponse({ description: "This module is not in this elderly's module list" })
     @ApiUnauthorizedResponse({ description: "Must be elderly to use this endpoints" })
     @ApiOkResponse({ type: [Number] })
     //@UseGuards()
     @Delete("/module")
-    async deleteSelectedModule(@Req() req, @Body() moduleid: number): Promise<number[]> {
-        return await this.homeService.deleteModule(req.user.uid, moduleid)
+    async deleteSelectedModule(@Req() req, @Body() body: DeleteModuleDTO): Promise<number[]> {
+        return await this.homeService.deleteModule(req.user.uid, body.moduleid)
     }
 
     //@ApiBearerAuth()
+    @ApiNotFoundResponse({ description: "User not found" })
     @ApiBadRequestResponse({ description: "This module is not exist" })
     @ApiConflictResponse({ description: "This module is already selected" })
     @ApiUnauthorizedResponse({ description: "Must be elderly to use this endpoints" })
     @ApiOkResponse({ type: [Number] })
     //@UseGuards()    
     @Post('/module')
-    async addSelectedModule(@Req() req, @Body() moduleid: number): Promise<number[]> {
-        const selectedModule = await this.homeService.addModule(req.user.uid, moduleid)
+    async addSelectedModule(@Req() req, @Body() body: AddModuleDTO): Promise<number[]> {
+        const selectedModule = await this.homeService.addModule(req.user.uid, body.moduleid)
         return selectedModule
     }
 
@@ -68,8 +70,8 @@ export class HomeController {
     @ApiUnauthorizedResponse({ description: "Must be caretaker to use this endpoints" })
     @ApiOkResponse({ type: ElderlyInfoDTO })
     //@UseGuards()      
-    @Get('/elderlyInfo/:uid')
-    async getElderlyInfo(@Req() req, @Param("uid") eid: number): Promise<ElderlyInfoDTO> {
+    @Get('/elderlyInfo/:eid')
+    async getElderlyInfo(@Req() req, @Param("eid") eid: number): Promise<ElderlyInfoDTO> {
         return await this.homeService.getElderlyInfo(req.user.id, eid)
     }
 }

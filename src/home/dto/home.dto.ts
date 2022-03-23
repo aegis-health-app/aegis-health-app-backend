@@ -95,3 +95,15 @@ export class ElderlyInfoDTO {
     @IsNumber({},{each: true})
     listModuleid: number[]
 }
+
+export class DeleteModuleDTO {
+    @ApiProperty()
+    @IsNumber()
+    moduleid: number
+}
+
+export class AddModuleDTO {
+    @ApiProperty()
+    @IsNumber()
+    moduleid: number
+}

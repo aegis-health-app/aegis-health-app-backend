@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { type } from 'os';
 import { Module } from 'src/entities/module.entity';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity'
@@ -24,7 +25,7 @@ export class HomeService {
 
     async getElderlyHome(uid: number): Promise<ElderlyHome> {
         const user = await this.userRepository.findOne({ uid: uid }, {
-            relations: ["Selected"]
+            relations: ["modules"]
         })
 
         if(!user){
@@ -46,14 +47,18 @@ export class HomeService {
 
     async deleteModule(uid: number, moduleid: number): Promise<number[]>{
         const user = await this.userRepository.findOne({ uid: uid }, {
-            relations: ["Selected"]
+            relations: ["modules"]
         })
 
         if(!user){
             throw new HttpException("User not found", HttpStatus.NOT_FOUND)
         }
+
+        if( !(await this.moduleRepository.findOne(moduleid)) ){
+            throw new HttpException("This module doesn't not exist", HttpStatus.BAD_REQUEST)
+        }
         
-        const deleteModule = user.modules.find(function(module) { module.moduleid === moduleid })
+        const deleteModule = user.modules.find(function(module) { return module.moduleid === moduleid })
     
         if( !deleteModule ){
             throw new HttpException("This module is not in this elderly's module list", HttpStatus.CONFLICT)
@@ -71,11 +76,15 @@ export class HomeService {
     }
 
     async addModule(uid: number, moduleid: number): Promise<number[]>{
-        let selectedModuleList = await this.userRepository.findOne({ uid: uid }, {
-            relations: ["Selected"]
+        const user = await this.userRepository.findOne({ uid: uid }, {
+            relations: ["modules"]
         })
 
-        if( selectedModuleList.modules.find(function(module) {module.moduleid === moduleid}) ) {
+        if(!user){
+            throw new HttpException("User not found", HttpStatus.NOT_FOUND)
+        }       
+
+        if( user.modules.find(function(module) { return module.moduleid === moduleid}) ) {
             throw new HttpException("This module is already selected", HttpStatus.CONFLICT)
         }
         
@@ -85,11 +94,11 @@ export class HomeService {
             throw new HttpException("This module doesn't not exist", HttpStatus.BAD_REQUEST)
         }
 
-        selectedModuleList.modules.push(selectedModule)
+        user.modules.push(selectedModule)
 
-        await this.userRepository.save(selectedModuleList)
+        await this.userRepository.save(user)
 
-        return selectedModuleList.modules.map(function (module) {
+        return user.modules.map(function (module) {
             return module.moduleid;
         })
     }
@@ -121,15 +130,14 @@ export class HomeService {
 
     async getElderlyInfo(cid: number, eid: number): Promise<ElderlyInfo>{
         const elderly = await this.userRepository.findOne({ uid: eid }, {
-            relations: ["takenCareBy", "Selected"]
+            relations: ["takenCareBy", "modules"]
         })
 
         if( !elderly){
             throw new HttpException("This elderly doesn't exist", HttpStatus.NOT_FOUND)
         }
-
+        
         const caretaker = elderly.takenCareBy.find(function (caretaker) { return caretaker.uid === cid;})
-
         if( !caretaker){
             throw new HttpException("This caretaker doesn't take care this elderly", HttpStatus.FORBIDDEN)
         }
