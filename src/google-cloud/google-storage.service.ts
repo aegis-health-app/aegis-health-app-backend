@@ -17,7 +17,12 @@ export class GoogleCloudStorage {
     const imgStream = new StreamableFile(img)
     const imgName = await this.getImageFileName(uid)
     const file = this.bucket.file(imgName)
-    await imgStream.getStream().pipe(file.createWriteStream())
+    await imgStream
+      .getStream()
+      .pipe(file.createWriteStream())
+      .on('error', (err) => {
+        throw new Error(err.message)
+      })
     return await this.getImageURL(imgName)
   }
 
