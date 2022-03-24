@@ -13,6 +13,7 @@ export class LinkController {
     // @ApiBearerAuth()
     @ApiOkResponse({ type: ElderlyCodeDto })
     @ApiBadRequestResponse({ description: 'Invalid uid'})
+    @UsePipes(new ValidationPipe({ whitelist: true }))
     // @UseGuards(ElderlyGuard)
     async getElderlyCode(@Param('uid') uid:number){
     // async getElderlyCode(@Req() req){
@@ -24,6 +25,7 @@ export class LinkController {
     // @ApiBearerAuth()
     @ApiOkResponse({ type: ElderlyProfileDto })
     @ApiBadRequestResponse({ description: 'Invalid elderlycode'})
+    @UsePipes(new ValidationPipe({ whitelist: true }))    
     // @UseGuards(CaretakerGuard)
     async getElderly(@Param('elderlycode') elderlyCode:string){
         return this.linkService.getElderly(elderlyCode);
@@ -33,6 +35,7 @@ export class LinkController {
     // @ApiBearerAuth()
     @ApiOkResponse({ type: CaretakerInfoDto })
     @ApiBadRequestResponse({ description: 'Invalid uid'})
+    @UsePipes(new ValidationPipe({ whitelist: true }))
     // @UseGuards(ElderlyGuard)
     // async getCaretaker(@Req() req, @Param('uid') uid: number){
     async getCaretaker(@Param('uid') uid:number, @Query('eid') elderlyId:number){
