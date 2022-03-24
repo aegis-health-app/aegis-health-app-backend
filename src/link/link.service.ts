@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { ElderlyCode, ElderlyProfile, CaretakerInfo } from './interfaces/link.interface'
+import { UserService } from 'src/user/user.service';
 import Hashids from 'hashids';
 
 @Injectable()
@@ -10,15 +11,16 @@ export class LinkService {
     constructor(
         @InjectRepository(User)
         private userRepository: Repository<User>,
+        private userService: UserService
     ) {}
 
     async getElderly(elderlyCode: string): Promise<ElderlyProfile>{
         const hashids = new Hashids('aegis', 6, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890');
         const eid = hashids.decode(elderlyCode)[0];
+
         const elderly = await this.userRepository.findOne({
             where: {
-                uid: eid,
-                isElderly: true
+                uid: eid,isElderly: true
             }
         })
         if(elderly){
@@ -34,8 +36,9 @@ export class LinkService {
         throw new HttpException('Invalid elderlyCode', HttpStatus.BAD_REQUEST);
     }
 
-    async getCaretaker(uid: number): Promise<CaretakerInfo>{
-        const caretaker = await this.userRepository.findOne({uid, isElderly: false});
+    async getCaretaker(elderlyId: number, caretakerId: number): Promise<CaretakerInfo>{
+        const caretakers = await this.userService.findCaretakerByElderlyId(elderlyId);
+        const caretaker = caretakers.filter(caretaker => caretaker.uid === +caretakerId)[0];
         if(caretaker){
             const caretakerInfo = {
                 uid: caretaker['uid'],
@@ -49,7 +52,7 @@ export class LinkService {
             }
             return caretakerInfo;
         }
-        throw new HttpException('Invalid uid', HttpStatus.BAD_REQUEST);
+        throw new HttpException('Invalid uid, this elderly is not taken care by this caretaker', HttpStatus.BAD_REQUEST);
     }
 
 
