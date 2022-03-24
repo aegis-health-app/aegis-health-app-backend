@@ -10,8 +10,19 @@ export class ElderlyHomeDTO {
     @IsString()
     imageid: string
 
+    @ApiProperty()
     @IsNumber({},{each: true})
     listModuleid: number[]
+}
+
+export class ModuleInfoDTO {
+    @ApiProperty()
+    @IsNumber()
+    moduleid: number
+
+    @ApiProperty()
+    @IsString()
+    mname: string
 }
 
 export class ElderlyDTO {

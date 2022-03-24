@@ -1,6 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Req, UsePipes, ValidationPipe } from '@nestjs/common'
-import { Module } from '../entities/module.entity'
-import { AddModuleDTO, CaretakerHomeDTO, DeleteModuleDTO, ElderlyHomeDTO, ElderlyInfoDTO } from './dto/home.dto'
+import { AddModuleDTO, CaretakerHomeDTO, DeleteModuleDTO, ElderlyHomeDTO, ElderlyInfoDTO, ModuleInfoDTO } from './dto/home.dto'
 import { HomeService } from './home.service'
 import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger"
 
@@ -21,12 +20,12 @@ export class HomeController {
     }
 
     //@ApiBearerAuth()
-    @ApiOkResponse({ type: [Module] })
+    @ApiOkResponse({ type: [ModuleInfoDTO] })
     @ApiUnauthorizedResponse({ description: "Must login to use this endpoints" })
     @UsePipes(new ValidationPipe({ whitelist: true }))
     //@UseGuards()
     @Get("/allModule")
-    async getAllModule(): Promise<Module[]> {
+    async getAllModule(): Promise<ModuleInfoDTO[]> {
         return await this.homeService.getAllModule()
     }
 
