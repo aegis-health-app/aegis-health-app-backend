@@ -46,12 +46,14 @@ export class SettingService {
       throw new HttpException("Old password entered is incorrect", HttpStatus.CONFLICT)
     if (passwordDto.oldPassword === passwordDto.newPassword)
       throw new HttpException("New password is the old password", HttpStatus.BAD_REQUEST)
-    this.settingRepository.update(uid, { password: await this.hashPassword(passwordDto.newPassword) }) // not hashed yet!!!
+    this.settingRepository.update(uid, { password: await this.hashPassword(passwordDto.newPassword) })
     return true;
   }
 
   async changePhoneNumber(phoneDto: ChangePhoneNoDto, uid: number, token: string): Promise<boolean> {
     const oldPhoneNumber = (await this.findOne(uid)).phone
+    if (!oldPhoneNumber)
+      throw new HttpException("User not found", HttpStatus.NOT_FOUND)
     const newPhoneNumber = phoneDto.newPhone
     if (oldPhoneNumber === newPhoneNumber)
       throw new HttpException("Old phone number is the new phone number", HttpStatus.BAD_REQUEST)
