@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { ElderlyCode, ElderlyProfile, CaretakerInfo } from './interfaces/link.interface'
 import { UserService } from 'src/user/user.service';
-import Hashids from 'hashids';
+import { hashids } from './link.utils';
 
 @Injectable()
 export class LinkService {
@@ -15,7 +15,6 @@ export class LinkService {
     ) {}
 
     async getElderly(elderlyCode: string): Promise<ElderlyProfile>{
-        const hashids = new Hashids('aegis', 6, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890');
         const eid = hashids.decode(elderlyCode)[0];
 
         const elderly = await this.userRepository.findOne({
@@ -59,7 +58,6 @@ export class LinkService {
     async getElderlyCode(uid: number): Promise<ElderlyCode> { //figure out response format
         const user = await this.userRepository.findOne({uid});
         if (user){
-            const hashids = new Hashids('aegis', 6, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890');
             const code = hashids.encode(uid);
             return {code};
         }
