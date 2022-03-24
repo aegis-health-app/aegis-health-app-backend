@@ -1,7 +1,8 @@
-import { Controller, Get, Req, Res, Param, UsePipes, ValidationPipe, UseGuards} from '@nestjs/common';
+import { Controller, Get, Req, Res, Param, Query, UsePipes, ValidationPipe, UseGuards} from '@nestjs/common';
 import { LinkService } from './link.service';
 import { ElderlyCodeDto, ElderlyProfileDto, CaretakerInfoDto } from './dto/link.dto';
 import { ApiOkResponse, ApiBadRequestResponse, ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+// import { ElderlyGuard, CaretakerGuard } from "src/auth/jwt.guard"
 
 @ApiTags('link')
 @Controller('link')
@@ -9,31 +10,35 @@ export class LinkController {
     constructor(private readonly linkService: LinkService) {}
 
     @Get('/elderlycode/:uid')
-    @ApiBearerAuth()
+    // @ApiBearerAuth()
     @ApiOkResponse({ type: ElderlyCodeDto })
     @ApiBadRequestResponse({ description: 'Invalid uid'})
     // @UseGuards(ElderlyGuard)
     async getElderlyCode(@Param('uid') uid:number){
-        // -> get uid from jwt instead
+    // async getElderlyCode(@Req() req){
+        // const uid = req.user.userId;
         return this.linkService.getElderlyCode(uid);
     }
 
     @Get('/elderly/:elderlycode')
-    @ApiBearerAuth()
+    // @ApiBearerAuth()
     @ApiOkResponse({ type: ElderlyProfileDto })
     @ApiBadRequestResponse({ description: 'Invalid elderlycode'})
-    // @UseGuards(ElderlyGuard)
+    // @UseGuards(CaretakerGuard)
     async getElderly(@Param('elderlycode') elderlyCode:string){
         return this.linkService.getElderly(elderlyCode);
     }
 
     @Get('/caretaker/:uid')
-    @ApiBearerAuth()
+    // @ApiBearerAuth()
     @ApiOkResponse({ type: CaretakerInfoDto })
     @ApiBadRequestResponse({ description: 'Invalid uid'})
     // @UseGuards(ElderlyGuard)
-    async getCaretaker(@Param('uid') uid:number){
-        return this.linkService.getCaretaker(uid);
+    // async getCaretaker(@Req() req, @Param('uid') uid: number){
+    async getCaretaker(@Param('uid') uid:number, @Query('eid') elderlyId:number){
+        // const elderlyId = req.user.userId;
+        const caretakerId = uid;
+        return this.linkService.getCaretaker(elderlyId, caretakerId);
     }
 
 }
