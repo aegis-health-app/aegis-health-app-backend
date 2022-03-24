@@ -16,7 +16,14 @@ export class SettingService {
   ) { }
 
   async findOne(uid: number): Promise<User> {
-    return await this.settingRepository.findOne({ uid: uid });
+    const user = await this.settingRepository.findOne(
+      {
+        where:
+          { uid: uid }
+      })
+    if (!user)
+      throw new HttpException("User not found", HttpStatus.NOT_FOUND)
+    return user;
   }
 
   async hashPassword(password: string): Promise<string> {
@@ -28,14 +35,18 @@ export class SettingService {
   }
 
   async changeUserPassword(passwordDto: ChangePasswordDto, uid: number): Promise<boolean> {
-    const realOldPassword = (await this.findOne(uid)).password // pw in DB should be hashed
+    console.log(uid)
+    console.log(await this.findOne(uid))
+    const realOldPassword = (await this.findOne(uid)).password
     const oldPassword = passwordDto.oldPassword
-    const isMatched = this.comparePassword(oldPassword,realOldPassword)
+    console.log('realOldPassword is: ' + realOldPassword + ' and oldPassword is: ' + oldPassword)
+    const isMatched = await this.comparePassword(oldPassword, realOldPassword)
+    console.log(isMatched)
     if (!isMatched)
       throw new HttpException("Old password entered is incorrect", HttpStatus.CONFLICT)
     if (passwordDto.oldPassword === passwordDto.newPassword)
       throw new HttpException("New password is the old password", HttpStatus.BAD_REQUEST)
-    this.settingRepository.update(uid, { password: await this.hashPassword(passwordDto.newPassword) })
+    this.settingRepository.update(uid, { password: await this.hashPassword(passwordDto.newPassword) }) // not hashed yet!!!
     return true;
   }
 
