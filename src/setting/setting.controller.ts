@@ -24,7 +24,7 @@ export class SettingController {
 
   @ApiBody({ type: ChangePhoneNoDto })
   @ApiOkResponse({ description: 'Succesful In Changing Phone Number' })
-  @ApiUnauthorizedResponse({ description: 'Failed To Change Password' })
+  @ApiUnauthorizedResponse({ description: 'Failed To Change Phone Number' })
   @Put("/changePhoneNumber")
   async changePhoneNumber(@Body() phoneDto: ChangePhoneNoDto, @Req() req, @Res() res): Promise<string> {
     await this.settingService.changePhoneNumber(phoneDto, req.user.uid, req.user.token)
