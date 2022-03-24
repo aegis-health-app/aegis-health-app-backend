@@ -16,52 +16,36 @@ export class UserService {
   }
   async findOne(
     conditions: FindConditions<User>,
-    options?: FindOneOptions<User> & { shouldBeElderly?: boolean; shouldExist?: boolean }
+    options?: FindOneOptions<User> & { shouldBeElderly?: boolean; shouldExist?: boolean },
   ): Promise<User> {
     const user = await this.userRepository.findOne(conditions, options)
     if (!options) return user
     if (options.shouldExist && !user) throw new UserNotFoundException()
-    if (
-      options.shouldBeElderly !== undefined &&
-      ((options.shouldBeElderly && !user.isElderly) || (!options.shouldBeElderly && user.isElderly))
-    )
+    if (options.shouldBeElderly !== undefined && ((options.shouldBeElderly && !user.isElderly) || (!options.shouldBeElderly && user.isElderly)))
       throw new InvalidUserTypeException()
     return user
   }
   async createRelationship({ eid, cid }: UpdateRelationshipDto): Promise<User> {
     //TODO: validate uid from auth
     const caretaker = await this.findOne({ uid: cid }, { shouldBeElderly: false, shouldExist: true })
-    const elderly = await this.findOne(
-      { uid: eid },
-      { relations: ['takenCareBy'], shouldBeElderly: true, shouldExist: true }
-    )
-    if (elderly.takenCareBy.find((currentCaretaker) => currentCaretaker.uid === cid))
-      throw new DuplicateElementException('Relationship')
+    const elderly = await this.findOne({ uid: eid }, { relations: ['takenCareBy'], shouldBeElderly: true, shouldExist: true })
+    if (elderly.takenCareBy.find((currentCaretaker) => currentCaretaker.uid === cid)) throw new DuplicateElementException('Relationship')
     elderly.takenCareBy.push(caretaker)
     return await this.userRepository.save(elderly)
   }
   async deleteRelationship({ eid, cid }: UpdateRelationshipDto): Promise<User> {
     //TODO: validate uid from auth
     await this.findOne({ uid: cid }, { shouldBeElderly: false })
-    const elderly = await this.findOne(
-      { uid: eid },
-      { relations: ['takenCareBy'], shouldBeElderly: true, shouldExist: true }
-    )
+    const elderly = await this.findOne({ uid: eid }, { relations: ['takenCareBy'], shouldBeElderly: true, shouldExist: true })
     const newCaretakers = elderly.takenCareBy.filter((c) => c.uid !== cid)
     return await this.userRepository.save({ ...elderly, takenCareBy: newCaretakers })
   }
   async findCaretakerByElderlyId(uid: number): Promise<User[]> {
-    const elderly = await this.findOne(
-      { uid: uid },
-      { relations: ['takenCareBy'], shouldBeElderly: true, shouldExist: true }
-    )
+    const elderly = await this.findOne({ uid: uid }, { relations: ['takenCareBy'], shouldBeElderly: true, shouldExist: true })
     return elderly.takenCareBy
   }
   async findElderlyByCaretakerId(uid: number): Promise<User[]> {
-    const caretaker = await this.findOne(
-      { uid: uid },
-      { relations: ['takingCareOf'], shouldBeElderly: false, shouldExist: true }
-    )
+    const caretaker = await this.findOne({ uid: uid }, { relations: ['takingCareOf'], shouldBeElderly: false, shouldExist: true })
     return caretaker.takingCareOf
   }
   async createUser(dto: CreateUserDto): Promise<{ uid: number; role: Role }> {

@@ -1,29 +1,29 @@
-import { Injectable } from "@nestjs/common"
-import { JwtService, JwtSignOptions } from "@nestjs/jwt"
-import * as bcrypt from "bcrypt"
-import { Role } from "src/common/roles";
+import { Injectable } from '@nestjs/common';
+import { JwtService, JwtSignOptions } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+import { Role } from 'src/common/roles';
 
 @Injectable()
 export class AuthService {
-  constructor(private jwtService: JwtService) { }
+  constructor(private jwtService: JwtService) {}
 
   generateJWT(userId: number, role: Role) {
     return this.jwtService.sign({ userId, role });
   }
 
   generateCustomJWT(payload, signOptions?: JwtSignOptions) {
-    return this.jwtService.sign(payload, signOptions)
+    return this.jwtService.sign(payload, signOptions);
   }
 
   verifyJWT(jwt) {
-    return this.jwtService.verify(jwt)
+    return this.jwtService.verify(jwt);
   }
 
   async hashPassword(password: string) {
-    return await bcrypt.hash(password, Number(process.env.HASH_SALT))
+    return await bcrypt.hash(password, Number(process.env.HASH_SALT));
   }
 
   async comparePassword(data: string, encrypted: string) {
-    return await bcrypt.compare(data, encrypted)
+    return await bcrypt.compare(data, encrypted);
   }
 }
