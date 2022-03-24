@@ -35,13 +35,9 @@ export class SettingService {
   }
 
   async changeUserPassword(passwordDto: ChangePasswordDto, uid: number): Promise<boolean> {
-    console.log(uid)
-    console.log(await this.findOne(uid))
     const realOldPassword = (await this.findOne(uid)).password
     const oldPassword = passwordDto.oldPassword
-    console.log('realOldPassword is: ' + realOldPassword + ' and oldPassword is: ' + oldPassword)
     const isMatched = await this.comparePassword(oldPassword, realOldPassword)
-    console.log(isMatched)
     if (!isMatched)
       throw new HttpException("Old password entered is incorrect", HttpStatus.CONFLICT)
     if (passwordDto.oldPassword === passwordDto.newPassword)
