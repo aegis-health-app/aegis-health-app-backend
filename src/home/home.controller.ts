@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Req } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Post, Req, UsePipes, ValidationPipe } from '@nestjs/common'
 import { Module } from '../entities/module.entity'
 import { AddModuleDTO, CaretakerHomeDTO, DeleteModuleDTO, ElderlyHomeDTO, ElderlyInfoDTO } from './dto/home.dto'
 import { HomeService } from './home.service'
@@ -13,6 +13,7 @@ export class HomeController {
     @ApiNotFoundResponse({ description: "User not found" })
     @ApiUnauthorizedResponse({ description: "Must be elderly to use this endpoints" })
     @ApiOkResponse({ type: ElderlyHomeDTO })
+    @UsePipes(new ValidationPipe({ whitelist: true }))
     //@UseGuards()
     @Get("/elderlyHome")
     async getElderlyHome(@Req() req): Promise<ElderlyHomeDTO> {
@@ -22,18 +23,20 @@ export class HomeController {
     //@ApiBearerAuth()
     @ApiOkResponse({ type: [Module] })
     @ApiUnauthorizedResponse({ description: "Must login to use this endpoints" })
+    @UsePipes(new ValidationPipe({ whitelist: true }))
     //@UseGuards()
-    @Get("/moduleList")
-    async getModuleList(): Promise<Module[]> {
-        return await this.homeService.getModuleList()
+    @Get("/allModule")
+    async getAllModule(): Promise<Module[]> {
+        return await this.homeService.getAllModule()
     }
 
     //@ApiBearerAuth()
     @ApiNotFoundResponse({ description: "User not found" })
-    @ApiBadRequestResponse({ description: "This module is not exist" })
+    @ApiBadRequestResponse({ description: "This module doesn't exist" })
     @ApiConflictResponse({ description: "This module is not in this elderly's module list" })
     @ApiUnauthorizedResponse({ description: "Must be elderly to use this endpoints" })
     @ApiOkResponse({ type: [Number] })
+    @UsePipes(new ValidationPipe({ whitelist: true }))
     //@UseGuards()
     @Delete("/module")
     async deleteSelectedModule(@Req() req, @Body() body: DeleteModuleDTO): Promise<number[]> {
@@ -42,9 +45,10 @@ export class HomeController {
 
     //@ApiBearerAuth()
     @ApiNotFoundResponse({ description: "User not found" })
-    @ApiBadRequestResponse({ description: "This module is not exist" })
+    @ApiBadRequestResponse({ description: "This module doesn't exist" })
     @ApiConflictResponse({ description: "This module is already selected" })
     @ApiUnauthorizedResponse({ description: "Must be elderly to use this endpoints" })
+    @UsePipes(new ValidationPipe({ whitelist: true }))
     @ApiOkResponse({ type: [Number] })
     //@UseGuards()    
     @Post('/module')
@@ -57,6 +61,7 @@ export class HomeController {
     @ApiNotFoundResponse({ description: "User not found" })
     @ApiUnauthorizedResponse({ description: "Must be caretaker to use this endpoints" })
     @ApiOkResponse({ type: CaretakerHomeDTO })
+    @UsePipes(new ValidationPipe({ whitelist: true }))
     //@UseGuards()    
     @Get('/caretakerHome')
     async getCaretakerHome(@Req() req): Promise<CaretakerHomeDTO> {
@@ -69,6 +74,7 @@ export class HomeController {
     @ApiForbiddenResponse({ description: "This caretaker doesn't take care this elderly" })
     @ApiUnauthorizedResponse({ description: "Must be caretaker to use this endpoints" })
     @ApiOkResponse({ type: ElderlyInfoDTO })
+    @UsePipes(new ValidationPipe({ whitelist: true }))
     //@UseGuards()      
     @Get('/elderlyInfo/:eid')
     async getElderlyInfo(@Req() req, @Param("eid") eid: number): Promise<ElderlyInfoDTO> {
