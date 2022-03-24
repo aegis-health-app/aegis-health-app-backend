@@ -1,10 +1,9 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { type } from 'os';
 import { Module } from 'src/entities/module.entity';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity'
-import { CaretakerHome, ElderlyHome, ElderlyInfo } from './interface/home.interface';
+import { CaretakerHome, ElderlyHome, ElderlyInfo, ModuleInfo } from './interface/home.interface';
 
 @Injectable()
 export class HomeService {
@@ -41,7 +40,7 @@ export class HomeService {
         }
     }
 
-    async getAllModule(): Promise<Module[]>{
+    async getAllModule(): Promise<ModuleInfo[]>{
         return await this.moduleRepository.find()
     }
 

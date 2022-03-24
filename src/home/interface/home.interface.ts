@@ -16,6 +16,11 @@ export interface CaretakerHome {
     listElderly: Elderly[]
 }
 
+export interface ModuleInfo {
+    moduleid: number,
+    mname: string
+}
+
 export interface ElderlyInfo {
     imageid: string,
     fname: string,
