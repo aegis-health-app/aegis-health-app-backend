@@ -41,7 +41,7 @@ export class HomeService {
         }
     }
 
-    async getModuleList(): Promise<Module[]>{
+    async getAllModule(): Promise<Module[]>{
         return await this.moduleRepository.find()
     }
 
