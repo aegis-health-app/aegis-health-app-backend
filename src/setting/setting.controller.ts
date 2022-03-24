@@ -13,7 +13,7 @@ export class SettingController {
   @ApiBearerAuth()
   @ApiOkResponse({ description: 'Succesful In Changing Password' })
   @ApiUnauthorizedResponse({ description: 'Failed To Change Password' })
-  @Put('/changePassword/:uid')
+  @Put('/changePassword')
   async changeUserPassword(@Body() passwordDto: ChangePasswordDto, @Req() req, @Res() res): Promise<string> {
     await this.settingService.changeUserPassword(passwordDto, req.user.uid)
     return res.status(200).json({
@@ -25,7 +25,7 @@ export class SettingController {
   @ApiBody({ type: ChangePhoneNoDto })
   @ApiOkResponse({ description: 'Succesful In Changing Phone Number' })
   @ApiUnauthorizedResponse({ description: 'Failed To Change Password' })
-  @Put("/changePhoneNumber/:uid")
+  @Put("/changePhoneNumber")
   async changePhoneNumber(@Body() phoneDto: ChangePhoneNoDto, @Req() req, @Res() res): Promise<string> {
     await this.settingService.changePhoneNumber(phoneDto, req.user.uid, req.user.token)
     return res.status(200).json({
