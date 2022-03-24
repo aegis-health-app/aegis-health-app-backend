@@ -55,7 +55,7 @@ export class HomeService {
         }
 
         if( !(await this.moduleRepository.findOne(moduleid)) ){
-            throw new HttpException("This module doesn't not exist", HttpStatus.BAD_REQUEST)
+            throw new HttpException("This module doesn't exist", HttpStatus.BAD_REQUEST)
         }
         
         const deleteModule = user.modules.find(function(module) { return module.moduleid === moduleid })
