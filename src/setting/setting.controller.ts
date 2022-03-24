@@ -1,8 +1,7 @@
-import { Body, Param, Controller, Put, Req, Res, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Put, Req, Res, UsePipes, ValidationPipe } from '@nestjs/common';
 import { SettingService } from './setting.service';
 import { ChangePasswordDto, ChangePhoneNoDto } from './dto/setting.dto';
 import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiUnauthorizedResponse } from '@nestjs/swagger'
-import { UUIDVersion } from 'class-validator';
 
 @Controller('setting')
 export class SettingController {
