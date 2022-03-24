@@ -52,19 +52,15 @@ export class LinkService {
         throw new HttpException('Invalid uid', HttpStatus.BAD_REQUEST);
     }
 
+
     async getElderlyCode(uid: number): Promise<ElderlyCode> { //figure out response format
         const user = await this.userRepository.findOne({uid});
-        if (user) {
-            if(user['isElderly']){
-                const hashids = new Hashids('aegis', 6, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890');
-                const code = hashids.encode(uid);
-                return {code};
-            } else{
-                throw new HttpException('Invalid elderly id', HttpStatus.BAD_REQUEST);
-            }
-        } else {
-            throw new HttpException('Invalid elderly id', HttpStatus.BAD_REQUEST);
+        if (user){
+            const hashids = new Hashids('aegis', 6, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890');
+            const code = hashids.encode(uid);
+            return {code};
         }
+        throw new HttpException('Invalid elderly id', HttpStatus.BAD_REQUEST);
     }
 
 }
