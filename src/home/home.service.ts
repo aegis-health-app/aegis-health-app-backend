@@ -132,7 +132,6 @@ export class HomeService {
         if( !elderly){
             throw new HttpException("This elderly doesn't exist", HttpStatus.NOT_FOUND)
         }
-        
         const caretaker = elderly.takenCareBy.find(function (caretaker) { return caretaker.uid === cid;})
         if( !caretaker){
             throw new HttpException("This caretaker doesn't take care this elderly", HttpStatus.FORBIDDEN)
