@@ -57,11 +57,6 @@ export class GetUserRequest {
   @ApiProperty()
   vaccine: boolean
 }
-export class UpdateUserDto extends PartialType(CreateUserDto) {
-  @ApiProperty()
-  @IsNumber()
-  uid: number
-}
 export interface IDto<T> {
   new (): T
 }
@@ -79,9 +74,14 @@ export class LoginDto {
   @ApiProperty()
   @IsString()
   password: string
-
 }
 
 export class AuthResponse {
   token: string
+}
+
+export class UploadProfileResponse {
+  @ApiProperty()
+  @IsString()
+  url: string
 }

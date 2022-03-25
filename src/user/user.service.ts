@@ -2,14 +2,20 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entities/user.entity';
 import { FindConditions, FindOneOptions, Repository } from 'typeorm';
-import { UpdateRelationshipDto, CreateUserDto, IDto } from './dto/user.dto';
+import { UpdateRelationshipDto, CreateUserDto, IDto, UploadProfileResponse } from './dto/user.dto';
 import { DuplicateElementException, InvalidUserTypeException, UserNotFoundException } from './user.exception';
 import { plainToInstance } from 'class-transformer';
 import { AuthService } from 'src/auth/auth.service';
 import { Role } from 'src/common/roles';
+import { PersonalInfo } from './user.interface';
+import { GoogleCloudStorage } from 'src/google-cloud/google-storage.service';
 @Injectable()
 export class UserService {
-  constructor(@InjectRepository(User) private userRepository: Repository<User>, private authService: AuthService) { }
+  constructor(
+    @InjectRepository(User) private userRepository: Repository<User>,
+    private authService: AuthService,
+    private googleStorageService: GoogleCloudStorage
+  ) {}
 
   schemaToDto(schema: User, dtoClass?: IDto<Partial<Omit<User, 'password'>> & { uid: number }>) {
     return plainToInstance(dtoClass, schema, { excludeExtraneousValues: true });
@@ -68,12 +74,18 @@ export class UserService {
       role: user.isElderly ? 'Elderly' : ('Caretaker' as Role),
     }))[0];
   }
-  async updateUser({ uid, ...newInfo }: Partial<User>): Promise<User> {
+  async updateUser({ uid, ...newInfo }: Partial<User>): Promise<PersonalInfo> {
     const { uid: foundUid } = await this.findOne({ uid: uid }, { shouldExist: true });
-    return await this.userRepository.save({
+    const {
+      uid: returnedUid,
+      phone,
+      password,
+      ...rest
+    } = await this.userRepository.save({
       uid: foundUid,
       ...newInfo,
     });
+    return rest;
   }
 
   async findByPhoneNumber(phone: string): Promise<User> {
@@ -104,7 +116,6 @@ export class UserService {
       throw new BadRequestException("Phone number or password doesn't exist");
     }
     if (!user) throw new BadRequestException("Phone number or password doesn't exist");
-
     const isPasswordMatched = await this.authService.comparePassword(password, user.password);
     if (!isPasswordMatched) throw new BadRequestException("Phone number or password doesn't exist");
 
@@ -112,7 +123,22 @@ export class UserService {
       uid: user.uid as number,
       role: user.isElderly ? 'Elderly' : ('Caretaker' as Role),
     };
-
     return res;
+  }
+
+  async uploadProfilePicture(uid: number, image: Express.Multer.File): Promise<UploadProfileResponse> {
+    const { uid: foundUid } = await this.findOne({ uid: uid }, { shouldExist: true });
+    if (image.mimetype !== 'image/png' && image.mimetype !== 'image/jpeg') {
+      throw new BadRequestException('Invalid image type');
+    }
+    if (image.size > 20000000) {
+      throw new BadRequestException('Image too large');
+    }
+    const imageUrl = await this.googleStorageService.uploadImage(foundUid, image.buffer);
+    const { imageid } = await this.userRepository.save({
+      uid: foundUid,
+      imageid: imageUrl,
+    });
+    return { url: imageid };
   }
 }
