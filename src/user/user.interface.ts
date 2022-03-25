@@ -1,8 +1,8 @@
-import { ApiProperty } from '@nestjs/swagger'
-import { Expose, Type } from 'class-transformer'
-import { IsNotEmpty, IsDate, IsEnum, IsOptional } from 'class-validator'
-import { ToBoolean } from 'src/utils/transformer'
-import { IsValidName } from './user.validator'
+import { ApiProperty } from '@nestjs/swagger';
+import { Expose, Type } from 'class-transformer';
+import { IsNotEmpty, IsDate, IsEnum, IsOptional } from 'class-validator';
+import { ToBoolean } from 'src/utils/transformer';
+import { IsValidName } from './user.validator';
 export enum Gender {
   MALE = 'M',
   FEMALE = 'F',
@@ -17,49 +17,49 @@ export enum BloodType {
 export class PersonalInfo {
   @ApiProperty()
   @Expose()
-  imageid: string
+  imageid: string;
   @ApiProperty()
   @Expose()
   @IsNotEmpty()
   @IsValidName()
-  fname: string
+  fname: string;
   @ApiProperty()
   @Expose()
   @IsNotEmpty()
   @IsValidName()
-  lname: string
+  lname: string;
   @ApiProperty()
   @Expose()
   @IsNotEmpty()
-  dname: string
+  dname: string;
   @ApiProperty()
   @Expose()
   @IsNotEmpty()
   @Type(() => Date)
   @IsDate()
-  bday: Date
+  bday: Date;
   @ApiProperty({ enum: ['F', 'M'] })
   @Expose()
   @IsNotEmpty()
-  gender: string
+  gender: string;
   @ApiProperty()
   @Expose()
   @ToBoolean()
-  isElderly: boolean
+  isElderly: boolean;
   @ApiProperty()
   @Expose()
-  healthCondition: string
+  healthCondition: string;
   @ApiProperty({ enum: ['A', 'B', 'O', 'AB'] })
   @Expose()
   @IsOptional()
-  bloodType: string
+  bloodType: string;
   @ApiProperty()
   @Expose()
-  personalMedication: string
+  personalMedication: string;
   @ApiProperty()
   @Expose()
-  allergy: string
+  allergy: string;
   @ApiProperty()
   @Expose()
-  vaccine: string
+  vaccine: string;
 }

@@ -1,4 +1,4 @@
-import { registerDecorator, ValidationOptions, ValidationArguments } from 'class-validator'
+import { registerDecorator, ValidationOptions, ValidationArguments } from 'class-validator';
 
 export function IsValidName(validationOptions?: ValidationOptions) {
   return function (object: any, propertyName: string) {
@@ -10,9 +10,9 @@ export function IsValidName(validationOptions?: ValidationOptions) {
       options: { message: 'Name must be valid', ...validationOptions },
       validator: {
         validate(value: any) {
-          return !!value.toString().match(/^[\w.\-]+$/)
+          return !!value.toString().match(/^[\w.\-]+$/);
         },
       },
-    })
-  }
+    });
+  };
 }
