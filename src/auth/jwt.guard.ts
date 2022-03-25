@@ -21,7 +21,7 @@ export class UserGuard extends AuthGuard("jwt") {
     if (!["Elderly", "Caretaker"].includes(payload.role)) throw new ForbiddenException()
 
     const user = await this.userRepository.findOne({where: {uid: payload.uid}})
-    if (user === null) throw new UnauthorizedException() // check if user exists
+    if (!user) throw new UnauthorizedException() // check if user exists
     return true
   }
 }

@@ -10,6 +10,7 @@ export function IsValidName(validationOptions?: ValidationOptions) {
       options: { message: 'Name must be valid', ...validationOptions },
       validator: {
         validate(value: any) {
+          if (!value) return false
           return !!value.toString().match(/^[\w.\-]+$/);
         },
       },
