@@ -4,7 +4,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserModule } from 'src/user/user.module';
-import { CaretakerGuard, JwtAuthGuard, ElderlyGuard } from './jwt.guard';
+import { CaretakerGuard, JwtAuthGuard, ElderlyGuard, UserGuard } from './jwt.guard';
 
 @Module({
   imports: [
@@ -19,7 +19,7 @@ import { CaretakerGuard, JwtAuthGuard, ElderlyGuard } from './jwt.guard';
       inject: [ConfigService],
     }),
   ],
-  providers: [AuthService, JwtStrategy, CaretakerGuard, ElderlyGuard, JwtAuthGuard],
-  exports: [AuthService, CaretakerGuard, ElderlyGuard, JwtAuthGuard],
+  providers: [AuthService, JwtStrategy, CaretakerGuard, ElderlyGuard, UserGuard],
+  exports: [AuthService, CaretakerGuard, ElderlyGuard, UserGuard],
 })
 export class AuthModule {}

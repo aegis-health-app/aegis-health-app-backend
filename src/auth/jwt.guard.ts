@@ -1,13 +1,16 @@
 import { ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from "@nestjs/common"
+import { InjectRepository } from '@nestjs/typeorm'
 import { AuthGuard } from "@nestjs/passport"
 import { UserService } from "src/user/user.service"
-
+import { User } from '../entities/user.entity'
+import { FindConditions, FindOneOptions, Repository } from 'typeorm'
+import { Role } from "src/common/roles"
 @Injectable()
 export class JwtAuthGuard extends AuthGuard("jwt") {}
 
 @Injectable()
 export class UserGuard extends AuthGuard("jwt") {
-  constructor(private readonly userService: UserService) {
+  constructor(@InjectRepository(User) private userRepository: Repository<User>) {
     super()
   }
 
@@ -15,10 +18,11 @@ export class UserGuard extends AuthGuard("jwt") {
     const valid = await super.canActivate(context)
     if (!valid) throw new UnauthorizedException()
 
-    const payload = context.switchToHttp().getRequest().user
+    const payload: {role: Role, uid: number} = context.switchToHttp().getRequest().user
     if (!["Elderly", "Caretaker"].includes(payload.role)) throw new ForbiddenException()
 
-    const user = await this.userService.findUserById(payload.userId) 
+    // const user = await this.userService.findUserById(payload.userId) 
+    const user = await this.userRepository.findOne({where: {uid: payload.uid}})
     if (user === null) throw new UnauthorizedException() // check if user exists
     return true
   }
@@ -26,7 +30,7 @@ export class UserGuard extends AuthGuard("jwt") {
 
 @Injectable()
 export class ElderlyGuard extends AuthGuard("jwt") {
-  constructor(private readonly elderlyService: UserService) {
+  constructor(@InjectRepository(User) private userRepository: Repository<User>) {
     super()
   }
 
@@ -37,7 +41,8 @@ export class ElderlyGuard extends AuthGuard("jwt") {
     const payload = context.switchToHttp().getRequest().user
     if (payload.role !== "Elderly") throw new ForbiddenException() // check role in jwt
 
-    const elderly = await this.elderlyService.findElderlyById(payload.userId)
+    // const elderly = await this.elderlyService.findElderlyById(payload.userId)
+    const elderly = await this.userRepository.findOne({where: {uid: payload.uid, isElderly: true}})
     if (elderly === null) throw new UnauthorizedException() // check if user exists
     if (!elderly.isElderly) throw new ForbiddenException() // check if user is really a elderly
     return true
@@ -46,7 +51,7 @@ export class ElderlyGuard extends AuthGuard("jwt") {
 
 @Injectable()
 export class CaretakerGuard extends AuthGuard("jwt") {
-  constructor(private readonly caretakerService: UserService) {
+  constructor(@InjectRepository(User) private userRepository: Repository<User>) {
     super()
   }
 
@@ -57,7 +62,8 @@ export class CaretakerGuard extends AuthGuard("jwt") {
     const payload = context.switchToHttp().getRequest().user
     if (payload.role !== "Caretaker") throw new ForbiddenException() // check role in jwt
 
-    const caretaker = await this.caretakerService.findCaretakerById(payload.userId)
+    // const caretaker = await this.caretakerService.findCaretakerById(payload.userId)
+    const caretaker = await this.userRepository.findOne({where: {uid: payload.uid, isElderly: false}})
     if (caretaker === null) throw new UnauthorizedException() // check if user exists
     if (caretaker.isElderly) throw new ForbiddenException() // check if user is really a caretaker
     return true

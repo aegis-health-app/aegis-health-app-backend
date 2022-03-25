@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Param, Delete, UsePipes, ValidationPipe, HttpCode, Request, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserDto, UpdateRelationshipDto, LoginDto, CreateUserDto, AuthResponse } from './dto/user.dto';
-import { ApiBadRequestResponse, ApiOkResponse } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { AuthService } from 'src/auth/auth.service';
 import { CaretakerGuard, ElderlyGuard, UserGuard } from 'src/auth/jwt.guard';
 
@@ -58,8 +58,8 @@ export class UserController {
     return this.userService.schemaToDto(updatedUser, UserDto);
   }
 
-  @HttpCode(201)
   @ApiOkResponse({ description: 'Log in Successfully' })
+  @ApiBadRequestResponse({description: "Phone number or password doesn't exist"})
   @Post('login')
   async login(@Body() loginDto: LoginDto): Promise<AuthResponse> {
     const { uid, role } = await this.userService.login(loginDto.phone, loginDto.password);
@@ -71,8 +71,7 @@ export class UserController {
     return res;
   }
 
-  @HttpCode(201)
-  @ApiOkResponse({ description: 'Sign up Successfully' })
+  @ApiCreatedResponse({ description: 'Sign up Successfully' })
   @Post('signUp')
   async signUp(@Body() signUpDto: CreateUserDto): Promise<AuthResponse> {
     const { uid, role } = await this.userService.createUser(signUpDto);
