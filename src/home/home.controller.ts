@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common'
 import { AddModuleDTO, CaretakerHomeDTO, DeleteModuleDTO, ElderlyHomeDTO, ElderlyInfoDTO, ModuleInfoDTO } from './dto/home.dto'
 import { HomeService } from './home.service'
-import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger"
+import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger"
 import { CaretakerGuard, ElderlyGuard, UserGuard } from 'src/auth/jwt.guard'
 
 @ApiBearerAuth()
