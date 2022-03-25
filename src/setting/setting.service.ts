@@ -12,11 +12,11 @@ export class SettingService {
   constructor(
     private otpService: OtpService,
     @InjectRepository(User)
-    private settingRepository: Repository<User>,
+    private userRepository: Repository<User>,
   ) { }
 
   async findOne(uid: number): Promise<User> {
-    const user = await this.settingRepository.findOne(
+    const user = await this.userRepository.findOne(
       {
         where:
           { uid: uid }
@@ -42,7 +42,7 @@ export class SettingService {
       throw new HttpException("Old password entered is incorrect", HttpStatus.CONFLICT)
     if (passwordInterface.oldPassword === passwordInterface.newPassword)
       throw new HttpException("New password is the old password", HttpStatus.BAD_REQUEST)
-    this.settingRepository.update(uid, { password: await this.hashPassword(passwordInterface.newPassword) })
+    this.userRepository.update(uid, { password: await this.hashPassword(passwordInterface.newPassword) })
     return true;
   }
 
@@ -53,8 +53,8 @@ export class SettingService {
       throw new HttpException("Old phone number is the new phone number", HttpStatus.BAD_REQUEST)
     const otpVerified = this.otpService.verifyOtp(token, phoneInterface.enteredPin)
     if (!otpVerified)
-      throw new HttpException("PIN entered is incorrect", HttpStatus.UNAUTHORIZED)
-    this.settingRepository.update(uid, { phone: newPhoneNumber })
+      throw new HttpException("PIN entered is incorrect", HttpStatus.FORBIDDEN)
+    this.userRepository.update(uid, { phone: newPhoneNumber })
     return true;
   }
 }

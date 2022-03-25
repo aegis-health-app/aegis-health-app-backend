@@ -1,7 +1,8 @@
-import { Body, Controller, Put, Req, Res, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Put, Req, Res, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { SettingService } from './setting.service';
 import { ChangePasswordDto, ChangePhoneNoDto } from './dto/setting.dto';
 import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiUnauthorizedResponse } from '@nestjs/swagger'
+import { UserGuard } from 'src/auth/jwt.guard';
 
 @Controller('setting')
 export class SettingController {
@@ -11,7 +12,8 @@ export class SettingController {
   @ApiBody({ type: ChangePasswordDto })
   @ApiBearerAuth()
   @ApiOkResponse({ description: 'Succesful In Changing Password' })
-  @ApiUnauthorizedResponse({ description: 'Failed To Change Password' })
+  @ApiUnauthorizedResponse({ description: 'Must Login To Change Password' })
+  @UseGuards(UserGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @Put('/changePassword')
   async changeUserPassword(@Body() passwordDto: ChangePasswordDto, @Req() req, @Res() res): Promise<string> {
@@ -24,7 +26,8 @@ export class SettingController {
 
   @ApiBody({ type: ChangePhoneNoDto })
   @ApiOkResponse({ description: 'Succesful In Changing Phone Number' })
-  @ApiUnauthorizedResponse({ description: 'Failed To Change Phone Number' })
+  @ApiUnauthorizedResponse({ description: 'Must Login To Change Phone Number' })
+  @UseGuards(UserGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @Put("/changePhoneNumber")
   async changePhoneNumber(@Body() phoneDto: ChangePhoneNoDto, @Req() req, @Res() res): Promise<string> {
