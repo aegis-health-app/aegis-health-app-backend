@@ -111,14 +111,11 @@ export class HomeService {
             throw new HttpException("User not found", HttpStatus.NOT_FOUND)
         }
 
-        const temShowName = this.showName
-        const elderlyList =  caretaker.takingCareOf.map(function (elderly) {
-            return {
-                uid: elderly.uid,
-                dname: temShowName(elderly),
-                imageid: elderly.imageid
-            }
-        })
+        const elderlyList = caretaker.takingCareOf.map((elderly) => ({
+            uid: elderly.uid,
+            dname: this.showName(elderly),
+            imageid: elderly.imageid
+        }))
 
         return {
             dname: this.showName(caretaker),
