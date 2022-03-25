@@ -9,7 +9,7 @@ import { AuthService } from 'src/auth/auth.service';
 import { Role } from 'src/common/roles';
 @Injectable()
 export class UserService {
-  constructor(@InjectRepository(User) private userRepository: Repository<User>, private authService: AuthService) {}
+  constructor(@InjectRepository(User) private userRepository: Repository<User>, private authService: AuthService) { }
 
   schemaToDto(schema: User, dtoClass?: IDto<Partial<Omit<User, 'password'>> & { uid: number }>) {
     return plainToInstance(dtoClass, schema, { excludeExtraneousValues: true });
@@ -65,7 +65,7 @@ export class UserService {
     });
     return (await this.userRepository.insert(user)).identifiers.map((i) => ({
       uid: i.uid,
-      role: i.isElderly ? 'Elderly' : ('Caretaker' as Role),
+      role: user.isElderly ? 'Elderly' : ('Caretaker' as Role),
     }))[0];
   }
   async updateUser({ uid, ...newInfo }: Partial<User>): Promise<User> {
