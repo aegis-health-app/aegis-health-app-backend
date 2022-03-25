@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Delete, UsePipes, ValidationPipe, HttpCode, Request, UseGuards, Patch } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserDto, UpdateRelationshipDto, LoginDto, CreateUserDto, AuthResponse } from './dto/user.dto';
-import { ApiBadRequestResponse, ApiConflictResponse, ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiOkResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { AuthService } from 'src/auth/auth.service';
 import { CaretakerGuard, ElderlyGuard, UserGuard } from 'src/auth/jwt.guard';
 import { PersonalInfo } from './user.interface';
@@ -10,7 +10,9 @@ import { PersonalInfo } from './user.interface';
 export class UserController {
   constructor(private readonly userService: UserService, private readonly authService: AuthService) {}
 
+  @ApiBearerAuth()
   @UseGuards(UserGuard)
+  @ApiUnauthorizedResponse({ description: "Unauthorized"})
   @Get()
   @ApiOkResponse({ type: UserDto })
   @ApiBadRequestResponse({ description: 'User not found' })
@@ -21,7 +23,10 @@ export class UserController {
     return this.userService.schemaToDto(user, UserDto);
   }
 
+  @ApiBearerAuth()
   @UseGuards(ElderlyGuard)
+  @ApiUnauthorizedResponse({ description: "Unauthorized"})
+  @ApiForbiddenResponse({ description: 'Forbidden'})
   @Get('/relationship/caretaker')
   @ApiOkResponse({ type: [UserDto] })
   @ApiBadRequestResponse({ description: 'User not found OR Invalid user type' })
@@ -32,6 +37,9 @@ export class UserController {
   }
 
   @UseGuards(CaretakerGuard)
+  @ApiBearerAuth()
+  @ApiUnauthorizedResponse({ description: "Unauthorized"})
+  @ApiForbiddenResponse({ description: 'Forbidden'})
   @Get('/relationship/elderly')
   @ApiOkResponse({ type: [UserDto] })
   @ApiBadRequestResponse({ description: 'User not found OR Invalid user type' })
@@ -41,6 +49,9 @@ export class UserController {
     return users.map((user) => this.userService.schemaToDto(user, UserDto));
   }
 
+  @ApiBearerAuth()
+  @UseGuards(UserGuard)
+  @ApiUnauthorizedResponse({ description: "Unauthorized"})
   @Post('relationship')
   @HttpCode(201)
   @ApiBadRequestResponse({ description: 'User not found OR Invalid user type' })
@@ -51,6 +62,9 @@ export class UserController {
     return this.userService.schemaToDto(createdUser, UserDto);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(UserGuard)
+  @ApiUnauthorizedResponse({ description: "Unauthorized"})
   @Delete('relationship')
   @ApiOkResponse({ type: UserDto })
   @ApiBadRequestResponse({ description: 'User not found OR Invalid user type' })
@@ -88,6 +102,8 @@ export class UserController {
 
   @UseGuards(UserGuard)
   @ApiOkResponse({ description: "Information Updated"})
+  @ApiUnauthorizedResponse({ description: "Unauthorized"})
+  @ApiBearerAuth()
   @Patch()
   @UsePipes(new ValidationPipe({ whitelist: true }))
   async updateUserInfo(@Body() updateDto: PersonalInfo, @Request() req): Promise<PersonalInfo> {
