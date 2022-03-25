@@ -1,7 +1,29 @@
-import { Controller, Get, Post, Body, Delete, UsePipes, ValidationPipe, HttpCode, Request, UseGuards, Patch, UseInterceptors, UploadedFile } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Delete,
+  UsePipes,
+  ValidationPipe,
+  HttpCode,
+  Request,
+  UseGuards,
+  Patch,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserDto, UpdateRelationshipDto, LoginDto, CreateUserDto, AuthResponse, UploadProfileResponse } from './dto/user.dto';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiOkResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiConflictResponse,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiOkResponse,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { AuthService } from 'src/auth/auth.service';
 import { CaretakerGuard, ElderlyGuard, UserGuard } from 'src/auth/jwt.guard';
 import { PersonalInfo } from './user.interface';
@@ -12,21 +34,20 @@ export class UserController {
 
   @ApiBearerAuth()
   @UseGuards(UserGuard)
-  @ApiUnauthorizedResponse({ description: "Unauthorized"})
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Get()
   @ApiOkResponse({ type: UserDto })
   @ApiBadRequestResponse({ description: 'User not found' })
   async getPersonalInfo(@Request() req): Promise<UserDto> {
     const uid = req.user.uid;
-    console.log(uid);
     const user = await this.userService.findOne({ uid }, { shouldExist: true });
     return this.userService.schemaToDto(user, UserDto);
   }
 
   @ApiBearerAuth()
   @UseGuards(ElderlyGuard)
-  @ApiUnauthorizedResponse({ description: "Unauthorized"})
-  @ApiForbiddenResponse({ description: 'Forbidden'})
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
   @Get('/relationship/caretaker')
   @ApiOkResponse({ type: [UserDto] })
   @ApiBadRequestResponse({ description: 'User not found OR Invalid user type' })
@@ -38,8 +59,8 @@ export class UserController {
 
   @UseGuards(CaretakerGuard)
   @ApiBearerAuth()
-  @ApiUnauthorizedResponse({ description: "Unauthorized"})
-  @ApiForbiddenResponse({ description: 'Forbidden'})
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
   @Get('/relationship/elderly')
   @ApiOkResponse({ type: [UserDto] })
   @ApiBadRequestResponse({ description: 'User not found OR Invalid user type' })
@@ -51,7 +72,7 @@ export class UserController {
 
   @ApiBearerAuth()
   @UseGuards(UserGuard)
-  @ApiUnauthorizedResponse({ description: "Unauthorized"})
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Post('relationship')
   @HttpCode(201)
   @ApiBadRequestResponse({ description: 'User not found OR Invalid user type' })
@@ -64,7 +85,7 @@ export class UserController {
 
   @ApiBearerAuth()
   @UseGuards(UserGuard)
-  @ApiUnauthorizedResponse({ description: "Unauthorized"})
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Delete('relationship')
   @ApiOkResponse({ type: UserDto })
   @ApiBadRequestResponse({ description: 'User not found OR Invalid user type' })
@@ -101,8 +122,8 @@ export class UserController {
   }
 
   @UseGuards(UserGuard)
-  @ApiOkResponse({ description: "Information Updated"})
-  @ApiUnauthorizedResponse({ description: "Unauthorized"})
+  @ApiOkResponse({ description: 'Information Updated' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiBearerAuth()
   @Patch()
   @UsePipes(new ValidationPipe({ whitelist: true }))
@@ -112,17 +133,16 @@ export class UserController {
     return updatedUser;
   }
 
+  @UseGuards(UserGuard)
+  @ApiBearerAuth()
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 20000000 } }))
   @Post('/profile/:uid/image')
   @ApiOkResponse({ type: UploadProfileResponse })
   @ApiBadRequestResponse({ description: 'Image too large OR Invalid image type' })
-  async uploadProfilePicture(
-    @UploadedFile() file: Express.Multer.File,
-    @Request() req
-  ): Promise<UploadProfileResponse> {
-    //TODO: Get uid from token
-    const uid = req.user.uid
-    const imageUrl = await this.userService.uploadProfilePicture(uid, file)
-    return imageUrl
+  async uploadProfilePicture(@UploadedFile() file: Express.Multer.File, @Request() req): Promise<UploadProfileResponse> {
+    const uid = req.user.uid;
+    const imageUrl = await this.userService.uploadProfilePicture(uid, file);
+    return imageUrl;
   }
 }
