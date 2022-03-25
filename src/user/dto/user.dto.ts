@@ -6,21 +6,17 @@ import { Role } from '../../common/roles'
 
 export class CreateUserDto extends PersonalInfo {
   @ApiProperty()
-  @IsNotEmpty()
   @IsPhoneNumber()
   phone: string
   @ApiProperty()
   @IsString()
-  @IsNotEmpty()
   password: string
 }
 export class UpdateRelationshipDto {
   @ApiProperty()
-  @IsNotEmpty()
   @IsNumber()
   eid: number
   @ApiProperty()
-  @IsNotEmpty()
   @IsNumber()
   cid: number
 }
@@ -33,7 +29,6 @@ export class UserDto extends PartialType(PersonalInfo) {
 }
 export class GetUserRequest {
   @ApiProperty()
-  @IsNotEmpty()
   @Expose()
   @IsNumber()
   uid: number
@@ -64,7 +59,6 @@ export class GetUserRequest {
 }
 export class UpdateUserDto extends PartialType(CreateUserDto) {
   @ApiProperty()
-  @IsNotEmpty()
   @IsNumber()
   uid: number
 }
@@ -80,18 +74,12 @@ export class CreateUserResponse {
 export class LoginDto {
   @ApiProperty()
   @IsPhoneNumber()
-  @IsNotEmpty()
   phone: string
 
   @ApiProperty()
   @IsString()
-  @IsNotEmpty()
   password: string
 
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  role: Role
 }
 
 export class AuthResponse {
