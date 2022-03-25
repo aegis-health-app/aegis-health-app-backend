@@ -79,3 +79,9 @@ export class LoginDto {
 export class AuthResponse {
   token: string
 }
+
+export class UploadProfileResponse {
+  @ApiProperty()
+  @IsString()
+  url: string
+}

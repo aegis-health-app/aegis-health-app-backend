@@ -1,11 +1,11 @@
-import { Controller, Get, Post, Body, Delete, UsePipes, ValidationPipe, HttpCode, Request, UseGuards, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Delete, UsePipes, ValidationPipe, HttpCode, Request, UseGuards, Patch, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { UserService } from './user.service';
-import { UserDto, UpdateRelationshipDto, LoginDto, CreateUserDto, AuthResponse } from './dto/user.dto';
+import { UserDto, UpdateRelationshipDto, LoginDto, CreateUserDto, AuthResponse, UploadProfileResponse } from './dto/user.dto';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiOkResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { AuthService } from 'src/auth/auth.service';
 import { CaretakerGuard, ElderlyGuard, UserGuard } from 'src/auth/jwt.guard';
 import { PersonalInfo } from './user.interface';
-
+import { FileInterceptor } from '@nestjs/platform-express';
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService, private readonly authService: AuthService) {}
@@ -112,16 +112,17 @@ export class UserController {
     return updatedUser;
   }
 
-  // @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 20000000 } }))
-  // @Post('/profile/:uid/image')
-  // @ApiOkResponse({ type: UploadProfileResponse })
-  // @ApiBadRequestResponse({ description: 'Image too large OR Invalid image type' })
-  // async uploadProfilePicture(
-  //   @UploadedFile() file: Express.Multer.File,
-  //   @Param('uid') uid: number
-  // ): Promise<UploadProfileResponse> {
-  //   //TODO: Get uid from token
-  //   const imageUrl = await this.userService.uploadProfilePicture(uid, file)
-  //   return imageUrl
-  // }
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 20000000 } }))
+  @Post('/profile/:uid/image')
+  @ApiOkResponse({ type: UploadProfileResponse })
+  @ApiBadRequestResponse({ description: 'Image too large OR Invalid image type' })
+  async uploadProfilePicture(
+    @UploadedFile() file: Express.Multer.File,
+    @Request() req
+  ): Promise<UploadProfileResponse> {
+    //TODO: Get uid from token
+    const uid = req.user.uid
+    const imageUrl = await this.userService.uploadProfilePicture(uid, file)
+    return imageUrl
+  }
 }
