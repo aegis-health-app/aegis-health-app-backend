@@ -40,7 +40,7 @@ export class ElderlyGuard extends AuthGuard("jwt") {
     if (payload.role !== "Elderly") throw new ForbiddenException() // check role in jwt
 
     const elderly = await this.userRepository.findOne({where: {uid: payload.uid, isElderly: true}})
-    if (elderly === null) throw new UnauthorizedException() // check if user exists
+    if (!elderly) throw new UnauthorizedException() // check if user exists
     if (!elderly.isElderly) throw new ForbiddenException() // check if user is really a elderly
     return true
   }
@@ -60,7 +60,7 @@ export class CaretakerGuard extends AuthGuard("jwt") {
     if (payload.role !== "Caretaker") throw new ForbiddenException() // check role in jwt
 
     const caretaker = await this.userRepository.findOne({where: {uid: payload.uid, isElderly: false}})
-    if (caretaker === null) throw new UnauthorizedException() // check if user exists
+    if (!caretaker) throw new UnauthorizedException() // check if user exists
     if (caretaker.isElderly) throw new ForbiddenException() // check if user is really a caretaker
     return true
   }

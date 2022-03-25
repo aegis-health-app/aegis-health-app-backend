@@ -14,7 +14,7 @@ export class UserController {
   @ApiOkResponse({ type: UserDto })
   @ApiBadRequestResponse({ description: 'User not found' })
   async getPersonalInfo(@Request() req): Promise<UserDto> {
-    const uid = req.user.userId;
+    const uid = req.user.uid;
     const user = await this.userService.findOne({ uid }, { shouldExist: true });
     return this.userService.schemaToDto(user, UserDto);
   }
@@ -24,7 +24,7 @@ export class UserController {
   @ApiOkResponse({ type: [UserDto] })
   @ApiBadRequestResponse({ description: 'User not found OR Invalid user type' })
   async getCaretakersByElderlyId(@Request() req) {
-    const eid = req.user.userId;
+    const eid = req.user.uid;
     const users = await this.userService.findCaretakerByElderlyId(eid);
     return users.map((user) => this.userService.schemaToDto(user, UserDto));
   }
@@ -34,7 +34,7 @@ export class UserController {
   @ApiOkResponse({ type: [UserDto] })
   @ApiBadRequestResponse({ description: 'User not found OR Invalid user type' })
   async getElderlyByCaretakerId(@Request() req) {
-    const cid = req.user.userId;
+    const cid = req.user.uid;
     const users = await this.userService.findElderlyByCaretakerId(cid);
     return users.map((user) => this.userService.schemaToDto(user, UserDto));
   }

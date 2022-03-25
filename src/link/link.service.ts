@@ -16,7 +16,6 @@ export class LinkService {
 
     async getElderly(elderlyCode: string): Promise<ElderlyProfile>{
         const eid = hashids.decode(elderlyCode)[0];
-
         const elderly = await this.userRepository.findOne({
             where: {
                 uid: eid,isElderly: true
@@ -55,7 +54,8 @@ export class LinkService {
     }
 
 
-    async getElderlyCode(uid: number): Promise<ElderlyCode> { //figure out response format
+    async getElderlyCode(uid: number): Promise<ElderlyCode> { 
+        console.log(uid);
         const user = await this.userRepository.findOne({uid});
         if (user){
             const code = hashids.encode(uid);
