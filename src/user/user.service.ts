@@ -17,7 +17,7 @@ export class UserService {
     private googleStorageService: GoogleCloudStorage
   ) {}
 
-  schemaToDto<T>(schema: User, dtoClass?: IDto<T>) {
+  schemaToDto(schema: User, dtoClass: IDto<any>) {
     return plainToInstance(dtoClass, schema, { excludeExtraneousValues: true });
   }
   async findOne(
