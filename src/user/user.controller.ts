@@ -14,20 +14,24 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { UserDto, UpdateRelationshipDto, LoginDto, CreateUserDto, AuthResponse, UploadProfileResponse } from './dto/user.dto';
+import { UserDto, UpdateRelationshipDto, LoginDto, CreateUserDto, AuthResponse, UploadProfileResponse, UpdateUserProfileDto } from './dto/user.dto';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
+  ApiBody,
   ApiConflictResponse,
   ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiOkResponse,
+  ApiTags,
   ApiUnauthorizedResponse,
+  ApiUnsupportedMediaTypeResponse,
 } from '@nestjs/swagger';
 import { AuthService } from 'src/auth/auth.service';
 import { CaretakerGuard, ElderlyGuard, UserGuard } from 'src/auth/jwt.guard';
 import { PersonalInfo } from './user.interface';
 import { FileInterceptor } from '@nestjs/platform-express';
+@ApiTags('user')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService, private readonly authService: AuthService) {}
@@ -35,7 +39,7 @@ export class UserController {
   @ApiBearerAuth()
   @UseGuards(UserGuard)
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @Get()
+  @Get('profile')
   @ApiOkResponse({ type: UserDto })
   @ApiBadRequestResponse({ description: 'User not found' })
   async getPersonalInfo(@Request() req): Promise<UserDto> {
@@ -75,6 +79,7 @@ export class UserController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Post('relationship')
   @HttpCode(201)
+  @ApiBody({ type: UpdateRelationshipDto })
   @ApiBadRequestResponse({ description: 'User not found OR Invalid user type' })
   @ApiOkResponse({ type: UserDto })
   @UsePipes(new ValidationPipe({ transform: true }))
@@ -85,6 +90,7 @@ export class UserController {
 
   @ApiBearerAuth()
   @UseGuards(UserGuard)
+  @ApiBody({ type: UpdateRelationshipDto })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Delete('relationship')
   @ApiOkResponse({ type: UserDto })
@@ -95,7 +101,8 @@ export class UserController {
     return this.userService.schemaToDto(updatedUser, UserDto);
   }
 
-  @ApiOkResponse({ description: 'Log in Successfully' })
+  @ApiOkResponse({ description: 'Log in Successfully', type: AuthResponse })
+  @ApiBody({ type: LoginDto })
   @ApiBadRequestResponse({ description: "Phone number or password doesn't exist" })
   @Post('login')
   async login(@Body() loginDto: LoginDto): Promise<AuthResponse> {
@@ -109,6 +116,7 @@ export class UserController {
   }
 
   @ApiCreatedResponse({ description: 'Sign up Successfully' })
+  @ApiBody({ type: CreateUserDto })
   @ApiConflictResponse({ description: 'Phone number already exists' })
   @Post('signUp')
   async signUp(@Body() signUpDto: CreateUserDto): Promise<AuthResponse> {
@@ -122,24 +130,26 @@ export class UserController {
   }
 
   @UseGuards(UserGuard)
-  @ApiOkResponse({ description: 'Information Updated' })
+  @ApiOkResponse({ type: UserDto })
+  @ApiBody({ type: UpdateUserProfileDto })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiBearerAuth()
-  @Patch()
+  @Patch('profile')
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  async updateUserInfo(@Body() updateDto: PersonalInfo, @Request() req): Promise<PersonalInfo> {
+  async updateUserInfo(@Body() updateDto: UpdateUserProfileDto, @Request() req): Promise<UserDto> {
     const uid = req.user.uid;
     const updatedUser = await this.userService.updateUser({ uid, ...updateDto });
-    return updatedUser;
+    return this.userService.schemaToDto(updatedUser, UserDto);
   }
 
   @UseGuards(UserGuard)
   @ApiBearerAuth()
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 20000000 } }))
-  @Post('/profile/:uid/image')
+  @Post('profile/image')
   @ApiOkResponse({ type: UploadProfileResponse })
-  @ApiBadRequestResponse({ description: 'Image too large OR Invalid image type' })
+  @ApiBadRequestResponse({ description: 'Image too large' })
+  @ApiUnsupportedMediaTypeResponse({ description: 'Invalid image type' })
   async uploadProfilePicture(@UploadedFile() file: Express.Multer.File, @Request() req): Promise<UploadProfileResponse> {
     const uid = req.user.uid;
     const imageUrl = await this.userService.uploadProfilePicture(uid, file);

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, UnsupportedMediaTypeException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entities/user.entity';
 import { FindConditions, FindOneOptions, Repository } from 'typeorm';
@@ -17,7 +17,7 @@ export class UserService {
     private googleStorageService: GoogleCloudStorage
   ) {}
 
-  schemaToDto(schema: User, dtoClass?: IDto<Partial<Omit<User, 'password'>> & { uid: number }>) {
+  schemaToDto<T>(schema: User, dtoClass?: IDto<T>) {
     return plainToInstance(dtoClass, schema, { excludeExtraneousValues: true });
   }
   async findOne(
@@ -74,18 +74,12 @@ export class UserService {
       role: user.isElderly ? 'Elderly' : ('Caretaker' as Role),
     }))[0];
   }
-  async updateUser({ uid, ...newInfo }: Partial<User>): Promise<PersonalInfo> {
+  async updateUser({ uid, ...newInfo }: Partial<User>): Promise<User> {
     const { uid: foundUid } = await this.findOne({ uid: uid }, { shouldExist: true });
-    const {
-      uid: returnedUid,
-      phone,
-      password,
-      ...rest
-    } = await this.userRepository.save({
+    return await this.userRepository.save({
       uid: foundUid,
       ...newInfo,
     });
-    return rest;
   }
 
   async findByPhoneNumber(phone: string): Promise<User> {
@@ -128,8 +122,8 @@ export class UserService {
 
   async uploadProfilePicture(uid: number, image: Express.Multer.File): Promise<UploadProfileResponse> {
     const { uid: foundUid } = await this.findOne({ uid: uid }, { shouldExist: true });
-    if (image.mimetype !== 'image/png' && image.mimetype !== 'image/jpeg') {
-      throw new BadRequestException('Invalid image type');
+    if (!image || (image.mimetype !== 'image/png' && image.mimetype !== 'image/jpeg')) {
+      throw new UnsupportedMediaTypeException('Invalid image type');
     }
     if (image.size > 20000000) {
       throw new BadRequestException('Image too large');

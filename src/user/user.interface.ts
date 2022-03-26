@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
-import { IsNotEmpty, IsDate, IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsDate, IsEnum, IsOptional, IsString, IsPhoneNumber } from 'class-validator';
 import { ToBoolean } from 'src/utils/transformer';
 import { IsValidName } from './user.validator';
 export enum Gender {
@@ -12,6 +12,7 @@ export enum BloodType {
   B = 'B',
   O = 'O',
   AB = 'AB',
+  NA = 'N/A',
 }
 @Expose()
 export class PersonalInfo {
@@ -51,7 +52,7 @@ export class PersonalInfo {
   @ApiProperty()
   @Expose()
   healthCondition: string;
-  @ApiProperty({ enum: ['A', 'B', 'O', 'AB'] })
+  @ApiProperty({ enum: ['A', 'B', 'O', 'AB', 'N/A'] })
   @Expose()
   @IsOptional()
   bloodType: string;
