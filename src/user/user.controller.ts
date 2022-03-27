@@ -101,6 +101,7 @@ export class UserController {
     return this.userService.schemaToDto(updatedUser, UserDto);
   }
 
+  @HttpCode(200)
   @ApiOkResponse({ description: 'Log in Successfully', type: AuthResponse })
   @ApiBody({ type: LoginDto })
   @ApiBadRequestResponse({ description: "Phone number or password doesn't exist" })
