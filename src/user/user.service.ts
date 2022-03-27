@@ -9,6 +9,7 @@ import { AuthService } from 'src/auth/auth.service';
 import { Role } from 'src/common/roles';
 import { PersonalInfo } from './user.interface';
 import { GoogleCloudStorage } from 'src/google-cloud/google-storage.service';
+import { ALLOWED_PROFILE_FORMAT } from 'src/utils/global.constant';
 @Injectable()
 export class UserService {
   constructor(
@@ -122,7 +123,7 @@ export class UserService {
 
   async uploadProfilePicture(uid: number, image: Express.Multer.File): Promise<UploadProfileResponse> {
     const { uid: foundUid } = await this.findOne({ uid: uid }, { shouldExist: true });
-    if (!image || (image.mimetype !== 'image/png' && image.mimetype !== 'image/jpeg')) {
+    if (!image || !ALLOWED_PROFILE_FORMAT.includes(image.mimetype)) {
       throw new UnsupportedMediaTypeException('Invalid image type');
     }
     if (image.size > 20000000) {
