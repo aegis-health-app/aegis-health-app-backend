@@ -12,7 +12,6 @@ import {
   Patch,
   UseInterceptors,
   UploadedFile,
-  UploadedFiles,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserDto, UpdateRelationshipDto, LoginDto, CreateUserDto, AuthResponse, UploadProfileResponse, UpdateUserProfileDto } from './dto/user.dto';
@@ -31,7 +30,7 @@ import {
 import { AuthService } from 'src/auth/auth.service';
 import { CaretakerGuard, ElderlyGuard, UserGuard } from 'src/auth/jwt.guard';
 import { PersonalInfo } from './user.interface';
-import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor } from '@nestjs/platform-express';
 @ApiTags('user')
 @Controller('user')
 export class UserController {
@@ -146,13 +145,13 @@ export class UserController {
   @UseGuards(UserGuard)
   @ApiBearerAuth()
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @UseInterceptors(FileFieldsInterceptor([{ name: 'file' }], { limits: { fileSize: 20000000 } }))
-  @Post('/profile/image')
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 20000000 } }))
+  @Post('profile/image')
   @ApiOkResponse({ type: UploadProfileResponse })
-  @ApiBadRequestResponse({ description: 'Image too large OR Invalid image type' })
-  async uploadProfilePicture(@UploadedFiles() files: Array<Express.Multer.File>, @Request() req): Promise<UploadProfileResponse> {
-    const uid = req.user.uid;
-    const imageUrl = await this.userService.uploadProfilePicture(uid, files[0]);
+  @ApiBadRequestResponse({ description: 'Image too large' })
+  @ApiUnsupportedMediaTypeResponse({ description: 'Invalid image type' })
+  async uploadProfilePicture(@UploadedFile() file: Express.Multer.File, @Request() req): Promise<UploadProfileResponse> {
+    const imageUrl = await this.userService.uploadProfilePicture(req.user.uid, file);
     return imageUrl;
   }
 }
