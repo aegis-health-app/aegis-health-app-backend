@@ -14,7 +14,7 @@ import { CaretakerGuard, ElderlyGuard, UserGuard } from './jwt.guard';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET_KEY'),
-        signOptions: { expiresIn: '60s' },
+        signOptions: { expiresIn: '30d' },
       }),
       inject: [ConfigService],
     }),
