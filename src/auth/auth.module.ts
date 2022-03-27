@@ -4,7 +4,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserModule } from 'src/user/user.module';
-import { CaretakerGuard, JwtAuthGuard, ElderlyGuard, UserGuard } from './jwt.guard';
+import { CaretakerGuard, ElderlyGuard, UserGuard } from './jwt.guard';
 
 @Module({
   imports: [
@@ -14,7 +14,7 @@ import { CaretakerGuard, JwtAuthGuard, ElderlyGuard, UserGuard } from './jwt.gua
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET_KEY'),
-        signOptions: { expiresIn: '7d' },
+        signOptions: { expiresIn: '60s' },
       }),
       inject: [ConfigService],
     }),
