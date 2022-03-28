@@ -1,5 +1,4 @@
 import { HttpStatus, HttpException, Injectable } from '@nestjs/common';
-import { UnauthorizedError } from 'type-graphql';
 @Injectable()
 export class OtpService {
   async getOtp(phoneNumber: string) {
