@@ -1,7 +1,7 @@
 import { Body, Controller, Put, Req, Res, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { SettingService } from './setting.service';
 import { ChangePasswordDto, ChangePhoneNoDto } from './dto/setting.dto';
-import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiUnauthorizedResponse } from '@nestjs/swagger'
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConflictResponse, ApiForbiddenResponse, ApiOkResponse, ApiUnauthorizedResponse } from '@nestjs/swagger'
 import { UserGuard } from 'src/auth/jwt.guard';
 
 @Controller('setting')
@@ -12,7 +12,9 @@ export class SettingController {
   @ApiBody({ type: ChangePasswordDto })
   @ApiBearerAuth()
   @ApiOkResponse({ description: 'Succesful In Changing Password' })
+  @ApiBadRequestResponse({ description: 'Old Password is the New Password' })
   @ApiUnauthorizedResponse({ description: 'Must Login To Change Password' })
+  @ApiConflictResponse({ description: 'Old Password Entered is Incorrect' })
   @UseGuards(UserGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @Put('/changePassword')
@@ -25,8 +27,11 @@ export class SettingController {
   }
 
   @ApiBody({ type: ChangePhoneNoDto })
+  @ApiBearerAuth()
   @ApiOkResponse({ description: 'Succesful In Changing Phone Number' })
+  @ApiBadRequestResponse({ description: 'Old Phone Number is the New Phone Number' })
   @ApiUnauthorizedResponse({ description: 'Must Login To Change Phone Number' })
+  @ApiForbiddenResponse({ description: 'PIN Entered is Incorrect' })
   @UseGuards(UserGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @Put("/changePhoneNumber")
