@@ -1,7 +1,7 @@
 import { Body, Controller, Put, Req, Res, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { SettingService } from './setting.service';
 import { ChangePasswordDto, ChangePhoneNoDto } from './dto/setting.dto';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConflictResponse, ApiForbiddenResponse, ApiOkResponse, ApiUnauthorizedResponse } from '@nestjs/swagger'
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConflictResponse, ApiForbiddenResponse, ApiOkResponse, ApiOperation, ApiUnauthorizedResponse } from '@nestjs/swagger'
 import { UserGuard } from 'src/auth/jwt.guard';
 
 @Controller('setting')
@@ -9,6 +9,7 @@ export class SettingController {
 
   constructor(private readonly settingService: SettingService) { }
 
+  @ApiOperation({description: "Change password in the settings page"})
   @ApiBody({ type: ChangePasswordDto })
   @ApiBearerAuth()
   @ApiOkResponse({ description: 'Succesful In Changing Password' })
@@ -26,6 +27,7 @@ export class SettingController {
     })
   }
 
+  @ApiOperation({description: "Change phone number in the settings page"})
   @ApiBody({ type: ChangePhoneNoDto })
   @ApiBearerAuth()
   @ApiOkResponse({ description: 'Succesful In Changing Phone Number' })
