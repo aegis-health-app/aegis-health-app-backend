@@ -146,13 +146,12 @@ export class UserController {
   @UseGuards(UserGuard)
   @ApiBearerAuth()
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 20000000 } }))
   @Post('profile/image')
   @ApiOkResponse({ type: UploadProfileResponse })
   @ApiBadRequestResponse({ description: 'Image too large' })
   @ApiUnsupportedMediaTypeResponse({ description: 'Invalid image type' })
-  async uploadProfilePicture(@UploadedFile() file: Express.Multer.File, @Request() req): Promise<UploadProfileResponse> {
-    const imageUrl = await this.userService.uploadProfilePicture(req.user.uid, file);
+  async uploadProfilePicture(@Request() req): Promise<UploadProfileResponse> {
+    const imageUrl = await this.userService.uploadProfilePicture(req.user.uid, req.body._parts[0][1]);
     return imageUrl;
   }
 }
