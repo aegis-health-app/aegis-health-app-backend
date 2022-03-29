@@ -130,7 +130,6 @@ export class UserService {
       throw new BadRequestException('Image too large');
     }
     const buffer = Buffer.from(image.base64);
-    console.log(buffer);
     const imageUrl = await this.googleStorageService.uploadImage(foundUid, buffer);
     const { imageid } = await this.userRepository.save({
       uid: foundUid,
