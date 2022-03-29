@@ -14,7 +14,16 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { UserDto, UpdateRelationshipDto, LoginDto, CreateUserDto, AuthResponse, UploadProfileResponse, UpdateUserProfileDto } from './dto/user.dto';
+import {
+  UserDto,
+  UpdateRelationshipDto,
+  LoginDto,
+  CreateUserDto,
+  AuthResponse,
+  UploadProfileResponse,
+  UpdateUserProfileDto,
+  UploadProfileRequest,
+} from './dto/user.dto';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -147,11 +156,12 @@ export class UserController {
   @ApiBearerAuth()
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Post('profile/image')
+  @ApiBody({ type: UploadProfileRequest })
   @ApiOkResponse({ type: UploadProfileResponse })
   @ApiBadRequestResponse({ description: 'Image too large' })
   @ApiUnsupportedMediaTypeResponse({ description: 'Invalid image type' })
-  async uploadProfilePicture(@Request() req): Promise<UploadProfileResponse> {
-    const imageUrl = await this.userService.uploadProfilePicture(req.user.uid, req.body._parts[0][1]);
+  async uploadProfilePicture(@Body() dto: UploadProfileRequest, @Request() req): Promise<UploadProfileResponse> {
+    const imageUrl = await this.userService.uploadProfilePicture(req.user.uid, dto);
     return imageUrl;
   }
 }
