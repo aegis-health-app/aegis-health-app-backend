@@ -5,8 +5,8 @@ import * as bodyParser from 'body-parser';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors();
-  app.use(bodyParser.json({ limit: '5mb' }));
-  app.use(bodyParser.urlencoded({ limit: '5mb', extended: true }));
+  app.use('/user/profile/image', bodyParser.json({ limit: '5mb' }));
+  app.use('/user/profile/image', bodyParser.urlencoded({ limit: '5mb', extended: true }));
   const config = new DocumentBuilder()
     .setTitle('Aegis Health Application')
     .setDescription('Aegis Health API Application')

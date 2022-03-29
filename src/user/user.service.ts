@@ -126,10 +126,10 @@ export class UserService {
     if (!image || !ALLOWED_PROFILE_FORMAT.includes(image.type)) {
       throw new UnsupportedMediaTypeException('Invalid image type');
     }
-    if (image.size > 20000000) {
+    const buffer = Buffer.from(image.base64);
+    if (buffer.byteLength > 20000000) {
       throw new BadRequestException('Image too large');
     }
-    const buffer = Buffer.from(image.base64);
     const imageUrl = await this.googleStorageService.uploadImage(foundUid, buffer);
     const { imageid } = await this.userRepository.save({
       uid: foundUid,
