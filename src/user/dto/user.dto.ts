@@ -61,3 +61,9 @@ export class UploadProfileResponse {
   @IsString()
   url: string;
 }
+export class UploadProfileRequest {
+  base64: string;
+  name: string;
+  type: string;
+  size: number;
+}
