@@ -4,10 +4,11 @@ import { EmotionTrackingService } from './emotion-tracking.service'
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EmotionalRecord } from 'src/entities/emotionalRecord.entity';
 import { User } from 'src/entities/user.entity'
+import { Module as ModuleEntity } from 'src/entities/module.entity';
 import { UserModule } from '../user/user.module'
 
 @Module({
-    imports: [TypeOrmModule.forFeature([EmotionalRecord, User]), UserModule],
+    imports: [TypeOrmModule.forFeature([EmotionalRecord, User, ModuleEntity]), UserModule],
     controllers: [EmotionTrackingController],
     providers: [EmotionTrackingService]
 })

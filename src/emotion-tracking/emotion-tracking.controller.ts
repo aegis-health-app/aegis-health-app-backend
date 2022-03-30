@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Req, Body, Query, Param, UsePipes, ValidationPipe  } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Req, Body, Query, Param, UsePipes, ValidationPipe  } from '@nestjs/common';
 import { EmotionTrackingService } from './emotion-tracking.service';
 import { CreateEmotionRecordDto, EmotionHistoryDto } from './dto/emotion-tracking.dto';
 import { ApiOperation, ApiOkResponse, ApiBadRequestResponse, ApiBearerAuth, ApiUnauthorizedResponse, ApiForbiddenResponse, ApiTags } from '@nestjs/swagger';
@@ -28,6 +28,30 @@ export class EmotionTrackingController {
         const limit = req.query.limit;
         const offset = req.query.offset;
         return this.emotionTrackingService.getEmotionalRecord(caretakerId, elderlyId, limit, offset);
+    }
+
+    @Get('/:uid')
+    async checkEmotionTrackingStatus(@Req() req, @Param('uid') uid: number){
+        // const caretakerId = req.user.uid;
+        const caretakerId = req.query.cid;
+        const elderlyId = uid;
+        return this.emotionTrackingService.getEmotionTrackingStatus(caretakerId, elderlyId);
+    }
+
+    @Post('/:uid')
+    async addEmotionTrackingModuleToElderly(@Req() req, @Param("uid") uid: number){
+        // const caretakerId = req.user.uid;
+        const caretakerId = req.query.cid;
+        const elderlyId = uid;
+        return this.emotionTrackingService.addEmotionalTrackingModuleToElderly(caretakerId, elderlyId);
+    }
+
+    @Delete('/:uid')
+    async removeEmotionTrackingModuleFromElderly(@Req() req, @Param("uid") uid: number){
+        // const caretakerId = req.user.uid;
+        const caretakerId = req.query.cid;
+        const elderlyId = uid;
+        return this.emotionTrackingService.removeEmotionalTrackingModuleFromElderly(caretakerId, elderlyId);
     }
 }
 
