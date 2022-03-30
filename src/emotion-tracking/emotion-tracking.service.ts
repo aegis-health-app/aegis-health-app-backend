@@ -2,6 +2,7 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EmotionalRecord } from 'src/entities/emotionalRecord.entity';
+import { EmotionRecord } from './emotion-tracking.interface';
 import { User } from 'src/entities/user.entity';
 import moment from 'moment';
 import {UserService} from '../user/user.service'
@@ -17,19 +18,29 @@ export class EmotionTrackingService {
 
     ) {}
 
-    async createEmotionalRecord(uid: number, emotionLevel: string): Promise<{message: string}>{
-        //timestamp+uid must be unique, throw exception or just simply replace?
-        const emotionalRecord = new EmotionalRecord();
-        emotionalRecord.date = moment().format('YYYY-MM-DD');
-        emotionalRecord.emotionalLevel = emotionLevel;
-        const user = await this.userRepository.findOne({uid});
-        emotionalRecord.user = user;
-        await this.emotionRecordRepository.save(emotionalRecord);  
-        return {message: "Emotion record created"};
-        
+    async createEmotionalRecord(uid: number, emotionLevel: string): Promise<any>{
+        //check if a record for this day is already made by this user
+        const currentDate = moment().format('YYYY-MM-DD');
+        const existingRecord = await this.emotionRecordRepository
+            .createQueryBuilder("emotionalRecord")
+            .leftJoinAndSelect("emotionalRecord.user", "user")
+            .where("user.uid = :uid", {uid: uid})
+            .andWhere("emotionalRecord.date = :date", {date: currentDate})
+            .getOne();
+
+        if (! existingRecord){
+            const emotionalRecord = new EmotionalRecord();
+            emotionalRecord.date = currentDate;
+            emotionalRecord.emotionalLevel = emotionLevel;
+            const user = await this.userRepository.findOne({uid});
+            emotionalRecord.user = user;
+            await this.emotionRecordRepository.save(emotionalRecord);  
+            return {message: "Emotion record created"};
+        } 
+        throw new HttpException('Emotion record of this elderly has already been made today', HttpStatus.BAD_REQUEST);
     }
 
-    async getEmotionalRecord(caretakerId: number, elderlyId: number, limit: number, offset:number=0): Promise<EmotionalRecord[]>{
+    async getEmotionalRecord(caretakerId: number, elderlyId: number, limit: number, offset:number=0){
         //check if this caretaker is this elderly's caretaker
         const elderlyList = await this.userService.findElderlyByCaretakerId(caretakerId);
         const elderly = elderlyList.filter(elderly => elderly.uid === +elderlyId)[0];
