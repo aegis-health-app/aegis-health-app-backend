@@ -14,7 +14,7 @@ export class HealthData {
   timestamp: Timestamp;
 
   @PrimaryColumn()
-  columnId: number;
+  columnName: string;
 
   @PrimaryColumn()
   uid: number;
@@ -36,9 +36,9 @@ export class HealthData {
     },
   )
   @JoinColumn([
-    { name: 'columnId', referencedColumnName: 'columnId' },
     { name: 'uid', referencedColumnName: 'uid' },
     { name: 'hrName', referencedColumnName: 'hrName' },
+    { name: 'columnName', referencedColumnName: 'columnName' },
   ])
   healthColumn: HealthColumn;
 }
