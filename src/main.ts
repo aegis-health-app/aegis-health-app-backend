@@ -2,7 +2,11 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { json } from 'express';
+import * as admin from 'firebase-admin';
 async function bootstrap() {
+  admin.initializeApp({
+    credential: admin.credential.applicationDefault(),
+  });
   const app = await NestFactory.create(AppModule);
   app.enableCors();
   app.use('/user/profile/image', json({ limit: '5mb' }));
