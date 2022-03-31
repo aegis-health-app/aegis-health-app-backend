@@ -26,7 +26,7 @@ export class HealthRecordController {
   @ApiOkResponse({ type: HealthRecordDto })
   @ApiParam({ name: 'healthRecordName', type: String, description: 'health record name user wants to find' })
   @Get('/:healthRecordName')
-  async getHealthDatadByElderly(@Param('healthRecordName') healthRecordName: string, @Request() req): Promise<HealthRecordDto> {
+  async getHealthDataByElderly(@Param('healthRecordName') healthRecordName: string, @Request() req): Promise<HealthRecordDto> {
     const userId = req.user.uid;
     return await this.healthRecordService.getHealthData(userId, healthRecordName);
   }
