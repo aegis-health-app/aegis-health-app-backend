@@ -2,7 +2,7 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EmotionalRecord } from 'src/entities/emotionalRecord.entity';
-import { EmotionRecord } from './emotion-tracking.interface';
+import { EmotionRecord, EmotionHistory } from './emotion-tracking.interface';
 import { User } from 'src/entities/user.entity';
 import { Module } from 'src/entities/module.entity';
 import moment from 'moment';
@@ -38,34 +38,40 @@ export class EmotionTrackingService {
             const user = await this.userRepository.findOne({uid});
             emotionalRecord.user = user;
             await this.emotionRecordRepository.save(emotionalRecord);  
-            return {message: "Emotion record created"};
+            return {message: "Emotion record successfully created"};
         } 
         throw new HttpException('Emotion record of this elderly has already been made today', HttpStatus.BAD_REQUEST);
     }
 
-    async getEmotionalRecord(caretakerId: number, elderlyId: number, limit: number, offset:number=0){
+    async getEmotionalRecord(caretakerId: number, elderlyId: number, limit: number, offset:number=0): Promise<EmotionHistory>{
         //check if this caretaker is this elderly's caretaker
         const elderlyList = await this.userService.findElderlyByCaretakerId(caretakerId);
         const elderly = elderlyList.filter(elderly => elderly.uid === +elderlyId)[0];
+        let emotionalRecord;
+        let numRecords;
         if(elderly){
+            emotionalRecord = await this.emotionRecordRepository
+                .createQueryBuilder("emotionRecord")
+                .where("emotionRecord.uid = :uid", {uid: elderlyId})
+                .orderBy("emotionRecord.date", "DESC")
+                .getMany();
+            numRecords = emotionalRecord.length;
+    
             //check if the limit is specified. default: return all
             if(limit){
-                const emotionalRecord = await this.emotionRecordRepository
+                emotionalRecord = await this.emotionRecordRepository
                     .createQueryBuilder("emotionRecord")
                     .where("emotionRecord.uid = :uid", {uid: elderlyId})
                     .orderBy("emotionRecord.date", "DESC")
                     .limit(limit)
                     .offset(offset)
                     .getMany();
-                return emotionalRecord;
-            } else {
-                const emotionalRecord = await this.emotionRecordRepository
-                    .createQueryBuilder("emotionRecord")
-                    .where("emotionRecord.uid = :uid", {uid: elderlyId})
-                    .orderBy("emotionRecord.date", "DESC")
-                    .getMany();
-                return emotionalRecord
             }
+            const emotionalHistory = {
+                count: numRecords,
+                records: emotionalRecord
+            }
+            return emotionalHistory;
         }
         throw new HttpException('Invalid uid, this elderly is not taken care by this caretaker', HttpStatus.BAD_REQUEST);
     }
@@ -89,12 +95,12 @@ export class EmotionTrackingService {
         })
         const moduleFive = elderly.modules.filter(module=> module.moduleid === 5)[0];  //5 is the moduleid of Emotion Tracking module
         if(moduleFive){
-            throw new HttpException("Emotion tracking is already on", HttpStatus.CONFLICT);
+            throw new HttpException("Emotion tracking is already enabled", HttpStatus.CONFLICT);
         }
         const module = await this.moduleRepository.findOne({moduleid: 5});
         elderly.modules.push(module);
         await this.userRepository.save(elderly);
-        return {message: 'Emotion tracking is successfully turned on'}
+        return {message: 'Emotion tracking is successfully enabled'}
     }
 
     async removeEmotionalTrackingModuleFromElderly(caretakerId: number, elderlyId: number): Promise<{message: string}>{
@@ -104,11 +110,11 @@ export class EmotionTrackingService {
         })
         const moduleFive = elderly.modules.filter(module=> module.moduleid === 5)[0];  //5 is the moduleid of Emotion Tracking module
         if(! moduleFive){
-            throw new HttpException("Emotion tracking is already off", HttpStatus.CONFLICT);
+            throw new HttpException("Emotion tracking is already disabled", HttpStatus.CONFLICT);
         }
         elderly.modules =  elderly.modules.filter(module=> module.moduleid !== 5);
         await this.userRepository.save(elderly);
-        return {message: 'Emotion tracking is successfully turned off'}
+        return {message: 'Emotion tracking is successfully disabled'}
     }
 
     async isValidCaretaker(caretakerId, elderlyId): Promise<boolean>{
