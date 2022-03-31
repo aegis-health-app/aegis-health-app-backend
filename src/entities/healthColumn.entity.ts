@@ -12,16 +12,13 @@ import { HealthRecord } from './healthRecord.entity';
 
 @Entity({ name: 'HealthColumn' })
 export class HealthColumn {
-  @PrimaryGeneratedColumn()
-  columnId: number;
-
   @PrimaryColumn()
   uid: number;
 
   @PrimaryColumn()
   hrName: string;
 
-  @Column()
+  @PrimaryColumn()
   columnName: string;
 
   @Column()
@@ -38,8 +35,8 @@ export class HealthColumn {
     },
   )
   @JoinColumn([
+    { name: 'uid', referencedColumnName: 'uid' },
     { name: 'hrName', referencedColumnName: 'hrName' },
-    { name: 'uid', referencedColumnName: 'uid' }
   ])
   healthRecord: HealthRecord;
 

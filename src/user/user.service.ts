@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnsupportedMediaTypeException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnsupportedMediaTypeException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entities/user.entity';
 import { FindConditions, FindOneOptions, Repository } from 'typeorm';
@@ -101,6 +101,27 @@ export class UserService {
   async findElderlyById(uid: number) {
     const elderly = await this.findOne({ uid: uid }, { shouldBeElderly: true, shouldExist: true });
     return elderly;
+  }
+
+  async checkRelationship(eid: number, cid: number) {
+    let elderly;
+    let isRelated = false;
+    try {
+      elderly = await this.findElderlyById(eid);
+    } catch {
+      throw new NotFoundException('Elderly Does Not Exist');
+    }
+      
+    const caretakers = await this.findCaretakerByElderlyId(elderly.uid);
+    if (!caretakers) return isRelated;
+
+    for (var i = 0; i < caretakers.length; i++) {
+      if (caretakers[i].uid === cid) {
+        isRelated = true
+        break;
+      }
+    }
+    return isRelated;
   }
 
   async login(phone: string, password: string): Promise<{ uid: number; role: Role }> {
