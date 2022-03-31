@@ -127,7 +127,7 @@ export class UserService {
       throw new UnsupportedMediaTypeException('Invalid image type');
     }
     const buffer = Buffer.from(image.base64);
-    if (buffer.byteLength > 20000000) {
+    if (buffer.byteLength > 5000000) {
       throw new BadRequestException('Image too large');
     }
     const imageUrl = await this.googleStorageService.uploadImage(foundUid, buffer);
