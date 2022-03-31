@@ -3,7 +3,7 @@ export class HealthDataField {
   unit: string
 }
 
-export class UpdateHealthrecordDto {
+export class AddHealthrecordDto {
   hrName: string
   imageid: string
   listField: HealthDataField[]
