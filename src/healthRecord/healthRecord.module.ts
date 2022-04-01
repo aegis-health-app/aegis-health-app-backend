@@ -5,10 +5,11 @@ import { User } from 'src/entities/user.entity';
 import { HealthRecordController } from './healthRecord.controller';
 import { HealthRecordService } from './healthRecord.service';
 import { HealthRecord as HealthRecordEntity } from 'src/entities/healthRecord.entity';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   controllers: [HealthRecordController],
   providers: [HealthRecordService],
-  imports: [TypeOrmModule.forFeature([User, HealthRecordEntity, HealthColumn])],
+  imports: [UserModule, TypeOrmModule.forFeature([User, HealthRecordEntity, HealthColumn])],
 })
 export class HealthRecordModule { }

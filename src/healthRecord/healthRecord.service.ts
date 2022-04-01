@@ -6,7 +6,6 @@ import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 import { AllHealthRecord, AddHealthrecord } from './healthRecord.interface';
 
-
 @Injectable()
 export class HealthRecordService {
 
@@ -23,7 +22,7 @@ export class HealthRecordService {
 
     const healthRecordList = await this.healthRecordRepository.find({ where: { uid: uid }, })
     if (!healthRecordList)
-      throw new HttpException("No records found for this user", HttpStatus.NOT_FOUND)
+      throw new HttpException("No records found for this elderly", HttpStatus.BAD_REQUEST)
     return {
       listHealthRecord: healthRecordList
     }
@@ -34,7 +33,7 @@ export class HealthRecordService {
 
     const user = await this.userRepository.findOne({ where: { uid: uid, }, })
     if (!user)
-      throw new HttpException("User not found", HttpStatus.NOT_FOUND)
+      throw new HttpException("User not found", HttpStatus.BAD_REQUEST)
 
     const temp = await this.healthRecordRepository.findOne({ where: { hrName: info.hrName }, })
     if (temp)
@@ -57,12 +56,11 @@ export class HealthRecordService {
 
   }
 
-
   async deleteHealthRecord(uid: number, hrName: string): Promise<string> {
 
     const user = await this.userRepository.findOne({ where: { uid: uid } },)
     if (!user)
-      throw new HttpException("User not found", HttpStatus.NOT_FOUND)
+      throw new HttpException("User not found", HttpStatus.BAD_REQUEST)
 
     const deleteRecord = await this.healthRecordRepository.findOne({ where: { uid: uid, hrName: hrName }, })
     if (!deleteRecord)
