@@ -51,7 +51,7 @@ export class HealthRecordService {
     healthDataRaw.map((h) => {
       healthData.find((v, i) => {
         if (v.dateTime === h.timestamp) {
-          v.values[columnNames.indexOf(h.columnName)] = h.value;
+          v.values[columnNames.indexOf(h.columnName)] = h.value.toString();
           healthData[i] = {
             dateTime: h.timestamp,
             values: v.values,
@@ -61,7 +61,7 @@ export class HealthRecordService {
       });
 
       const values = Array(columnNumbers).fill('');
-      values[columnNames.indexOf(h.columnName)] = h.value;
+      values[columnNames.indexOf(h.columnName)] = h.value.toString();
       return healthData.push({
         dateTime: h.timestamp,
         values: values,
