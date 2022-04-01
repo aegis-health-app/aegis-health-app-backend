@@ -8,7 +8,7 @@ export class HealthDataDto {
 
   @ApiProperty()
   @IsArray()
-  values: Array<string | number>;
+  values: Array<string>;
 }
 
 export class HealthRecordDto {
