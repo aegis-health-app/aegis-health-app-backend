@@ -12,7 +12,7 @@ import {
 import { ElderlyGuard, UserGuard } from 'src/auth/jwt.guard';
 import { HealthRecordService } from './healthRecord.service';
 import { UserService } from 'src/user/user.service';
-import { HealthRecordDto } from './dto/healthRecord.dto';
+import { HealthRecordTableDto } from './dto/healthRecord.dto';
 
 @ApiBearerAuth()
 @ApiTags("health record")
@@ -23,16 +23,16 @@ export class HealthRecordController {
   constructor(private readonly healthRecordService: HealthRecordService, private readonly userService: UserService) {}
 
   @UseGuards(ElderlyGuard)
-  @ApiOkResponse({ type: HealthRecordDto })
+  @ApiOkResponse({ type: HealthRecordTableDto })
   @ApiParam({ name: 'healthRecordName', type: String, description: 'health record name user wants to find' })
   @Get('/:healthRecordName')
-  async getHealthDataByElderly(@Param('healthRecordName') healthRecordName: string, @Request() req): Promise<HealthRecordDto> {
+  async getHealthDataByElderly(@Param('healthRecordName') healthRecordName: string, @Request() req): Promise<HealthRecordTableDto> {
     const userId = req.user.uid;
     return await this.healthRecordService.getHealthData(userId, healthRecordName);
   }
 
   @UseGuards(UserGuard)
-  @ApiOkResponse({ type: HealthRecordDto })
+  @ApiOkResponse({ type: HealthRecordTableDto })
   @ApiBadRequestResponse({ description: "Caretaker doesn't have access to this elderly" })
   @ApiNotFoundResponse({ description: 'Elderly Does Not Exist' })
   @ApiParam({ name: 'healthRecordName', type: String, description: 'health record name user wants to find' })
@@ -42,7 +42,7 @@ export class HealthRecordController {
     @Param('elderlyId') elderlyId,
     @Param('healthRecordName') healthRecordName: string,
     @Request() req
-  ): Promise<HealthRecordDto> {
+  ): Promise<HealthRecordTableDto> {
     const caretakerId = req.user.uid;
     await this.userService.checkRelationship(elderlyId, caretakerId);
     return await this.healthRecordService.getHealthData(elderlyId, healthRecordName);
