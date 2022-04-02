@@ -1,15 +1,16 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
-import { IsNotEmpty, IsNumber, IsPhoneNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsPhoneNumber, IsString, Length } from 'class-validator';
 import { PersonalInfo } from '../user.interface';
 
 export class CreateUserDto extends PersonalInfo {
   @ApiProperty()
   @IsString()
   password: string;
-  @ApiProperty()
+  @ApiProperty({minLength: 10, maxLength: 10})
   @Expose()
-  @IsPhoneNumber()
+  // @IsPhoneNumber()
+  @IsString()
   phone: string;
 }
 export class UpdateRelationshipDto {

@@ -13,6 +13,7 @@ export class HealthRecordService {
     const healthDataQuery = getManager()
       .createQueryBuilder()
       .select('hr.hrName', 'hrName')
+      .addSelect('hr.imageId', 'imageId')
       .addSelect('hc.columnName', 'columnName')
       .addSelect('hc.unit', 'unit')
       .addSelect('hd.value', 'value')
@@ -27,6 +28,8 @@ export class HealthRecordService {
     const healthDataRaw = await healthDataQuery.getRawMany();
     const distinctValueByColumns = this.extractDistinctValueByColumns(healthDataRaw, ['columnName', 'unit']);
 
+    const hrName = healthDataRaw[0].hrName;
+    const imageId = healthDataRaw[0].imageId;
     const columnNames = [];
     const units = [];
     distinctValueByColumns.map((d) => {
@@ -36,7 +39,8 @@ export class HealthRecordService {
 
     const healthData = this.healthDataFormatter(healthDataRaw, columnNames);
     const result = {
-      tableName: healthRecordName,
+      imageId: imageId,
+      tableName: hrName,
       columnNames: columnNames,
       units: units,
       data: healthData,

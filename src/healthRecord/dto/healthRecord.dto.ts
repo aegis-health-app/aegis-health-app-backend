@@ -12,6 +12,10 @@ export class HealthDataDto {
 }
 
 export class HealthRecordDto {
+ @ApiProperty()
+  @IsString()
+  imageId: string;
+  
   @ApiProperty()
   @IsString()
   tableName: string;
