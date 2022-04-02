@@ -126,7 +126,7 @@ export class UserService {
     if (!image || !ALLOWED_PROFILE_FORMAT.includes(image.type)) {
       throw new UnsupportedMediaTypeException('Invalid image type');
     }
-    const buffer = Buffer.from(image.base64);
+    const buffer = Buffer.from(image.base64, 'base64');
     if (buffer.byteLength > 5000000) {
       throw new BadRequestException('Image too large');
     }
