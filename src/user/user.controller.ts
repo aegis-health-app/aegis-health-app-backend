@@ -128,6 +128,7 @@ export class UserController {
   @ApiCreatedResponse({ description: 'Sign up Successfully' })
   @ApiBody({ type: CreateUserDto })
   @ApiConflictResponse({ description: 'Phone number already exists' })
+  @UsePipes(new ValidationPipe({ whitelist: true }))
   @Post('signUp')
   async signUp(@Body() signUpDto: CreateUserDto): Promise<AuthResponse> {
     const { uid, role } = await this.userService.createUser(signUpDto);
