@@ -28,3 +28,11 @@ export class HealthRecordDto {
   @IsObject()
   data: HealthDataDto[];
 }
+
+export class healthDataRawDto {
+    hrName: string
+    columnName: string
+    unit: string
+    value: number;
+    timestamp: Date
+}

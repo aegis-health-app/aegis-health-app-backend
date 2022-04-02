@@ -44,10 +44,7 @@ export class HealthRecordController {
     @Request() req
   ): Promise<HealthRecordDto> {
     const caretakerId = req.user.uid;
-    const isRelated = await this.userService.checkRelationship(elderlyId, caretakerId);
-    if (!isRelated) {
-      throw new BadRequestException("Caretaker doesn't have access to this elderly");
-    }
+    await this.userService.checkRelationship(elderlyId, caretakerId);
     return await this.healthRecordService.getHealthData(elderlyId, healthRecordName);
   }
 }

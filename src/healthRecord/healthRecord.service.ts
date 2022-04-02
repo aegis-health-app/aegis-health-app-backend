@@ -3,7 +3,7 @@ import { HealthColumn } from 'src/entities/healthColumn.entity';
 import { HealthData } from 'src/entities/healthData.entity';
 import { HealthRecord } from 'src/entities/healthRecord.entity';
 import { getManager } from 'typeorm';
-import { HealthDataDto, HealthRecordDto } from './dto/healthRecord.dto';
+import { HealthDataDto, healthDataRawDto, HealthRecordDto } from './dto/healthRecord.dto';
 
 @Injectable()
 export class HealthRecordService {
@@ -19,7 +19,7 @@ export class HealthRecordService {
       .addSelect("DATE_FORMAT(hd.timestamp, '%Y-%m-%d %H:00:00')", 'timestamp')
       .from(HealthRecord, 'hr')
       .innerJoin(HealthColumn, 'hc', 'hr.uid = hc.uid AND hr.hrName = hc.hrName')
-      .innerJoin(HealthData, 'hd', 'hc.columnName = hd.ColumnName AND hc.hrName = hd.hrName AND hc.uid = hd.uid')
+      .innerJoin(HealthData, 'hd', 'hc.columnName = hd.columnName AND hc.hrName = hd.hrName AND hc.uid = hd.uid')
       .where('hr.uid = :uid', { uid: uid })
       .andWhere('hr.hrName = :hrName', { hrName: healthRecordName })
       .orderBy("DATE_FORMAT(hd.timestamp, '%Y-%m-%d %H:00:00')");
@@ -45,10 +45,10 @@ export class HealthRecordService {
     return result;
   }
 
-  private healthDataFormatter(healthDataRaw, columnNames): HealthDataDto[] {
+  private healthDataFormatter(healthDataRaw: healthDataRawDto[], columnNames: string[]): HealthDataDto[] {
     const columnNumbers = columnNames.length;
     const healthData = [];
-    healthDataRaw.map((h) => {
+    healthDataRaw.forEach((h) => {
       healthData.find((v, i) => {
         if (v.dateTime === h.timestamp) {
           v.values[columnNames.indexOf(h.columnName)] = h.value.toString();
@@ -71,7 +71,7 @@ export class HealthRecordService {
     return healthData;
   }
 
-  private extractDistinctValueByColumns(rawTable, columns): Array<any> {
+  private extractDistinctValueByColumns(rawTable: any[], columns: string[]): Array<any> {
     const allColumns = [];
     rawTable.map((i) => {
       const value = {};
