@@ -10,7 +10,7 @@ export class GoogleCloudStorage {
   private bucketName: string;
   private storage: Storage;
   constructor() {
-    this.storage = new Storage({ keyFilename: path.join(__dirname, '../../keyfile.json') });
+    this.storage = new Storage();
     this.bucketName = 'aegis-user-profile';
     this.bucket = this.storage.bucket(this.bucketName);
   }
