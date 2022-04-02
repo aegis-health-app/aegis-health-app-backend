@@ -16,6 +16,7 @@ export class NotificationController {
   @ApiBadRequestResponse({ description: 'Invalid token' })
   @UsePipes(new ValidationPipe({ whitelist: true }))
   async registerDevice(@Body() body: RegisterDeviceDto, @Req() req): Promise<RegisterDeviceResponse> {
-    return { success: await this.notificationService.registerDevice(req.user.uid, body.registrationToken) };
+    const result = await this.notificationService.registerDevice(req.user.uid, body.registrationToken);
+    return { success: !!result };
   }
 }
