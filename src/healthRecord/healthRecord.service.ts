@@ -3,13 +3,13 @@ import { HealthColumn } from 'src/entities/healthColumn.entity';
 import { HealthData } from 'src/entities/healthData.entity';
 import { HealthRecord } from 'src/entities/healthRecord.entity';
 import { getManager } from 'typeorm';
-import { HealthDataDto, healthDataRawDto, HealthRecordDto } from './dto/healthRecord.dto';
+import { HealthDataDto, healthDataRawDto, HealthRecordTableDto } from './dto/healthRecord.dto';
 
 @Injectable()
 export class HealthRecordService {
   constructor() {}
 
-  async getHealthData(uid: number, healthRecordName: string): Promise<HealthRecordDto> {
+  async getHealthData(uid: number, healthRecordName: string): Promise<HealthRecordTableDto> {
     const healthDataQuery = getManager()
       .createQueryBuilder()
       .select('hr.hrName', 'hrName')

@@ -11,11 +11,11 @@ export class HealthDataDto {
   values: Array<string>;
 }
 
-export class HealthRecordDto {
+export class HealthRecordTableDto {
  @ApiProperty()
   @IsString()
   imageId: string;
-  
+
   @ApiProperty()
   @IsString()
   tableName: string;
