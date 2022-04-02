@@ -19,9 +19,17 @@ export class GoogleCloudStorage {
     const imgStream = new Transform.PassThrough();
     const imgName = await this.getImageFileName(uid);
     const file = this.bucket.file(imgName);
-    imgStream.pipe(file.createWriteStream()).on('error', (err) => {
-      throw new Error(err.message);
-    });
+    imgStream
+      .pipe(
+        file.createWriteStream({
+          metadata: {
+            cacheControl: 'private, max-age=0, no-transform',
+          },
+        })
+      )
+      .on('error', (err) => {
+        throw new Error(err.message);
+      });
     imgStream.end(img);
     return await this.getImageURL(imgName);
   }
