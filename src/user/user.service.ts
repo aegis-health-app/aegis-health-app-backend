@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, UnsupportedMediaTypeException } from '
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entities/user.entity';
 import { FindConditions, FindOneOptions, Repository } from 'typeorm';
-import { UpdateRelationshipDto, CreateUserDto, IDto, UploadProfileResponse } from './dto/user.dto';
+import { UpdateRelationshipDto, CreateUserDto, IDto, UploadProfileResponse, UploadProfileRequest } from './dto/user.dto';
 import { DuplicateElementException, InvalidUserTypeException, UserNotFoundException } from './user.exception';
 import { plainToInstance } from 'class-transformer';
 import { AuthService } from 'src/auth/auth.service';
@@ -121,15 +121,16 @@ export class UserService {
     return res;
   }
 
-  async uploadProfilePicture(uid: number, image: Express.Multer.File): Promise<UploadProfileResponse> {
+  async uploadProfilePicture(uid: number, image: UploadProfileRequest): Promise<UploadProfileResponse> {
     const { uid: foundUid } = await this.findOne({ uid: uid }, { shouldExist: true });
-    if (!image || !ALLOWED_PROFILE_FORMAT.includes(image.mimetype)) {
+    if (!image || !ALLOWED_PROFILE_FORMAT.includes(image.type)) {
       throw new UnsupportedMediaTypeException('Invalid image type');
     }
-    if (image.size > 20000000) {
+    const buffer = Buffer.from(image.base64);
+    if (buffer.byteLength > 5000000) {
       throw new BadRequestException('Image too large');
     }
-    const imageUrl = await this.googleStorageService.uploadImage(foundUid, image.buffer);
+    const imageUrl = await this.googleStorageService.uploadImage(foundUid, buffer);
     const { imageid } = await this.userRepository.save({
       uid: foundUid,
       imageid: imageUrl,

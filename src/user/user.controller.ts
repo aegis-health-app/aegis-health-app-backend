@@ -14,7 +14,16 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { UserDto, UpdateRelationshipDto, LoginDto, CreateUserDto, AuthResponse, UploadProfileResponse, UpdateUserProfileDto } from './dto/user.dto';
+import {
+  UserDto,
+  UpdateRelationshipDto,
+  LoginDto,
+  CreateUserDto,
+  AuthResponse,
+  UploadProfileResponse,
+  UpdateUserProfileDto,
+  UploadProfileRequest,
+} from './dto/user.dto';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -101,6 +110,7 @@ export class UserController {
     return this.userService.schemaToDto(updatedUser, UserDto);
   }
 
+  @HttpCode(200)
   @ApiOkResponse({ description: 'Log in Successfully', type: AuthResponse })
   @ApiBody({ type: LoginDto })
   @ApiBadRequestResponse({ description: "Phone number or password doesn't exist" })
@@ -145,13 +155,13 @@ export class UserController {
   @UseGuards(UserGuard)
   @ApiBearerAuth()
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 20000000 } }))
   @Post('profile/image')
+  @ApiBody({ type: UploadProfileRequest })
   @ApiOkResponse({ type: UploadProfileResponse })
   @ApiBadRequestResponse({ description: 'Image too large' })
   @ApiUnsupportedMediaTypeResponse({ description: 'Invalid image type' })
-  async uploadProfilePicture(@UploadedFile() file: Express.Multer.File, @Request() req): Promise<UploadProfileResponse> {
-    const imageUrl = await this.userService.uploadProfilePicture(req.user.uid, file);
+  async uploadProfilePicture(@Body() dto: UploadProfileRequest, @Request() req): Promise<UploadProfileResponse> {
+    const imageUrl = await this.userService.uploadProfilePicture(req.user.uid, dto);
     return imageUrl;
   }
 }

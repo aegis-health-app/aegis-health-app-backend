@@ -1,7 +1,7 @@
-import { Body, Controller, Post, Get, Param } from '@nestjs/common'
-import { OtpService } from './otp.service'
-import { ApiParam, ApiBody, ApiOkResponse, ApiUnauthorizedResponse, ApiBadRequestResponse } from '@nestjs/swagger'
-import { OtpDTO } from './dto/otp.dto'
+import { Body, Controller, Post, Get, Param } from '@nestjs/common';
+import { OtpService } from './otp.service';
+import { ApiParam, ApiBody, ApiOkResponse, ApiBadRequestResponse } from '@nestjs/swagger';
+import { OtpDTO } from './dto/otp.dto';
 @Controller('otp')
 export class OtpController {
   constructor(private otpService: OtpService) {}
@@ -11,14 +11,14 @@ export class OtpController {
   @ApiBadRequestResponse({ description: 'Failed Requesting OTP' })
   @Get('/request/:phoneNumber')
   getOTP(@Param('phoneNumber') phoneNumber: string) {
-    return this.otpService.getOtp(phoneNumber)
+    return this.otpService.getOtp(phoneNumber);
   }
 
   @ApiBody({ type: OtpDTO })
   @ApiOkResponse({ description: 'Verified Successfully' })
-  @ApiUnauthorizedResponse({ description: 'Failed Verifying OTP' })
+  @ApiBadRequestResponse({ description: 'Failed Verifying OTP' })
   @Post('/verifyOtp')
   verifyOTP(@Body() body: { token: string; pin: string }) {
-    return this.otpService.verifyOtp(body.token, body.pin)
+    return this.otpService.verifyOtp(body.token, body.pin);
   }
 }

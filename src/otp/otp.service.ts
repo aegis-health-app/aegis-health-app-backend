@@ -1,4 +1,4 @@
-import { HttpStatus, HttpException, Injectable } from '@nestjs/common'
+import { HttpStatus, HttpException, Injectable } from '@nestjs/common';
 @Injectable()
 export class OtpService {
   async getOtp(phoneNumber: string) {
@@ -22,10 +22,10 @@ export class OtpService {
 
     // MOCKING RESPONSE
     return {
-        status: "success",
-        token: "aWBmLKlYdgx2kjOIOH2A38pZyNvoEzMV",
-        refno: "73XRR"
-    }
+      status: 'success',
+      token: 'aWBmLKlYdgx2kjOIOH2A38pZyNvoEzMV',
+      refno: '73XRR',
+    };
   }
 
   async verifyOtp(token: string, pin: string) {
@@ -54,14 +54,10 @@ export class OtpService {
     //MOCKING RESPONSE
     if (token === process.env.MOCKING_OTP_TOKEN && pin === process.env.MOCKING_OTP) {
       return {
-        status: "success",
-        message: "Code is correct."
-      }
-    } else {
-      return {
-        status: "fail",
-        message: "Code is incorrect."
-      }
+        status: 'success',
+        message: 'Code is correct.',
+      };
     }
+    throw new HttpException('Failed Verifying OTP', HttpStatus.BAD_REQUEST)
   }
 }
