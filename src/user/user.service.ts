@@ -7,7 +7,6 @@ import { DuplicateElementException, InvalidUserTypeException, UserNotFoundExcept
 import { plainToInstance } from 'class-transformer';
 import { AuthService } from 'src/auth/auth.service';
 import { Role } from 'src/common/roles';
-import { PersonalInfo } from './user.interface';
 import { GoogleCloudStorage } from 'src/google-cloud/google-storage.service';
 import { ALLOWED_PROFILE_FORMAT } from 'src/utils/global.constant';
 @Injectable()
