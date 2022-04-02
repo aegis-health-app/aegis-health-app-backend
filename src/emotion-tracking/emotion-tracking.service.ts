@@ -2,7 +2,8 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EmotionalRecord } from 'src/entities/emotionalRecord.entity';
-import { EmotionRecord, EmotionHistory } from './emotion-tracking.interface';
+import { EmotionHistory, Emotion } from './emotion-tracking.interface';
+import { EmotionTrackingStatusDto } from './dto/emotion-tracking.dto';
 import { User } from 'src/entities/user.entity';
 import { Module } from 'src/entities/module.entity';
 import moment from 'moment';
@@ -34,7 +35,7 @@ export class EmotionTrackingService {
         if (! existingRecord){
             const emotionalRecord = new EmotionalRecord();
             emotionalRecord.date = currentDate;
-            emotionalRecord.emotionalLevel = emotionLevel;
+            emotionalRecord.emotionalLevel = Emotion[emotionLevel];
             const user = await this.userRepository.findOne({uid});
             emotionalRecord.user = user;
             await this.emotionRecordRepository.save(emotionalRecord);  
@@ -67,6 +68,9 @@ export class EmotionTrackingService {
                     .offset(offset)
                     .getMany();
             }
+            emotionalRecord.forEach(record => {
+                record.emotionalLevel = Emotion[record.emotionalLevel]
+            })
             const emotionalHistory = {
                 count: numRecords,
                 records: emotionalRecord
@@ -76,19 +80,22 @@ export class EmotionTrackingService {
         throw new HttpException('Invalid uid, this elderly is not taken care by this caretaker', HttpStatus.BAD_REQUEST);
     }
 
-    async getEmotionTrackingStatus(caretakerId: number, elderlyId: number): Promise<boolean>{
+    async getEmotionTrackingStatus(caretakerId: number, elderlyId: number): Promise<EmotionTrackingStatusDto>{
         await this.isValidCaretaker(caretakerId, elderlyId);
         const elderly = await this.userRepository.findOne({uid: elderlyId},{
             relations: ["modules"]
         })
         const moduleFive = elderly.modules.filter(module=> module.moduleid === 5)[0];
+        let emotionTrackingStatus = new EmotionTrackingStatusDto();
         if(moduleFive){
-            return true;
+            emotionTrackingStatus['isEnabled'] = true;
+        } else{
+            emotionTrackingStatus['isEnabled'] = false;
         }
-        return false;
+        return emotionTrackingStatus;
     }
 
-    async addEmotionalTrackingModuleToElderly(caretakerId: number, elderlyId: number): Promise<{message: string}>{
+    async addEmotionalTrackingModuleToElderly(caretakerId: number, elderlyId: number): Promise<{statusCode: number, message: string}>{
         await this.isValidCaretaker(caretakerId, elderlyId);
         const elderly = await this.userRepository.findOne({uid: elderlyId},{
             relations: ["modules"]
@@ -100,10 +107,10 @@ export class EmotionTrackingService {
         const module = await this.moduleRepository.findOne({moduleid: 5});
         elderly.modules.push(module);
         await this.userRepository.save(elderly);
-        return {message: 'Emotion tracking is successfully enabled'}
+        return {statusCode: 201, message: 'Emotion tracking is successfully enabled'}
     }
 
-    async removeEmotionalTrackingModuleFromElderly(caretakerId: number, elderlyId: number): Promise<{message: string}>{
+    async removeEmotionalTrackingModuleFromElderly(caretakerId: number, elderlyId: number): Promise<{statusCode: number, message: string}>{
         await this.isValidCaretaker(caretakerId, elderlyId);
         const elderly = await this.userRepository.findOne({uid: elderlyId},{
             relations: ["modules"]
@@ -114,7 +121,7 @@ export class EmotionTrackingService {
         }
         elderly.modules =  elderly.modules.filter(module=> module.moduleid !== 5);
         await this.userRepository.save(elderly);
-        return {message: 'Emotion tracking is successfully disabled'}
+        return {statusCode: 200, message: 'Emotion tracking is successfully disabled'}
     }
 
     async isValidCaretaker(caretakerId, elderlyId): Promise<boolean>{

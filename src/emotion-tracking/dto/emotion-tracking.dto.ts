@@ -1,10 +1,10 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsDate, IsNumber, IsIn } from "class-validator";
+import { IsDate, IsNumber, IsEnum, IsBoolean } from "class-validator";
+import { Emotion } from '../emotion-tracking.interface';
 
 export class CreateEmotionRecordDto{
-    @ApiProperty()
-    @IsString()
-    @IsIn(['1', '2', '3', '4'])
+    @ApiProperty({ enum: Emotion})
+    @IsEnum(Emotion)
     emotionLevel: string;
 }
 
@@ -13,11 +13,11 @@ export class EmotionRecordDto{
     @IsDate()
     date: Date;
 
-    @ApiProperty()
-    @IsString()
-    @IsIn(['1', '2', '3', '4'])
-    emotionLevel: string;
+    @ApiProperty({ enum: Emotion})
+    @IsEnum(Emotion)
+    emotionLevel: Emotion;
 }
+
 export class EmotionHistoryDto{
     @ApiProperty()
     @IsNumber()
@@ -25,4 +25,10 @@ export class EmotionHistoryDto{
 
     @ApiProperty({ type: [EmotionRecordDto]})
     records: Array<EmotionRecordDto>
+}
+
+export class EmotionTrackingStatusDto{
+    @ApiProperty()
+    @IsBoolean()
+    isEnabled: boolean;
 }
