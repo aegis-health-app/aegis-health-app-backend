@@ -105,23 +105,16 @@ export class UserService {
 
   async checkRelationship(eid: number, cid: number) {
     let elderly;
-    let isRelated = false;
     try {
       elderly = await this.findElderlyById(eid);
     } catch {
       throw new NotFoundException('Elderly Does Not Exist');
     }
-      
-    const caretakers = await this.findCaretakerByElderlyId(elderly.uid);
-    if (!caretakers) return isRelated;
 
-    for (var i = 0; i < caretakers.length; i++) {
-      if (caretakers[i].uid === cid) {
-        isRelated = true
-        break;
-      }
-    }
-    return isRelated;
+    const caretakers = await this.findCaretakerByElderlyId(elderly.uid);
+    if (!caretakers || !caretakers.find((caretaker) => caretaker.uid === cid))
+      throw new BadRequestException("Caretaker doesn't have access to this elderly");
+    return true;
   }
 
   async login(phone: string, password: string): Promise<{ uid: number; role: Role }> {
