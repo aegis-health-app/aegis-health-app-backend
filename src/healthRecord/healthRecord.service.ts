@@ -3,7 +3,8 @@ import { HealthColumn } from 'src/entities/healthColumn.entity';
 import { HealthData } from 'src/entities/healthData.entity';
 import { HealthRecord } from 'src/entities/healthRecord.entity';
 import { getManager } from 'typeorm';
-import { HealthDataDto, healthDataRawDto, HealthRecordTableDto } from './dto/healthRecord.dto';
+import { HealthDataDto, HealthRecordTableDto } from './dto/healthRecord.dto';
+import { healthDataRawInterface } from './healthRecord.interface';
 
 @Injectable()
 export class HealthRecordService {
@@ -49,7 +50,7 @@ export class HealthRecordService {
     return result;
   }
 
-  private healthDataFormatter(healthDataRaw: healthDataRawDto[], columnNames: string[]): HealthDataDto[] {
+  private healthDataFormatter(healthDataRaw: healthDataRawInterface[], columnNames: string[]): HealthDataDto[] {
     const columnNumbers = columnNames.length;
     const healthData = [];
     healthDataRaw.forEach((h) => {

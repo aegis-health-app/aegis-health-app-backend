@@ -32,11 +32,3 @@ export class HealthRecordTableDto {
   @IsObject()
   data: HealthDataDto[];
 }
-
-export interface healthDataRawDto {
-    hrName: string
-    columnName: string
-    unit: string
-    value: number;
-    timestamp: Date
-}
