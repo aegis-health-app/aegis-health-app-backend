@@ -6,19 +6,17 @@ import { Transform } from 'stream';
 
 @Injectable()
 export class GoogleCloudStorage {
-  private bucket: Bucket;
-  private bucketName: string;
   private storage: Storage;
   constructor() {
     this.storage = new Storage();
-    this.bucketName = 'aegis-user-profile';
-    this.bucket = this.storage.bucket(this.bucketName);
+
   }
 
-  public async uploadImage(uid: number, img: Buffer): Promise<string> {
+  public async uploadImage(uid: number, img: Buffer, bucketName: string): Promise<string> {
     const imgStream = new Transform.PassThrough();
-    const imgName = await this.getImageFileName(uid);
-    const file = this.bucket.file(imgName);
+    const imgName = await this.getImageFileName(uid, bucketName);
+    const bucket = this.storage.bucket(bucketName);
+    const file = bucket.file(imgName);
     imgStream
       .pipe(
         file.createWriteStream({
@@ -37,8 +35,8 @@ export class GoogleCloudStorage {
   private getImageURL(imgName: string): string {
     return process.env.GCS_PUBLIC_URL + '/' + imgName;
   }
-  private async getImageFileName(uid: number): Promise<string> {
-    const imageName = CryptoJS.SHA256(uid.toString() + this.bucketName).toString();
+  private async getImageFileName(uid: number, bucketName: string): Promise<string> {
+    const imageName = CryptoJS.SHA256(uid.toString() + bucketName).toString();
     return `profile-${uid}-${imageName}.jpg`;
   }
 }
