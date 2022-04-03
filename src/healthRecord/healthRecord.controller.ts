@@ -1,4 +1,8 @@
-import {  Controller, Get, Param, Request, UseGuards } from '@nestjs/common';
+<<<<<<< HEAD
+import {  Controller, Get, Param, Request, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+=======
+import { BadRequestException, Controller, Get, Param, Request, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+>>>>>>> implement health analytics
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -12,10 +16,10 @@ import {
 import { CaretakerGuard, ElderlyGuard } from 'src/auth/jwt.guard';
 import { HealthRecordService } from './healthRecord.service';
 import { UserService } from 'src/user/user.service';
-import { HealthRecordTableDto } from './dto/healthRecord.dto';
+import { HealthRecordTableDto, Timespan } from './dto/healthRecord.dto';
 
 @ApiBearerAuth()
-@ApiTags("health record")
+@ApiTags('health record')
 @ApiUnauthorizedResponse({ description: 'Unauthorized' })
 @ApiForbiddenResponse({ description: 'Forbidden' })
 @Controller('healthRecord')
@@ -46,5 +50,22 @@ export class HealthRecordController {
     const caretakerId = req.user.uid;
     await this.userService.checkRelationship(elderlyId, caretakerId);
     return await this.healthRecordService.getHealthData(elderlyId, healthRecordName);
+  }
+
+  @UseGuards(ElderlyGuard)
+  @ApiOkResponse({ type: HealthRecordTableDto })
+  @ApiParam({ name: 'healthRecordName', type: String, description: 'health record name user wants to find' })
+  @ApiParam({ name: 'columnName', description: 'column name in health record user wants to query' })
+  @ApiParam({ name: 'timespan', description: 'timespan of data user wants to query' })
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  @Get('/:healthRecordName/:columnName/:timespan')
+  async getHealthAnalyticsByElderly(
+    @Param('healthRecordName') healthRecordName: string,
+    @Param('columnName') columnName: string,
+    @Param('timespan') timespan: string = Timespan.Year,
+    @Request() req
+  ): Promise<HealthRecordTableDto> {
+    const userId = req.user.uid;
+    return await this.healthRecordService.getHealthAnalytics(userId, healthRecordName, columnName, timespan);
   }
 }
