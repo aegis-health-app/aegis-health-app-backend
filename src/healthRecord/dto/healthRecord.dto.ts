@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsDate, IsObject, IsString } from 'class-validator';
+import { IsArray, IsDate, IsNumber, IsObject, IsString } from 'class-validator';
 
 export class HealthDataDto {
   @ApiProperty()
@@ -12,7 +12,7 @@ export class HealthDataDto {
 }
 
 export class HealthRecordTableDto {
- @ApiProperty()
+  @ApiProperty()
   @IsString()
   imageId: string;
 
@@ -39,4 +39,27 @@ export class healthDataRawDto {
     unit: string
     value: number;
     timestamp: Date
+}
+
+export class ColumnDataDto{
+  @ApiProperty()
+  @IsString()
+  columnName: string
+
+  @ApiProperty()
+  @IsNumber()
+  value: number
+}
+
+export class AddHealthDataDto {
+  @ApiProperty()
+  @IsString()
+  hrName: string
+
+  @ApiProperty()
+  @IsDate()
+  timestamp: Date
+
+  @ApiProperty({ type: [ColumnDataDto] })
+  data: Array<ColumnDataDto>
 }

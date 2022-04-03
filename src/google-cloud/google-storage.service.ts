@@ -29,12 +29,13 @@ export class GoogleCloudStorage {
         throw new Error(err.message);
       });
     imgStream.end(img);
-    return await this.getImageURL(imgName);
+    return await this.getImageURL(imgName, bucketName);
   }
 
-  private getImageURL(imgName: string): string {
-    return process.env.GCS_PUBLIC_URL + '/' + imgName;
+  private getImageURL(imgName: string, bucketName: string): string {
+    return `${process.env.GCS_PUBLIC_URL}/${bucketName}/${imgName}`;
   }
+
   private async getImageFileName(uid: number, bucketName: string): Promise<string> {
     const imageName = CryptoJS.SHA256(uid.toString() + bucketName).toString();
     return `profile-${uid}-${imageName}.jpg`;

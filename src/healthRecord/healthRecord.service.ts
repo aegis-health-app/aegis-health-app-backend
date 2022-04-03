@@ -1,13 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { HealthColumn } from 'src/entities/healthColumn.entity';
 import { HealthData } from 'src/entities/healthData.entity';
 import { HealthRecord } from 'src/entities/healthRecord.entity';
 import { getManager } from 'typeorm';
-import { HealthDataDto, healthDataRawDto, HealthRecordTableDto } from './dto/healthRecord.dto';
+import { AddHealthDataDto, HealthDataDto, healthDataRawDto, HealthRecordTableDto } from './dto/healthRecord.dto';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class HealthRecordService {
-  constructor() {}
+  constructor(
+    @InjectRepository(HealthColumn)
+    private healthColumnRepository: Repository<HealthColumn>,
+    @InjectRepository(HealthData)
+    private healthDataRepository: Repository<HealthData>,
+  ) { }
 
   async getHealthData(uid: number, healthRecordName: string): Promise<HealthRecordTableDto> {
     const healthDataQuery = getManager()
@@ -68,7 +75,7 @@ export class HealthRecordService {
       values[columnNames.indexOf(h.columnName)] = h.value.toString();
       return healthData.push({
         dateTime: h.timestamp,
-        values: values,
+        values: values
       });
     });
 
@@ -88,5 +95,42 @@ export class HealthRecordService {
     const distinctiveKey = columns[0];
     const extractedColumns = [...new Map(allColumns.map((column) => [column[distinctiveKey], column])).values()];
     return extractedColumns;
+  }
+
+  async addHealthData(uid: number, healthData: AddHealthDataDto): Promise<boolean> {
+    for (let i = 0; i < healthData.data.length; i++) {
+      const healthColumn = await this.healthColumnRepository.findOne(
+        {
+          where:
+          {
+            uid: uid,
+            hrName: healthData.hrName,
+            columnName: healthData.data[i].columnName
+          },
+        })
+      if (!healthColumn)
+        throw new HttpException("Column not found", HttpStatus.NOT_FOUND)
+      const existHealthData = await this.healthDataRepository.findOne(
+        {
+          where:
+          {
+            uid: uid,
+            hrName: healthData.hrName,
+            columnName: healthData.data[i].columnName,
+            timestamp: healthData.timestamp
+          },
+        })
+      if (existHealthData)
+        throw new HttpException("Health data at that timestamp already exists", HttpStatus.CONFLICT)
+      const newHealthData = this.healthDataRepository.create({
+        uid: uid,
+        hrName: healthData.hrName,
+        columnName: healthData.data[i].columnName,
+        timestamp: healthData.timestamp,
+        value: healthData.data[i].value
+      })
+      await this.healthDataRepository.insert(newHealthData)
+    }
+    return true
   }
 }
