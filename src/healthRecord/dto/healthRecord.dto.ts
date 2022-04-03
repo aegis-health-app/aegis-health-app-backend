@@ -33,7 +33,7 @@ export class HealthRecordTableDto {
   data: HealthDataDto[];
 }
 
-export class healthDataRawDto {
+export interface healthDataRawDto {
     hrName: string
     columnName: string
     unit: string
