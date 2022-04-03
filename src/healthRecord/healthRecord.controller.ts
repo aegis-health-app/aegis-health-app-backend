@@ -1,10 +1,15 @@
-import { Body, Controller, Delete, Get, Param, Post, Req, Res, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBody, ApiConflictResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
-import { CaretakerGuard, ElderlyGuard } from 'src/auth/jwt.guard';
+import { Body, Controller, Delete, Get, Param, Post, Req, Request, Res, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConflictResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { CaretakerGuard, ElderlyGuard, UserGuard } from 'src/auth/jwt.guard';
 import { UserService } from 'src/user/user.service';
 import { AddHealthRecordDto, AllHealthRecordDto, ElderlyWithCaretaker } from './healthRecord.dto';
 import { HealthRecordService } from './healthRecord.service';
+import { HealthRecordTableDto } from './dto/healthRecord.dto';
 
+@ApiBearerAuth()
+@ApiTags("health record")
+@ApiUnauthorizedResponse({ description: 'Unauthorized' })
+@ApiForbiddenResponse({ description: 'Forbidden' })
 @Controller('healthRecord')
 export class HealthRecordController {
   constructor(
@@ -99,4 +104,29 @@ export class HealthRecordController {
     })
   }
 
+  @UseGuards(ElderlyGuard)
+  @ApiOkResponse({ type: HealthRecordTableDto })
+  @ApiParam({ name: 'healthRecordName', type: String, description: 'health record name user wants to find' })
+  @Get('/:healthRecordName')
+  async getHealthDataByElderly(@Param('healthRecordName') healthRecordName: string, @Request() req): Promise<HealthRecordTableDto> {
+    const userId = req.user.uid;
+    return await this.healthRecordService.getHealthData(userId, healthRecordName);
+  }
+
+  @UseGuards(UserGuard)
+  @ApiOkResponse({ type: HealthRecordTableDto })
+  @ApiBadRequestResponse({ description: "Caretaker doesn't have access to this elderly" })
+  @ApiNotFoundResponse({ description: 'Elderly Does Not Exist' })
+  @ApiParam({ name: 'healthRecordName', type: String, description: 'health record name user wants to find' })
+  @ApiParam({ name: 'elderlyId', type: Number, description: 'id of elderly interested' })
+  @Get('/:elderlyId/:healthRecordName')
+  async getHealthDataByCaretaker(
+    @Param('elderlyId') elderlyId,
+    @Param('healthRecordName') healthRecordName: string,
+    @Request() req
+  ): Promise<HealthRecordTableDto> {
+    const caretakerId = req.user.uid;
+    await this.userService.checkRelationship(elderlyId, caretakerId);
+    return await this.healthRecordService.getHealthData(elderlyId, healthRecordName);
+  }
 }
