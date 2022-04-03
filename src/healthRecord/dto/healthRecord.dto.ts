@@ -1,6 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsDate, IsObject, IsString } from 'class-validator';
 
+export enum Timespan {
+  Week = 'week',
+  TwoWeeks = '2week',
+  Month = 'month',
+  ThreeMonths = '3months',
+  Year = 'year',
+  AllTime = 'allTime',
+}
 export class HealthDataDto {
   @ApiProperty()
   @IsDate()
@@ -12,7 +20,7 @@ export class HealthDataDto {
 }
 
 export class HealthRecordTableDto {
- @ApiProperty()
+  @ApiProperty()
   @IsString()
   imageId: string;
 
