@@ -34,14 +34,14 @@ export class HealthRecordTableDto {
 }
 
 export class healthDataRawDto {
-    hrName: string
-    columnName: string
-    unit: string
-    value: number;
-    timestamp: Date
+  hrName: string
+  columnName: string
+  unit: string
+  value: number;
+  timestamp: Date
 }
 
-export class ColumnDataDto{
+export class ColumnDataDto {
   @ApiProperty()
   @IsString()
   columnName: string
@@ -76,6 +76,29 @@ export class DeleteHealthDataDto {
   @ApiProperty()
   @IsDate()
   timestamp: Date
-
-  
 }
+
+export class UploadImageDto {
+  @ApiProperty()
+  @IsString()
+  base64: string;
+  @ApiProperty()
+  @IsString()
+  name: string;
+  @ApiProperty()
+  @IsString()
+  type: string;
+  @ApiProperty()
+  @IsNumber()
+  size: number;
+}
+
+export class EditHealthRecordDto {
+  @ApiProperty()
+  @IsString()
+  hrName: string
+
+  @ApiProperty({ type: UploadImageDto })
+  image: UploadImageDto
+}
+

@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Request, Res, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Put, Request, Res, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -13,7 +13,7 @@ import {
 import { CaretakerGuard, ElderlyGuard, UserGuard } from 'src/auth/jwt.guard';
 import { HealthRecordService } from './healthRecord.service';
 import { UserService } from 'src/user/user.service';
-import { AddHealthDataDto, DeleteHealthDataDto, HealthRecordTableDto } from './dto/healthRecord.dto';
+import { AddHealthDataDto, DeleteHealthDataDto, EditHealthRecordDto, HealthRecordTableDto } from './dto/healthRecord.dto';
 
 @ApiBearerAuth()
 @ApiTags("health record")
@@ -97,7 +97,7 @@ export class HealthRecordController {
   @ApiNotFoundResponse({ description: 'Health data not found' })
   @ApiOkResponse({ type: Boolean })
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  @UseGuards(ElderlyGuard)
+  @UseGuards(CaretakerGuard)
   @Delete('/healthData/elderly/:eid')
   async deleteHealthDataByCaretaker(@Request() req, @Body() deleteHealthDataDto: DeleteHealthDataDto, @Res() res, @Param('eid') eid): Promise<string> {
     await this.userService.checkRelationship(eid, req.user.uid);
@@ -108,5 +108,26 @@ export class HealthRecordController {
     })
   }
 
-  
+  @ApiNotFoundResponse({ description: 'Health record not found' })
+  @ApiBadRequestResponse({ description: 'Image too large'})
+  @ApiOkResponse({ type: String })
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  @UseGuards(ElderlyGuard)
+  @Put('/healthRecord/elderly')
+  async editHealthRecordByElderly(@Request() req, @Body() editHealthRecordDto: EditHealthRecordDto): Promise<string> {
+    return await this.healthRecordService.editHealthRecord(req.user.uid, editHealthRecordDto);
+  }
+
+  @ApiParam({ name: 'eid', type: Number, description: 'id of elderly interested' })
+  @ApiNotFoundResponse({ description: 'Health record not found' })
+  @ApiBadRequestResponse({ description: 'Image too large'})
+  @ApiOkResponse({ type: String })
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  @UseGuards(ElderlyGuard)
+  @Put('/healthRecord/elderly/:eid')
+  async editHealthRecordByCaretaker(@Request() req, @Body() editHealthRecordDto: EditHealthRecordDto, @Param('eid') eid): Promise<string> {
+    await this.userService.checkRelationship(eid, req.user.uid);
+    return await this.healthRecordService.editHealthRecord(eid, editHealthRecordDto);
+  }
+
 }

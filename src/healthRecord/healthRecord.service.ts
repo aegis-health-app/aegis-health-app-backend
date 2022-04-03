@@ -3,9 +3,11 @@ import { HealthColumn } from 'src/entities/healthColumn.entity';
 import { HealthData } from 'src/entities/healthData.entity';
 import { HealthRecord } from 'src/entities/healthRecord.entity';
 import { getManager } from 'typeorm';
-import { AddHealthDataDto, DeleteHealthDataDto, HealthDataDto, healthDataRawDto, HealthRecordTableDto } from './dto/healthRecord.dto';
+import { AddHealthDataDto, DeleteHealthDataDto, EditHealthRecordDto, HealthDataDto, healthDataRawDto, HealthRecordTableDto } from './dto/healthRecord.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { GoogleCloudStorage } from 'src/google-cloud/google-storage.service';
+import { BucketName } from 'src/google-cloud/google-cloud.interface';
 
 @Injectable()
 export class HealthRecordService {
@@ -14,6 +16,9 @@ export class HealthRecordService {
     private healthColumnRepository: Repository<HealthColumn>,
     @InjectRepository(HealthData)
     private healthDataRepository: Repository<HealthData>,
+    @InjectRepository(HealthRecord)
+    private healthRecordRepository: Repository<HealthRecord>,
+    private googleStorageService: GoogleCloudStorage
   ) { }
 
   async getHealthData(uid: number, healthRecordName: string): Promise<HealthRecordTableDto> {
@@ -145,5 +150,31 @@ export class HealthRecordService {
       throw new HttpException("Health data not found", HttpStatus.NOT_FOUND)
     }
     return true
+  }
+
+  async editHealthRecord(uid: number, updatedHealthRecord: EditHealthRecordDto): Promise<string> {
+    const healthRecord = await this.healthRecordRepository.findOne(
+      {
+        where:
+        {
+          uid: uid,
+          hrName: updatedHealthRecord.hrName,
+        },
+      })
+    if (!healthRecord) {
+      throw new HttpException("Health record not found", HttpStatus.NOT_FOUND)
+    }
+
+    const buffer = Buffer.from(updatedHealthRecord.image.base64, 'base64');
+    if (buffer.byteLength > 5000000) {
+      throw new HttpException("Image too large", HttpStatus.BAD_REQUEST)
+    }
+    const imageUrl = await this.googleStorageService.uploadImage(uid, buffer, BucketName.HealthRecord);
+
+    await this.healthRecordRepository.update({
+      uid: uid,
+      hrName: updatedHealthRecord.hrName
+    }, {imageid: imageUrl})
+    return imageUrl
   }
 }
