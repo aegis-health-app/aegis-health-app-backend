@@ -63,3 +63,19 @@ export class AddHealthDataDto {
   @ApiProperty({ type: [ColumnDataDto] })
   data: Array<ColumnDataDto>
 }
+
+export class DeleteHealthDataDto {
+  @ApiProperty()
+  @IsString()
+  hrName: string
+
+  @ApiProperty()
+  @IsString()
+  columnName: string
+
+  @ApiProperty()
+  @IsDate()
+  timestamp: Date
+
+  
+}

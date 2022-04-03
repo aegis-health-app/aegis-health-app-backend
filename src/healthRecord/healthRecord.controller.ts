@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Param, Post, Request, Res, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Request, Res, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -13,7 +13,7 @@ import {
 import { CaretakerGuard, ElderlyGuard, UserGuard } from 'src/auth/jwt.guard';
 import { HealthRecordService } from './healthRecord.service';
 import { UserService } from 'src/user/user.service';
-import { AddHealthDataDto, HealthRecordTableDto } from './dto/healthRecord.dto';
+import { AddHealthDataDto, DeleteHealthDataDto, HealthRecordTableDto } from './dto/healthRecord.dto';
 
 @ApiBearerAuth()
 @ApiTags("health record")
@@ -21,7 +21,7 @@ import { AddHealthDataDto, HealthRecordTableDto } from './dto/healthRecord.dto';
 @ApiForbiddenResponse({ description: 'Forbidden' })
 @Controller('healthRecord')
 export class HealthRecordController {
-  constructor(private readonly healthRecordService: HealthRecordService, private readonly userService: UserService) {}
+  constructor(private readonly healthRecordService: HealthRecordService, private readonly userService: UserService) { }
 
   @UseGuards(ElderlyGuard)
   @ApiOkResponse({ type: HealthRecordTableDto })
@@ -50,7 +50,7 @@ export class HealthRecordController {
   }
 
   @ApiNotFoundResponse({ description: 'Column not found' })
-  @ApiConflictResponse({ description: 'Health data at that timestamp already exists'})
+  @ApiConflictResponse({ description: 'Health data at that timestamp already exists' })
   @ApiOkResponse({ type: Boolean })
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @UseGuards(ElderlyGuard)
@@ -66,11 +66,11 @@ export class HealthRecordController {
   @ApiBadRequestResponse({ description: "Caretaker doesn't have access to this elderly" })
   @ApiParam({ name: 'eid', type: Number, description: 'id of elderly interested' })
   @ApiNotFoundResponse({ description: 'Column not found' })
-  @ApiConflictResponse({ description: 'Health data at that timestamp already exists'})
+  @ApiConflictResponse({ description: 'Health data at that timestamp already exists' })
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @UseGuards(CaretakerGuard)
   @Post('/healthData/caretaker/:eid')
-  async addHealthDataByCaretaker(@Request() req, @Body() addHealthDataDto: AddHealthDataDto, @Res() res, @Param('eid') eid,): Promise<string> {
+  async addHealthDataByCaretaker(@Request() req, @Body() addHealthDataDto: AddHealthDataDto, @Res() res, @Param('eid') eid): Promise<string> {
     await this.userService.checkRelationship(eid, req.user.uid);
     await this.healthRecordService.addHealthData(eid, addHealthDataDto);
     return res.status(201).json({
@@ -78,4 +78,35 @@ export class HealthRecordController {
       message: "Create health data successfully"
     })
   }
+
+  @ApiNotFoundResponse({ description: 'Health data not found' })
+  @ApiOkResponse({ type: Boolean })
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  @UseGuards(ElderlyGuard)
+  @Delete('/healthData/elderly')
+  async deleteHealthDataByElderly(@Request() req, @Body() deleteHealthDataDto: DeleteHealthDataDto, @Res() res): Promise<string> {
+    await this.healthRecordService.deleteHealthData(req.user.uid, deleteHealthDataDto);
+    return res.status(200).json({
+      statusCode: 200,
+      message: "Delete health data successfully"
+    })
+  }
+
+  @ApiBadRequestResponse({ description: "Caretaker doesn't have access to this elderly" })
+  @ApiParam({ name: 'eid', type: Number, description: 'id of elderly interested' })
+  @ApiNotFoundResponse({ description: 'Health data not found' })
+  @ApiOkResponse({ type: Boolean })
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  @UseGuards(ElderlyGuard)
+  @Delete('/healthData/elderly/:eid')
+  async deleteHealthDataByCaretaker(@Request() req, @Body() deleteHealthDataDto: DeleteHealthDataDto, @Res() res, @Param('eid') eid): Promise<string> {
+    await this.userService.checkRelationship(eid, req.user.uid);
+    await this.healthRecordService.deleteHealthData(eid, deleteHealthDataDto);
+    return res.status(200).json({
+      statusCode: 200,
+      message: "Delete health data successfully"
+    })
+  }
+
+  
 }

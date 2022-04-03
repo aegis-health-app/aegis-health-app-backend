@@ -3,7 +3,7 @@ import { HealthColumn } from 'src/entities/healthColumn.entity';
 import { HealthData } from 'src/entities/healthData.entity';
 import { HealthRecord } from 'src/entities/healthRecord.entity';
 import { getManager } from 'typeorm';
-import { AddHealthDataDto, HealthDataDto, healthDataRawDto, HealthRecordTableDto } from './dto/healthRecord.dto';
+import { AddHealthDataDto, DeleteHealthDataDto, HealthDataDto, healthDataRawDto, HealthRecordTableDto } from './dto/healthRecord.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -130,6 +130,19 @@ export class HealthRecordService {
         value: healthData.data[i].value
       })
       await this.healthDataRepository.insert(newHealthData)
+    }
+    return true
+  }
+
+  async deleteHealthData(uid: number, healthData: DeleteHealthDataDto): Promise<boolean> {
+    const existHealthData = await this.healthDataRepository.delete({
+      uid: uid,
+      hrName: healthData.hrName,
+      columnName: healthData.columnName,
+      timestamp: healthData.timestamp
+    })
+    if (!existHealthData) {
+      throw new HttpException("Health data not found", HttpStatus.NOT_FOUND)
     }
     return true
   }
