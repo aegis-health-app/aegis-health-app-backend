@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import {  Controller, Get, Param, Request, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
-=======
-import { BadRequestException, Controller, Get, Param, Request, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
->>>>>>> implement health analytics
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
