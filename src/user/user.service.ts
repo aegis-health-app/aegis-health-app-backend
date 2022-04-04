@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnsupportedMediaTypeException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnsupportedMediaTypeException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entities/user.entity';
 import { FindConditions, FindOneOptions, Repository } from 'typeorm';
@@ -7,7 +7,6 @@ import { DuplicateElementException, InvalidUserTypeException, UserNotFoundExcept
 import { plainToInstance } from 'class-transformer';
 import { AuthService } from 'src/auth/auth.service';
 import { Role } from 'src/common/roles';
-import { PersonalInfo } from './user.interface';
 import { GoogleCloudStorage } from 'src/google-cloud/google-storage.service';
 import { ALLOWED_PROFILE_FORMAT } from 'src/utils/global.constant';
 @Injectable()
@@ -103,6 +102,20 @@ export class UserService {
     return elderly;
   }
 
+  async checkRelationship(eid: number, cid: number) {
+    let elderly;
+    try {
+      elderly = await this.findElderlyById(eid);
+    } catch {
+      throw new NotFoundException('Elderly Does Not Exist');
+    }
+
+    const caretakers = await this.findCaretakerByElderlyId(elderly.uid);
+    if (!caretakers || !caretakers.find((caretaker) => caretaker.uid === cid))
+      throw new BadRequestException("Caretaker doesn't have access to this elderly");
+    return true;
+  }
+
   async login(phone: string, password: string): Promise<{ uid: number; role: Role }> {
     let user;
     try {
@@ -126,7 +139,7 @@ export class UserService {
     if (!image || !ALLOWED_PROFILE_FORMAT.includes(image.type)) {
       throw new UnsupportedMediaTypeException('Invalid image type');
     }
-    const buffer = Buffer.from(image.base64);
+    const buffer = Buffer.from(image.base64, 'base64');
     if (buffer.byteLength > 5000000) {
       throw new BadRequestException('Image too large');
     }

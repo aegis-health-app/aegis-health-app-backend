@@ -10,6 +10,7 @@ import { OtpModule } from './otp/otp.module'
 import { LinkModule } from './link/link.module';
 import { SettingModule } from './setting/setting.module';
 import { EmotionTrackingModule } from './emotion-tracking/emotion-tracking.module';
+import { HealthRecordModule } from './healthRecord/healthRecord.module';
 
 @Module({
   imports: [
@@ -35,7 +36,8 @@ import { EmotionTrackingModule } from './emotion-tracking/emotion-tracking.modul
     UserModule,
     LinkModule,
     SettingModule,
-    EmotionTrackingModule
+    EmotionTrackingModule,
+    HealthRecordModule
   ],
   controllers: [AppController],
   providers: [AppService],

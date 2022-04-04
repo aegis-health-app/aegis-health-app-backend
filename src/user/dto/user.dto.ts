@@ -1,6 +1,6 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
-import { IsNotEmpty, IsNumber, IsPhoneNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsPhoneNumber, IsString, Length, Matches } from 'class-validator';
 import { PersonalInfo } from '../user.interface';
 
 export class CreateUserDto extends PersonalInfo {
@@ -8,8 +8,10 @@ export class CreateUserDto extends PersonalInfo {
   @IsString()
   password: string;
   @ApiProperty()
+  @Length(10, 10)
+  @Matches(/^0([0-9]{9})$/, { message: 'the phone number is invalid' })
+  // @IsPhoneNumber('TH')
   @Expose()
-  @IsPhoneNumber()
   phone: string;
 }
 export class UpdateRelationshipDto {
@@ -28,7 +30,9 @@ export class UserDto extends PartialType(PersonalInfo) {
   uid: number;
   @ApiProperty()
   @Expose()
-  @IsPhoneNumber()
+  @Length(10, 10)
+  @Matches(/^0([0-9]{9})$/, { message: 'the phone number is invalid' })
+  // @IsPhoneNumber()
   phone: string;
 }
 export interface IDto<T> {
@@ -44,7 +48,9 @@ export class CreateUserResponse {
 
 export class LoginDto {
   @ApiProperty()
-  @IsPhoneNumber()
+  @Length(10, 10)
+  @Matches(/^0([0-9]{9})$/, { message: 'the phone number is invalid' })
+  // @IsPhoneNumber()
   phone: string;
 
   @ApiProperty()
