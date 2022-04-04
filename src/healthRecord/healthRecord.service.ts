@@ -3,7 +3,7 @@ import { HealthColumn } from 'src/entities/healthColumn.entity';
 import { HealthData } from 'src/entities/healthData.entity';
 import { HealthRecord } from 'src/entities/healthRecord.entity';
 import { getManager } from 'typeorm';
-import { HealthDataDto, HealthRecordTableDto, Timespan } from './dto/healthRecord.dto';
+import { HealthTableDataDto, HealthAnalyticsDataDto, HealthRecordAnalyticsDto, HealthRecordTableDto, Timespan } from './dto/healthRecord.dto';
 import { healthDataRawInterface } from './healthRecord.interface';
 
 @Injectable()
@@ -38,7 +38,7 @@ export class HealthRecordService {
       units.push(d.unit);
     });
 
-    const healthData = this.healthDataFormatter(healthDataRaw, columnNames);
+    const healthData = this.healthDataFormatter(healthDataRaw, columnNames, 'table') as HealthTableDataDto[];
     const result = {
       imageId: imageId,
       tableName: hrName,
@@ -50,9 +50,25 @@ export class HealthRecordService {
     return result;
   }
 
-  private healthDataFormatter(healthDataRaw: healthDataRawInterface[], columnNames: string[]): HealthDataDto[] {
+  private healthDataFormatter(
+    healthDataRaw: healthDataRawInterface[],
+    columnNames: string[],
+    format: 'table' | 'analytics'
+  ): HealthTableDataDto[] | HealthAnalyticsDataDto[] {
     const columnNumbers = columnNames.length;
-    const healthData = [];
+    if (format === 'analytics' && columnNumbers === 1) {
+      const healthData: HealthAnalyticsDataDto[] = [];
+      healthDataRaw.forEach((h) => {
+        healthData.push({
+          dateTime: h.timestamp,
+          value: h.value,
+        });
+      });
+
+      return healthData;
+    }
+
+    const healthData: HealthTableDataDto[] = [];
     healthDataRaw.forEach((h) => {
       healthData.find((v, i) => {
         if (v.dateTime === h.timestamp) {
@@ -91,8 +107,8 @@ export class HealthRecordService {
     return extractedColumns;
   }
 
-  private analyseValues(healthData: HealthDataDto[]) {
-    const values = healthData.map((h) => Number(h.values[0]));
+  private analyseValues(healthData: HealthAnalyticsDataDto[]) {
+    const values = healthData.map((h) => Number(h.value));
 
     const mean = Number((values.reduce((cumulativeSum, b) => cumulativeSum + b, 0) / values.length).toFixed(2));
     const max = Math.max(...values);
@@ -104,7 +120,7 @@ export class HealthRecordService {
     };
   }
 
-  async getHealthAnalytics(eid, healthRecordName, recordColumnName, timespan) {
+  async getHealthAnalytics(eid: number, healthRecordName: string, recordColumnName: string, timespan: Timespan): Promise<HealthRecordAnalyticsDto> {
     const currentTimeUnix = new Date().getTime();
     const millisecInOneDay = 86400000;
     let startQueryUnix;
@@ -163,18 +179,14 @@ export class HealthRecordService {
     const unit = healthDataRaw[0].unit;
     const filteredHealthDataRaw = healthDataRaw.filter((h) => h.timestamp >= startQueryDate);
 
-    const healthData = this.healthDataFormatter(filteredHealthDataRaw, [columnName]);
-    const { min, max, mean } = this.analyseValues(healthData);
-    const result = {
-      imageId: imageId,
+    const healthData = this.healthDataFormatter(filteredHealthDataRaw, [columnName], 'analytics') as HealthAnalyticsDataDto[];
+    const analyticData = this.analyseValues(healthData);
+    const result: HealthRecordAnalyticsDto = {
       tableName: hrName,
-      columnNames: columnName,
-      units: unit,
-      max: max,
-      min: min,
-      mean: mean,
+      columnName: columnName,
+      unit: unit,
+      analyticData: analyticData,
       data: healthData,
-      date: new Date(2022, 2, 1),
     };
 
     return result;

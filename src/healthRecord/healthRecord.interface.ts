@@ -1,4 +1,3 @@
-
 export interface healthDataRawInterface {
     hrName: string
     columnName: string
