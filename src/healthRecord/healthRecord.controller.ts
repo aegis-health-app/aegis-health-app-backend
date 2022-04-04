@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Req, Request, Res, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConflictResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConflictResponse, ApiForbiddenResponse, ApiNotAcceptableResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { CaretakerGuard, ElderlyGuard, UserGuard } from 'src/auth/jwt.guard';
 import { UserService } from 'src/user/user.service';
 import { AddHealthRecordDto, AllHealthRecordDto, ElderlyWithCaretaker } from './dto/healthRecord.dto';
@@ -42,6 +42,7 @@ export class HealthRecordController {
   @ApiBody({ type: AddHealthRecordDto })
   @ApiOkResponse({ description: "Added health record to the database succesfully" })
   @ApiBadRequestResponse({ description: "User not found" })
+  @ApiNotAcceptableResponse({ description: "Image is too large" })
   @ApiConflictResponse({ description: "Health record name is repeated" })
   @UseGuards(ElderlyGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
@@ -59,6 +60,7 @@ export class HealthRecordController {
   @ApiOkResponse({ description: "Added health record to the database succesfully" })
   @ApiBadRequestResponse({ description: "User not found" })
   @ApiNotFoundResponse({ description: "Caretaker is not responsible for this elderly" })
+  @ApiNotAcceptableResponse({ description: "Image is too large" })
   @ApiConflictResponse({ description: "Health record name is repeated" })
   @UseGuards(CaretakerGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))

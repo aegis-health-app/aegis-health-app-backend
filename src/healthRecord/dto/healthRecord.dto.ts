@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsDate, IsNumber, IsObject, IsString } from 'class-validator';
-import { UploadProfileRequest } from 'src/user/dto/user.dto';
 
 export class HealthDataDto {
   @ApiProperty()
@@ -63,6 +62,21 @@ export class ElderlyWithCaretaker {
   elderlyuid: number
 }
 
+export class UploadImageDto {
+  @ApiProperty()
+  @IsString()
+  base64: string;
+  @ApiProperty()
+  @IsString()
+  name: string;
+  @ApiProperty()
+  @IsString()
+  type: string;
+  @ApiProperty()
+  @IsNumber()
+  size: number;
+}
+
 export class HealthDataFieldDto {
   @ApiProperty()
   @IsString()
@@ -76,9 +90,9 @@ export class AddHealthRecordDto {
   @ApiProperty()
   @IsString()
   hrName: string
-  @ApiProperty({ type: [UploadProfileRequest] })
+  @ApiProperty({ type: UploadImageDto })
   @IsObject()
-  profile: UploadProfileRequest
+  picture: UploadImageDto
   @ApiProperty({ type: [HealthDataFieldDto] })
   @IsObject()
   listField: HealthDataFieldDto[]
