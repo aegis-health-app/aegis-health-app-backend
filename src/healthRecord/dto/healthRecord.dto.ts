@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsDate, IsObject, IsString } from 'class-validator';
+import { IsArray, IsDate, IsNumber, IsObject, IsString } from 'class-validator';
+import { UploadProfileRequest } from 'src/user/dto/user.dto';
 
 export class HealthDataDto {
   @ApiProperty()
@@ -12,7 +13,7 @@ export class HealthDataDto {
 }
 
 export class HealthRecordTableDto {
- @ApiProperty()
+  @ApiProperty()
   @IsString()
   imageId: string;
 
@@ -34,9 +35,51 @@ export class HealthRecordTableDto {
 }
 
 export class healthDataRawDto {
-    hrName: string
-    columnName: string
-    unit: string
-    value: number;
-    timestamp: Date
+  hrName: string
+  columnName: string
+  unit: string
+  value: number;
+  timestamp: Date
+}
+
+export class HealthRecordDto {
+  @ApiProperty()
+  @IsString()
+  hrName: string
+  @ApiProperty()
+  @IsString()
+  imageid: string
+}
+
+export class AllHealthRecordDto {
+  @ApiProperty({ type: [HealthRecordDto] })
+  @IsObject()
+  listHealthRecord: HealthRecordDto[]
+}
+
+export class ElderlyWithCaretaker {
+  @ApiProperty()
+  @IsNumber()
+  elderlyuid: number
+}
+
+export class HealthDataFieldDto {
+  @ApiProperty()
+  @IsString()
+  name: string
+  @ApiProperty()
+  @IsString()
+  unit: string
+}
+
+export class AddHealthRecordDto {
+  @ApiProperty()
+  @IsString()
+  hrName: string
+  @ApiProperty({ type: [UploadProfileRequest] })
+  @IsObject()
+  profile: UploadProfileRequest
+  @ApiProperty({ type: [HealthDataFieldDto] })
+  @IsObject()
+  listField: HealthDataFieldDto[]
 }

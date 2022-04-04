@@ -8,11 +8,15 @@ import { AllHealthRecord, AddHealthrecord } from './healthRecord.interface';
 import { HealthData } from 'src/entities/healthData.entity';
 import { getManager } from 'typeorm';
 import { HealthDataDto, healthDataRawDto, HealthRecordTableDto } from './dto/healthRecord.dto';
+import { GoogleCloudStorage } from 'src/google-cloud/google-storage.service';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class HealthRecordService {
 
   constructor(
+    private readonly googleCloudStorage: GoogleCloudStorage,
+    private readonly userService: UserService,
     @InjectRepository(User)
     private userRepository: Repository<User>,
     @InjectRepository(HealthRecordEntity)
@@ -41,9 +45,12 @@ export class HealthRecordService {
     const temp = await this.healthRecordRepository.findOne({ where: { hrName: info.hrName }, })
     if (temp)
       throw new HttpException("Health record name is repeated", HttpStatus.CONFLICT)
+
+    const imageid = (await this.userService.uploadProfilePicture(uid, info.profile)).url
+
     await this.healthRecordRepository.save({
       hrName: info.hrName,
-      imageid: info.imageid,
+      imageid: imageid,
       uid: uid,
     })
 

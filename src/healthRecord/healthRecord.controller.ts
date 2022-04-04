@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post, Req, Request, Res, UseGuard
 import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConflictResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { CaretakerGuard, ElderlyGuard, UserGuard } from 'src/auth/jwt.guard';
 import { UserService } from 'src/user/user.service';
-import { AddHealthRecordDto, AllHealthRecordDto, ElderlyWithCaretaker } from './healthRecord.dto';
+import { AddHealthRecordDto, AllHealthRecordDto, ElderlyWithCaretaker } from './dto/healthRecord.dto';
 import { HealthRecordService } from './healthRecord.service';
 import { HealthRecordTableDto } from './dto/healthRecord.dto';
 
