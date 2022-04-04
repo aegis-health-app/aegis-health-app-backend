@@ -33,7 +33,7 @@ export class HealthRecordController {
   @UseGuards(CaretakerGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @Get('getAll/caretaker')
-  async getHealthRecordCaretaker(elderlyWithCaretaker: ElderlyWithCaretaker, @Req() req): Promise<AllHealthRecordDto> {
+  async getHealthRecordCaretaker(@Body() elderlyWithCaretaker: ElderlyWithCaretaker, @Req() req): Promise<AllHealthRecordDto> {
     await this.userService.checkRelationship(elderlyWithCaretaker.elderlyuid, req.user.uid)
     return await this.healthRecordService.getHealthRecord(elderlyWithCaretaker.elderlyuid)
   }
