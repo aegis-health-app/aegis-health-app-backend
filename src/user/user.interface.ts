@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
-import { IsNotEmpty, IsDate, IsEnum, IsOptional, IsString, IsPhoneNumber } from 'class-validator';
+import { IsNotEmpty, IsDate, IsEnum, IsOptional, IsString, IsPhoneNumber, IsBoolean } from 'class-validator';
 import { ToBoolean } from 'src/utils/transformer';
 import { IsValidName } from './user.validator';
 export enum Gender {
@@ -47,7 +47,7 @@ export class PersonalInfo {
   gender: string;
   @ApiProperty()
   @Expose()
-  @ToBoolean()
+  @IsBoolean()
   isElderly: boolean;
   @ApiProperty()
   @Expose()
