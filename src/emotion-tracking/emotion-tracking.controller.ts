@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Delete, Req, Body, Query, Param, UsePipes, ValidationPipe, UseGuards  } from '@nestjs/common';
 import { EmotionTrackingService } from './emotion-tracking.service';
 import { CreateEmotionRecordDto, EmotionHistoryDto, EmotionTrackingStatusDto } from './dto/emotion-tracking.dto';
-import { ApiOperation, ApiOkResponse, ApiCreatedResponse, ApiBadRequestResponse, ApiBearerAuth, ApiUnauthorizedResponse, ApiForbiddenResponse, ApiConflictResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiOkResponse, ApiCreatedResponse, ApiBadRequestResponse, ApiBearerAuth, ApiUnauthorizedResponse, ApiForbiddenResponse, ApiConflictResponse, ApiNotFoundResponse, ApiTags } from '@nestjs/swagger';
 import { ElderlyGuard, CaretakerGuard } from '../auth/jwt.guard';
 
 @ApiTags('emotion-tracking')
@@ -33,6 +33,7 @@ export class EmotionTrackingController {
     @ApiUnauthorizedResponse({description: 'Login is required'})
     @ApiForbiddenResponse({description: 'This endpoint is restricted to caretaker'})
     @ApiBadRequestResponse({description: 'Invalid uid, this elderly is not taken care by this caretaker'})
+    @ApiNotFoundResponse({description: 'Elderly does not exist'})
     async getEmotionalRecord(@Req() req, @Param("uid") uid: number): Promise<EmotionHistoryDto>{
         const caretakerId = req.user.uid;
         const elderlyId = uid;
@@ -49,6 +50,7 @@ export class EmotionTrackingController {
     @ApiUnauthorizedResponse({description: 'Login is required'})
     @ApiForbiddenResponse({description: 'This endpoint is restricted to caretaker'})
     @ApiBadRequestResponse({description: 'Invalid uid, this elderly is not taken care by this caretaker'})
+    @ApiNotFoundResponse({description: 'Elderly does not exist'})
     async checkEmotionTrackingStatus(@Req() req, @Param('uid') uid: number): Promise<EmotionTrackingStatusDto>{
         const caretakerId = req.user.uid;
         const elderlyId = uid;
@@ -62,6 +64,7 @@ export class EmotionTrackingController {
     @ApiUnauthorizedResponse({description: 'Login is required'})
     @ApiForbiddenResponse({description: 'This endpoint is restricted to caretaker'})
     @ApiBadRequestResponse({description: 'Invalid uid, this elderly is not taken care by this caretaker'})
+    @ApiNotFoundResponse({description: 'Elderly does not exist'})
     @ApiConflictResponse({description: 'Emotion tracking is already enabled'})
     async addEmotionTrackingModuleToElderly(@Req() req, @Param("uid") uid: number): Promise<{message: string}>{
         const caretakerId = req.user.uid;
@@ -76,6 +79,7 @@ export class EmotionTrackingController {
     @ApiUnauthorizedResponse({description: 'Login is required'})
     @ApiForbiddenResponse({description: 'This endpoint is restricted to caretaker'})
     @ApiBadRequestResponse({description: 'Invalid uid, this elderly is not taken care by this caretaker'})
+    @ApiNotFoundResponse({description: 'Elderly does not exist'})
     @ApiConflictResponse({description: 'Emotion tracking is already disabled'})
     async removeEmotionTrackingModuleFromElderly(@Req() req, @Param("uid") uid: number): Promise<{message: string}>{
         const caretakerId = req.user.uid;
@@ -83,16 +87,3 @@ export class EmotionTrackingController {
         return this.emotionTrackingService.removeEmotionalTrackingModuleFromElderly(caretakerId, elderlyId);
     }
 }
-
-/*
-/emotion-tracking/:uid/contribution-graph
-GET get elderly emotion record data for contribution graph
-                                caretakerGuard
-                                implement next week
-
-
-
-
-
-*/
-

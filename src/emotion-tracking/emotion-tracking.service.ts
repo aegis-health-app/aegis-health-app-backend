@@ -45,43 +45,38 @@ export class EmotionTrackingService {
     }
 
     async getEmotionalRecord(caretakerId: number, elderlyId: number, limit: number, offset:number=0): Promise<EmotionHistory>{
-        //check if this caretaker is this elderly's caretaker
-        const elderlyList = await this.userService.findElderlyByCaretakerId(caretakerId);
-        const elderly = elderlyList.filter(elderly => elderly.uid === +elderlyId)[0];
+        await this.userService.checkRelationship(elderlyId, caretakerId);
         let emotionalRecord;
         let numRecords;
-        if(elderly){
+        emotionalRecord = await this.emotionRecordRepository
+            .createQueryBuilder("emotionRecord")
+            .where("emotionRecord.uid = :uid", {uid: elderlyId})
+            .orderBy("emotionRecord.date", "DESC")
+            .getMany();
+        numRecords = emotionalRecord.length;
+    
+        //check if the limit is specified. default: return all
+        if(limit){
             emotionalRecord = await this.emotionRecordRepository
                 .createQueryBuilder("emotionRecord")
                 .where("emotionRecord.uid = :uid", {uid: elderlyId})
                 .orderBy("emotionRecord.date", "DESC")
+                .limit(limit)
+                .offset(offset)
                 .getMany();
-            numRecords = emotionalRecord.length;
-    
-            //check if the limit is specified. default: return all
-            if(limit){
-                emotionalRecord = await this.emotionRecordRepository
-                    .createQueryBuilder("emotionRecord")
-                    .where("emotionRecord.uid = :uid", {uid: elderlyId})
-                    .orderBy("emotionRecord.date", "DESC")
-                    .limit(limit)
-                    .offset(offset)
-                    .getMany();
-            }
-            emotionalRecord.forEach(record => {
-                record.emotionalLevel = Emotion[record.emotionalLevel]
-            })
-            const emotionalHistory = {
-                count: numRecords,
-                records: emotionalRecord
-            }
-            return emotionalHistory;
         }
-        throw new HttpException('Invalid uid, this elderly is not taken care by this caretaker', HttpStatus.BAD_REQUEST);
+        emotionalRecord.forEach(record => {
+            record.emotionalLevel = Emotion[record.emotionalLevel]
+        })
+        const emotionalHistory = {
+            count: numRecords,
+            records: emotionalRecord
+        }
+        return emotionalHistory;
     }
 
     async getEmotionTrackingStatus(caretakerId: number, elderlyId: number): Promise<EmotionTrackingStatusDto>{
-        await this.isValidCaretaker(caretakerId, elderlyId);
+        await this.userService.checkRelationship(elderlyId, caretakerId);
         const elderly = await this.userRepository.findOne({uid: elderlyId},{
             relations: ["modules"]
         })
@@ -96,7 +91,7 @@ export class EmotionTrackingService {
     }
 
     async addEmotionalTrackingModuleToElderly(caretakerId: number, elderlyId: number): Promise<{statusCode: number, message: string}>{
-        await this.isValidCaretaker(caretakerId, elderlyId);
+        await this.userService.checkRelationship(elderlyId, caretakerId);
         const elderly = await this.userRepository.findOne({uid: elderlyId},{
             relations: ["modules"]
         })
@@ -111,7 +106,7 @@ export class EmotionTrackingService {
     }
 
     async removeEmotionalTrackingModuleFromElderly(caretakerId: number, elderlyId: number): Promise<{statusCode: number, message: string}>{
-        await this.isValidCaretaker(caretakerId, elderlyId);
+        await this.userService.checkRelationship(elderlyId, caretakerId);
         const elderly = await this.userRepository.findOne({uid: elderlyId},{
             relations: ["modules"]
         })
@@ -124,12 +119,12 @@ export class EmotionTrackingService {
         return {statusCode: 200, message: 'Emotion tracking is successfully disabled'}
     }
 
-    async isValidCaretaker(caretakerId, elderlyId): Promise<boolean>{
-        const caretakers = await this.userService.findCaretakerByElderlyId(elderlyId);
-        const caretaker = caretakers.filter(caretaker => caretaker.uid === +caretakerId)[0];
-        if(! caretaker){
-            throw new HttpException('Invalid uid, this elderly is not taken care by this caretaker', HttpStatus.BAD_REQUEST);
-        }
-        return true;
-    }
+    // async isValidCaretaker(caretakerId, elderlyId): Promise<boolean>{
+    //     const caretakers = await this.userService.findCaretakerByElderlyId(elderlyId);
+    //     const caretaker = caretakers.filter(caretaker => caretaker.uid === +caretakerId)[0];
+    //     if(! caretaker){
+    //         throw new HttpException('Invalid uid, this elderly is not taken care by this caretaker', HttpStatus.BAD_REQUEST);
+    //     }
+    //     return true;
+    // }
 }
