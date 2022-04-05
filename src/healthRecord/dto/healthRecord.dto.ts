@@ -52,7 +52,7 @@ export class HealthRecordDto {
 
 export class AllHealthRecordDto {
   @ApiProperty({ type: [HealthRecordDto] })
-  @IsObject()
+  @IsArray()
   listHealthRecord: HealthRecordDto[]
 }
 
@@ -94,6 +94,12 @@ export class AddHealthRecordDto {
   @IsObject()
   picture: UploadImageDto
   @ApiProperty({ type: [HealthDataFieldDto] })
-  @IsObject()
+  @IsArray()
   listField: HealthDataFieldDto[]
+}
+
+export class AddHealthRecordCaretakerDto extends AddHealthRecordDto {
+  @ApiProperty()
+  @IsNumber()
+  elderlyuid: number
 }

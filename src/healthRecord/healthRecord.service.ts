@@ -27,7 +27,7 @@ export class HealthRecordService {
   async getHealthRecord(uid: number): Promise<AllHealthRecord> {
 
     const healthRecordList = await this.healthRecordRepository.find({ where: { uid: uid }, })
-    if (!healthRecordList)
+    if (!healthRecordList.length)
       throw new HttpException("No records found for this elderly", HttpStatus.BAD_REQUEST)
     return {
       listHealthRecord: healthRecordList
@@ -78,11 +78,7 @@ export class HealthRecordService {
     const deleteRecord = await this.healthRecordRepository.findOne({ where: { uid: uid, hrName: hrName }, })
     if (!deleteRecord)
       throw new HttpException("This health record doesn't exist", HttpStatus.CONFLICT)
-
-    user.healthRecords = user.healthRecords.filter(function (healthRecord) {
-      return healthRecord.hrName !== hrName
-    })
-    await this.healthRecordRepository.save(user)
+    await this.healthRecordRepository.delete(deleteRecord)
     return 'Complete'
 
   }

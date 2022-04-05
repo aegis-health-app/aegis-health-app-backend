@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post, Req, Request, Res, UseGuard
 import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConflictResponse, ApiForbiddenResponse, ApiNotAcceptableResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { CaretakerGuard, ElderlyGuard, UserGuard } from 'src/auth/jwt.guard';
 import { UserService } from 'src/user/user.service';
-import { AddHealthRecordDto, AllHealthRecordDto, ElderlyWithCaretaker } from './dto/healthRecord.dto';
+import { AddHealthRecordCaretakerDto, AddHealthRecordDto, AllHealthRecordDto, ElderlyWithCaretaker } from './dto/healthRecord.dto';
 import { HealthRecordService } from './healthRecord.service';
 import { HealthRecordTableDto } from './dto/healthRecord.dto';
 
@@ -65,9 +65,9 @@ export class HealthRecordController {
   @UseGuards(CaretakerGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @Post('add/caretaker')
-  async addHealthRecordCaretaker(@Body() addRecordInfo: AddHealthRecordDto, elderlyWithCaretaker: ElderlyWithCaretaker, @Req() req, @Res() res): Promise<string> {
-    await this.userService.checkRelationship(elderlyWithCaretaker.elderlyuid, req.user.uid)
-    await this.healthRecordService.addHealthRecord(elderlyWithCaretaker.elderlyuid, addRecordInfo)
+  async addHealthRecordCaretaker(@Body() addRecordInfo: AddHealthRecordCaretakerDto, @Req() req, @Res() res): Promise<string> {
+    await this.userService.checkRelationship(addRecordInfo.elderlyuid, req.user.uid)
+    await this.healthRecordService.addHealthRecord(addRecordInfo.elderlyuid, addRecordInfo)
     return res.status(200).json({
       statusCode: 200,
       message: "Added health record to the database successfully"
@@ -97,7 +97,7 @@ export class HealthRecordController {
   @UseGuards(CaretakerGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @Delete('delete/caretaker/:hrName')
-  async deleteHealthRecordCaretaker(@Param('hrName') hrName: string, elderlyWithCaretaker: ElderlyWithCaretaker, @Req() req, @Res() res): Promise<string> {
+  async deleteHealthRecordCaretaker(@Param('hrName') hrName: string, @Body() elderlyWithCaretaker: ElderlyWithCaretaker, @Req() req, @Res() res): Promise<string> {
     await this.userService.checkRelationship(elderlyWithCaretaker.elderlyuid, req.user.uid)
     await this.healthRecordService.deleteHealthRecord(elderlyWithCaretaker.elderlyuid, hrName)
     return res.status(200).json({
