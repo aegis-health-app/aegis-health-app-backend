@@ -1,16 +1,64 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { HealthColumn } from 'src/entities/healthColumn.entity';
 import { HealthData } from 'src/entities/healthData.entity';
 import { HealthRecord } from 'src/entities/healthRecord.entity';
 import { getManager } from 'typeorm';
-import { HealthTableDataDto, HealthAnalyticsDataDto, HealthRecordAnalyticsDto, HealthRecordTableDto, Timespan } from './dto/healthRecord.dto';
+import {
+  HealthTableDataDto,
+  HealthAnalyticsDataDto,
+  HealthRecordAnalyticsDto,
+  HealthRecordTableDto,
+  Timespan,
+  analyticDataDto,
+} from './dto/healthRecord.dto';
 import { healthDataRawInterface } from './healthRecord.interface';
 
 @Injectable()
 export class HealthRecordService {
   constructor() {}
 
-  async getHealthData(uid: number, healthRecordName: string): Promise<HealthRecordTableDto> {
+  async checkHealthRecordExist(elderlyId: number, healthRecordName: string) {
+    const healthRecordQuery = getManager()
+      .createQueryBuilder()
+      .select('hr.hrName', 'hrName')
+      .from(HealthRecord, 'hr')
+      .where('hr.uid = :uid', { uid: elderlyId });
+
+    const healthRecordRaw = await healthRecordQuery.getRawMany();
+    if (!healthRecordRaw.length) throw new NotFoundException('Health Recod Name Not Found');
+
+    const isMatched = healthRecordRaw.find((hr) => hr.hrName === healthRecordName);
+    if (!isMatched) throw new NotFoundException('Health Record Name Not Found');
+
+    return;
+  }
+
+  async checkHealthColumnExist(elderlyId: number, healthRecordName: string, healthColumnName: string) {
+    const healthColumnQuery = getManager()
+      .createQueryBuilder()
+      .select('hc.columnName', 'columnName')
+      .from(HealthRecord, 'hr')
+      .innerJoin(HealthColumn, 'hc', 'hr.uid = hc.uid AND hr.hrName = hc.hrName')
+      .where('hr.uid = :uid', { uid: elderlyId })
+      .andWhere('hr.hrName = :hrName', { hrName: healthRecordName });
+
+    const healthColumnRaw = await healthColumnQuery.getRawMany();
+    if (!healthColumnRaw.length) throw new NotFoundException('Health Column Name Not Found');
+
+    const isMatched = healthColumnRaw.find((hc) => hc.columnName === healthColumnName);
+    if (!isMatched) throw new NotFoundException('Health Column Name Not Found');
+
+    return;
+  }
+
+  async getHealthTable(uid: number, healthRecordName: string): Promise<HealthRecordTableDto> {
+    const result: HealthRecordTableDto = {
+      imageId: '',
+      tableName: healthRecordName,
+      columnNames: [],
+      units: [],
+      data: [],
+    };
     const healthDataQuery = getManager()
       .createQueryBuilder()
       .select('hr.hrName', 'hrName')
@@ -27,25 +75,16 @@ export class HealthRecordService {
       .orderBy("DATE_FORMAT(hd.timestamp, '%Y-%m-%d %H:00:00')");
 
     const healthDataRaw = await healthDataQuery.getRawMany();
-    const distinctValueByColumns = this.extractDistinctValueByColumns(healthDataRaw, ['columnName', 'unit']);
+    if (!healthDataRaw.length) return result;
 
-    const hrName = healthDataRaw[0].hrName;
-    const imageId = healthDataRaw[0].imageId;
-    const columnNames = [];
-    const units = [];
+    const distinctValueByColumns = this.extractDistinctValueByColumns(healthDataRaw, ['columnName', 'unit']);
     distinctValueByColumns.map((d) => {
-      columnNames.push(d.columnName);
-      units.push(d.unit);
+      result.columnNames.push(d.columnName);
+      result.units.push(d.unit);
     });
 
-    const healthData = this.healthDataFormatter(healthDataRaw, columnNames, 'table') as HealthTableDataDto[];
-    const result = {
-      imageId: imageId,
-      tableName: hrName,
-      columnNames: columnNames,
-      units: units,
-      data: healthData,
-    };
+    result.imageId = healthDataRaw[0].imageId;
+    result.data = this.healthDataFormatter(healthDataRaw, result.columnNames, 'table') as HealthTableDataDto[];
 
     return result;
   }
@@ -107,20 +146,34 @@ export class HealthRecordService {
     return extractedColumns;
   }
 
-  private analyseValues(healthData: HealthAnalyticsDataDto[]) {
+  private analyseValues(healthData: HealthAnalyticsDataDto[]): analyticDataDto {
     const values = healthData.map((h) => Number(h.value));
 
     const mean = Number((values.reduce((cumulativeSum, b) => cumulativeSum + b, 0) / values.length).toFixed(2));
     const max = Math.max(...values);
     const min = Math.min(...values);
-    return {
+
+    const analyticData = {
       mean: mean,
-      min: min,
       max: max,
+      min: min,
     };
+    return analyticData;
   }
 
-  async getHealthAnalytics(eid: number, healthRecordName: string, recordColumnName: string, timespan: Timespan): Promise<HealthRecordAnalyticsDto> {
+  async getHealthAnalytics(eid: number, healthRecordName: string, columnName: string, timespan: Timespan): Promise<HealthRecordAnalyticsDto> {
+    const result: HealthRecordAnalyticsDto = {
+      tableName: healthRecordName,
+      columnName: columnName,
+      unit: '',
+      analyticData: {
+        mean: 0,
+        min: 0,
+        max: 0,
+      },
+      data: [],
+    };
+
     const currentTimeUnix = new Date().getTime();
     const millisecInOneDay = 86400000;
     let startQueryUnix;
@@ -156,7 +209,6 @@ export class HealthRecordService {
     const healthDataQuery = getManager()
       .createQueryBuilder()
       .select('hr.hrName', 'hrName')
-      .addSelect('hr.imageId', 'imageId')
       .addSelect('hc.columnName', 'columnName')
       .addSelect('hc.unit', 'unit')
       .addSelect('hd.value', 'value')
@@ -167,27 +219,18 @@ export class HealthRecordService {
       .innerJoin(HealthData, 'hd', 'hc.columnName = hd.columnName AND hc.hrName = hd.hrName AND hc.uid = hd.uid')
       .where('hr.uid = :uid', { uid: eid })
       .andWhere('hr.hrName = :hrName', { hrName: healthRecordName })
-      .andWhere('hc.columnName = :columnName', { columnName: recordColumnName })
-      // .andWhere('hd.timestamp > :startQueryDate', { startQueryDate: startQueryDate })
+      .andWhere('hc.columnName = :columnName', { columnName: columnName })
+      .andWhere('hd.timestamp > :startQueryDate', { startQueryDate: startQueryDate })
       .orderBy("DATE_FORMAT(hd.timestamp, '%Y-%m-%d %H:00:00')");
 
     const healthDataRaw = await healthDataQuery.getRawMany();
+    if (!healthDataRaw.length) return result;
 
-    const hrName = healthDataRaw[0].hrName;
-    const imageId = healthDataRaw[0].imageId;
-    const columnName = healthDataRaw[0].columnName;
-    const unit = healthDataRaw[0].unit;
     const filteredHealthDataRaw = healthDataRaw.filter((h) => h.timestamp >= startQueryDate);
 
-    const healthData = this.healthDataFormatter(filteredHealthDataRaw, [columnName], 'analytics') as HealthAnalyticsDataDto[];
-    const analyticData = this.analyseValues(healthData);
-    const result: HealthRecordAnalyticsDto = {
-      tableName: hrName,
-      columnName: columnName,
-      unit: unit,
-      analyticData: analyticData,
-      data: healthData,
-    };
+    result.unit = healthDataRaw[0].unit;
+    result.data = this.healthDataFormatter(filteredHealthDataRaw, [columnName], 'analytics') as HealthAnalyticsDataDto[];
+    result.analyticData = this.analyseValues(result.data);
 
     return result;
   }
