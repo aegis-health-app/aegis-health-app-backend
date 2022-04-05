@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { HealthColumn } from 'src/entities/healthColumn.entity';
-import { HealthRecord as HealthRecordEntity } from 'src/entities/healthRecord.entity';
+import { HealthRecord } from 'src/entities/healthRecord.entity';
 import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 import { AllHealthRecord, AddHealthrecord } from './healthRecord.interface';
@@ -18,8 +18,8 @@ export class HealthRecordService {
     private readonly googleStorageService: GoogleCloudStorage,
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    @InjectRepository(HealthRecordEntity)
-    private healthRecordRepository: Repository<HealthRecordEntity>,
+    @InjectRepository(HealthRecord)
+    private healthRecordRepository: Repository<HealthRecord>,
     @InjectRepository(HealthColumn)
     private healthColumnRepository: Repository<HealthColumn>,
   ) { }
@@ -91,7 +91,7 @@ export class HealthRecordService {
       .addSelect('hc.unit', 'unit')
       .addSelect('hd.value', 'value')
       .addSelect("DATE_FORMAT(hd.timestamp, '%Y-%m-%d %H:00:00')", 'timestamp')
-      .from(HealthRecordEntity, 'hr')
+      .from(HealthRecord, 'hr')
       .innerJoin(HealthColumn, 'hc', 'hr.uid = hc.uid AND hr.hrName = hc.hrName')
       .innerJoin(HealthData, 'hd', 'hc.columnName = hd.columnName AND hc.hrName = hd.hrName AND hc.uid = hd.uid')
       .where('hr.uid = :uid', { uid: uid })
