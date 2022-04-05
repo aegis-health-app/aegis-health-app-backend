@@ -59,10 +59,10 @@ export class HealthRecordService {
 
     info.listField.forEach(async (_, i) => {
       await this.healthColumnRepository.save({
-        columnName: info.listField[i][0],
+        columnName: info.listField[i].name,
         uid: uid,
         hrName: info.hrName,
-        unit: info.listField[i][1],
+        unit: info.listField[i].unit,
       })
     })
     return 'Complete'
