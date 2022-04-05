@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { User } from 'src/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import { NotificationMessage } from '../interface/notification.interface';
@@ -11,15 +11,17 @@ import { EmergencyData, Geolocation } from './emergency.interface';
 export class EmergencyService {
   constructor(private notificationService: NotificationService, private userService: UserService) {}
   async notifyEmergency(createEmergencyRequest: CreateEmergencyRequest) {
-    const caretakers = await this.userService.findCaretakerByElderlyId(createEmergencyRequest.eid);
-    const message = await this.createEmergencyMessage(createEmergencyRequest.eid, createEmergencyRequest.location);
+    const elderly = await this.userService.findOne(
+      { uid: createEmergencyRequest.eid },
+      { relations: ['takenCareBy'], shouldBeElderly: true, shouldExist: true }
+    );
+    const message = await this.createEmergencyMessage(elderly, createEmergencyRequest.location);
     return await this.notificationService.notifyMany(
-      caretakers.map((c) => c.uid),
+      elderly.takenCareBy.map((c) => c.uid),
       message
     );
   }
-  private async createEmergencyMessage(eid: number, location: Geolocation): Promise<NotificationMessage> {
-    const elderly = await this.userService.findElderlyById(eid);
+  private async createEmergencyMessage(elderly: User, location: Geolocation): Promise<NotificationMessage> {
     const elderlyName = `${elderly.fname} ${elderly.lname}`;
     const emergencyData: EmergencyData = {
       elderlyImageId: elderly.imageid,
