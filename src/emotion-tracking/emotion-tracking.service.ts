@@ -81,7 +81,7 @@ export class EmotionTrackingService {
         return emotionTrackingStatus;
     }
 
-    async addEmotionalTrackingModuleToElderly(caretakerId: number, elderlyId: number): Promise<{statusCode: number, message: string}>{
+    async addEmotionalTrackingModuleToElderly(caretakerId: number, elderlyId: number): Promise<{message: string}>{
         await this.userService.checkRelationship(elderlyId, caretakerId);
         const elderly = await this.userService.findOne({uid: elderlyId}, {relations: ['modules']});
         const moduleFive = elderly.modules.find(module=> module.moduleid === 5);  
@@ -91,10 +91,10 @@ export class EmotionTrackingService {
         const module = await this.moduleRepository.findOne({moduleid: 5});
         elderly.modules.push(module);
         await this.userService.updateUser(elderly);
-        return {statusCode: 201, message: 'Emotion tracking is successfully enabled'}
+        return {message: 'Emotion tracking is successfully enabled'}
     }
 
-    async removeEmotionalTrackingModuleFromElderly(caretakerId: number, elderlyId: number): Promise<{statusCode: number, message: string}>{
+    async removeEmotionalTrackingModuleFromElderly(caretakerId: number, elderlyId: number): Promise<{message: string}>{
         await this.userService.checkRelationship(elderlyId, caretakerId);
         const elderly = await this.userService.findOne({uid: elderlyId}, {relations: ['modules']});
         const moduleFive = elderly.modules.find(module=> module.moduleid === 5);  
@@ -103,6 +103,6 @@ export class EmotionTrackingService {
         }
         elderly.modules =  elderly.modules.filter(module=> module.moduleid !== 5);
         await this.userService.updateUser(elderly);
-        return {statusCode: 200, message: 'Emotion tracking is successfully disabled'}
+        return {message: 'Emotion tracking is successfully disabled'}
     }
 }
