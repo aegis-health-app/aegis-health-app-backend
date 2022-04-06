@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber } from 'class-validator';
+import { IsNumber, IsString } from 'class-validator';
 
 export class Geolocation {
   @ApiProperty()
@@ -8,6 +8,9 @@ export class Geolocation {
   @ApiProperty()
   @IsNumber()
   longtitude: number;
+  @ApiProperty()
+  @IsString()
+  address: string;
 }
 
 export interface EmergencyData {
