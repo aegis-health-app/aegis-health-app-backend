@@ -84,7 +84,7 @@ export class HealthRecordService {
     return 'Complete'
 
   }
-  
+
   async checkHealthRecordExist(elderlyId: number, healthRecordName: string) {
     const healthRecordQuery = getManager()
       .createQueryBuilder()
@@ -215,18 +215,21 @@ export class HealthRecordService {
   }
 
   async addHealthData(uid: number, healthData: AddHealthDataDto): Promise<boolean> {
-    for (let i = 0; i < healthData.data.length; i++) {
+    for (let j = 0; j < healthData.data.length; j++) {
       const healthColumn = await this.healthColumnRepository.findOne(
         {
           where:
           {
             uid: uid,
             hrName: healthData.hrName,
-            columnName: healthData.data[i].columnName
+            columnName: healthData.data[j].columnName
           },
         })
       if (!healthColumn)
         throw new HttpException("Column not found", HttpStatus.NOT_FOUND)
+    }
+
+    for (let i = 0; i < healthData.data.length; i++) {
       const existHealthData = await this.healthDataRepository.findOne(
         {
           where:
@@ -258,7 +261,7 @@ export class HealthRecordService {
       columnName: healthData.columnName,
       timestamp: healthData.timestamp
     })
-    if (!existHealthData) {
+    if (!existHealthData.affected) {
       throw new HttpException("Health data not found", HttpStatus.NOT_FOUND)
     }
     return true
@@ -285,7 +288,7 @@ export class HealthRecordService {
 
     healthRecord.imageid = imageUrl
     await this.healthRecordRepository.save(healthRecord)
-    
+
     return imageUrl
   }
 

@@ -89,10 +89,13 @@ export class AddHealthDataDto {
   hrName: string
 
   @ApiProperty()
+  @Expose()
+  @Type(() => Date)
   @IsDate()
   timestamp: Date
 
   @ApiProperty({ type: [ColumnDataDto] })
+  @IsArray()
   data: Array<ColumnDataDto>
 }
 
