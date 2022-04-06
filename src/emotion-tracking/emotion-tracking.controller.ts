@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Req, Body, Query, Param, UsePipes, ValidationPipe, UseGuards  } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Req, Res, Body, Query, Param, UsePipes, ValidationPipe, UseGuards  } from '@nestjs/common';
 import { EmotionTrackingService } from './emotion-tracking.service';
 import { CreateEmotionRecordDto, EmotionHistoryDto, EmotionTrackingStatusDto } from './dto/emotion-tracking.dto';
 import { ApiOperation, ApiOkResponse, ApiCreatedResponse, ApiBadRequestResponse, ApiBearerAuth, ApiUnauthorizedResponse, ApiForbiddenResponse, ApiConflictResponse, ApiNotFoundResponse, ApiTags } from '@nestjs/swagger';
@@ -81,7 +81,7 @@ export class EmotionTrackingController {
     @ApiBadRequestResponse({description: 'Invalid uid, this elderly is not taken care by this caretaker'})
     @ApiNotFoundResponse({description: 'Elderly does not exist'})
     @ApiConflictResponse({description: 'Emotion tracking is already disabled'})
-    async removeEmotionTrackingModuleFromElderly(@Req() req, @Param("uid") uid: number): Promise<{message: string}>{
+    async removeEmotionTrackingModuleFromElderly(@Req() req,  @Param("uid") uid: number): Promise<{message: string}>{
         const caretakerId = req.user.uid;
         const elderlyId = uid;
         return this.emotionTrackingService.removeEmotionalTrackingModuleFromElderly(caretakerId, elderlyId);

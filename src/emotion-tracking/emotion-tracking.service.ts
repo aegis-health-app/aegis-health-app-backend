@@ -4,7 +4,6 @@ import { Repository } from 'typeorm';
 import { EmotionalRecord } from 'src/entities/emotionalRecord.entity';
 import { EmotionHistory, Emotion } from './emotion-tracking.interface';
 import { EmotionTrackingStatusDto } from './dto/emotion-tracking.dto';
-import { User } from 'src/entities/user.entity';
 import { Module } from 'src/entities/module.entity';
 import moment from 'moment';
 import {UserService} from '../user/user.service'
@@ -14,8 +13,6 @@ export class EmotionTrackingService {
     constructor(
         @InjectRepository(EmotionalRecord)
         private emotionRecordRepository: Repository<EmotionalRecord>,
-        @InjectRepository(User)
-        private userRepository: Repository<User>,
         @InjectRepository(Module)
         private moduleRepository: Repository<Module>,
         private userService: UserService
@@ -36,7 +33,7 @@ export class EmotionTrackingService {
             const emotionalRecord = new EmotionalRecord();
             emotionalRecord.date = currentDate;
             emotionalRecord.emotionalLevel = Emotion[emotionLevel];
-            const user = await this.userRepository.findOne({uid});
+            const user = await this.userService.findOne({uid});
             emotionalRecord.user = user;
             await this.emotionRecordRepository.save(emotionalRecord);  
             return {message: "Emotion record successfully created"};
@@ -77,9 +74,7 @@ export class EmotionTrackingService {
 
     async getEmotionTrackingStatus(caretakerId: number, elderlyId: number): Promise<EmotionTrackingStatusDto>{
         await this.userService.checkRelationship(elderlyId, caretakerId);
-        const elderly = await this.userRepository.findOne({uid: elderlyId},{
-            relations: ["modules"]
-        })
+        const elderly = await this.userService.findOne({uid: elderlyId}, {relations: ['modules']});
         const moduleFive = elderly.modules.find(module=> module.moduleid === 5); //5 is the moduleid of Emotion Tracking module
         let emotionTrackingStatus = new EmotionTrackingStatusDto();
         emotionTrackingStatus.isEnabled =  !!moduleFive;
@@ -88,30 +83,26 @@ export class EmotionTrackingService {
 
     async addEmotionalTrackingModuleToElderly(caretakerId: number, elderlyId: number): Promise<{statusCode: number, message: string}>{
         await this.userService.checkRelationship(elderlyId, caretakerId);
-        const elderly = await this.userRepository.findOne({uid: elderlyId},{
-            relations: ["modules"]
-        })
+        const elderly = await this.userService.findOne({uid: elderlyId}, {relations: ['modules']});
         const moduleFive = elderly.modules.find(module=> module.moduleid === 5);  
         if(moduleFive){
             throw new HttpException("Emotion tracking is already enabled", HttpStatus.CONFLICT);
         }
         const module = await this.moduleRepository.findOne({moduleid: 5});
         elderly.modules.push(module);
-        await this.userRepository.save(elderly);
+        await this.userService.updateUser(elderly);
         return {statusCode: 201, message: 'Emotion tracking is successfully enabled'}
     }
 
     async removeEmotionalTrackingModuleFromElderly(caretakerId: number, elderlyId: number): Promise<{statusCode: number, message: string}>{
         await this.userService.checkRelationship(elderlyId, caretakerId);
-        const elderly = await this.userRepository.findOne({uid: elderlyId},{
-            relations: ["modules"]
-        })
+        const elderly = await this.userService.findOne({uid: elderlyId}, {relations: ['modules']});
         const moduleFive = elderly.modules.find(module=> module.moduleid === 5);  
         if(! moduleFive){
             throw new HttpException("Emotion tracking is already disabled", HttpStatus.CONFLICT);
         }
         elderly.modules =  elderly.modules.filter(module=> module.moduleid !== 5);
-        await this.userRepository.save(elderly);
+        await this.userService.updateUser(elderly);
         return {statusCode: 200, message: 'Emotion tracking is successfully disabled'}
     }
 }
