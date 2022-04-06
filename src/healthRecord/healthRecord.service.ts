@@ -1,9 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { HealthColumn } from 'src/entities/healthColumn.entity';
-import { HealthData } from 'src/entities/healthData.entity';
 import { HealthRecord } from 'src/entities/healthRecord.entity';
+import { User } from 'src/entities/user.entity';
+import { Repository } from 'typeorm';
+import { AllHealthRecord, AddHealthrecord } from './healthRecord.interface';
+import { HealthData } from 'src/entities/healthData.entity';
 import { getManager } from 'typeorm';
+import { GoogleCloudStorage } from 'src/google-cloud/google-storage.service';
+import { BucketName } from 'src/google-cloud/google-cloud.interface';
 import {
+  healthDataRawDto,
   HealthTableDataDto,
   HealthAnalyticsDataDto,
   HealthRecordAnalyticsDto,
@@ -15,8 +22,76 @@ import { healthTableDataRawInterface, HealthAnalyticsDataRawInterface, HealthDat
 
 @Injectable()
 export class HealthRecordService {
-  constructor() {}
 
+  constructor(
+    private readonly googleStorageService: GoogleCloudStorage,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    @InjectRepository(HealthRecord)
+    private healthRecordRepository: Repository<HealthRecord>,
+    @InjectRepository(HealthColumn)
+    private healthColumnRepository: Repository<HealthColumn>,
+  ) { }
+
+  async getHealthRecord(uid: number): Promise<AllHealthRecord> {
+
+    const healthRecordList = await this.healthRecordRepository.find({ where: { uid: uid }, })
+    if (!healthRecordList.length)
+      throw new HttpException("No records found for this elderly", HttpStatus.BAD_REQUEST)
+    return {
+      listHealthRecord: healthRecordList
+    }
+
+  }
+
+  async addHealthRecord(uid: number, info: AddHealthrecord): Promise<string> {
+
+    const user = await this.userRepository.findOne({ where: { uid: uid, }, })
+    if (!user)
+      throw new HttpException("User not found", HttpStatus.BAD_REQUEST)
+
+    const temp = await this.healthRecordRepository.findOne({ where: { hrName: info.hrName }, })
+    if (temp)
+      throw new HttpException("Health record name is repeated", HttpStatus.CONFLICT)
+
+    const buffer = Buffer.from(info.picture.base64, 'base64');
+    if (buffer.byteLength > 5000000) {
+      throw new HttpException("Image is too large", HttpStatus.NOT_ACCEPTABLE)
+    }
+    const imageid = (await this.googleStorageService.uploadImage(uid, buffer, BucketName.HealthRecord))
+
+    await this.healthRecordRepository.save({
+      hrName: info.hrName,
+      imageid: imageid,
+      uid: uid,
+    })
+
+    info.listField.forEach(async (_, i) => {
+      await this.healthColumnRepository.save({
+        columnName: info.listField[i].name,
+        uid: uid,
+        hrName: info.hrName,
+        unit: info.listField[i].unit,
+      })
+    })
+    return 'Complete'
+
+  }
+
+  async deleteHealthRecord(uid: number, hrName: string): Promise<string> {
+
+    const user = await this.userRepository.findOne({ where: { uid: uid } },)
+    if (!user)
+      throw new HttpException("User not found", HttpStatus.BAD_REQUEST)
+
+    const deleteRecord = await this.healthRecordRepository.findOne({ where: { uid: uid, hrName: hrName }, })
+    if (!deleteRecord)
+      throw new HttpException("This health record doesn't exist", HttpStatus.CONFLICT)
+    await this.healthRecordRepository.delete(deleteRecord)
+    return 'Complete'
+
+  }
+  
   async checkHealthRecordExist(elderlyId: number, healthRecordName: string) {
     const healthRecordQuery = getManager()
       .createQueryBuilder()
