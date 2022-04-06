@@ -1,4 +1,4 @@
-import { BadRequestException, Controller, Get, Param, Request, UseGuards } from '@nestjs/common';
+import {  Controller, Get, Param, Request, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -9,7 +9,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { ElderlyGuard, UserGuard } from 'src/auth/jwt.guard';
+import { CaretakerGuard, ElderlyGuard } from 'src/auth/jwt.guard';
 import { HealthRecordService } from './healthRecord.service';
 import { UserService } from 'src/user/user.service';
 import { HealthRecordTableDto } from './dto/healthRecord.dto';
@@ -31,7 +31,7 @@ export class HealthRecordController {
     return await this.healthRecordService.getHealthData(userId, healthRecordName);
   }
 
-  @UseGuards(UserGuard)
+  @UseGuards(CaretakerGuard)
   @ApiOkResponse({ type: HealthRecordTableDto })
   @ApiBadRequestResponse({ description: "Caretaker doesn't have access to this elderly" })
   @ApiNotFoundResponse({ description: 'Elderly Does Not Exist' })
