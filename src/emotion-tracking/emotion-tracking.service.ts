@@ -80,13 +80,9 @@ export class EmotionTrackingService {
         const elderly = await this.userRepository.findOne({uid: elderlyId},{
             relations: ["modules"]
         })
-        const moduleFive = elderly.modules.filter(module=> module.moduleid === 5)[0];
+        const moduleFive = elderly.modules.find(module=> module.moduleid === 5); //5 is the moduleid of Emotion Tracking module
         let emotionTrackingStatus = new EmotionTrackingStatusDto();
-        if(moduleFive){
-            emotionTrackingStatus['isEnabled'] = true;
-        } else{
-            emotionTrackingStatus['isEnabled'] = false;
-        }
+        emotionTrackingStatus.isEnabled =  !!moduleFive;
         return emotionTrackingStatus;
     }
 
@@ -95,7 +91,7 @@ export class EmotionTrackingService {
         const elderly = await this.userRepository.findOne({uid: elderlyId},{
             relations: ["modules"]
         })
-        const moduleFive = elderly.modules.filter(module=> module.moduleid === 5)[0];  //5 is the moduleid of Emotion Tracking module
+        const moduleFive = elderly.modules.find(module=> module.moduleid === 5);  
         if(moduleFive){
             throw new HttpException("Emotion tracking is already enabled", HttpStatus.CONFLICT);
         }
@@ -110,7 +106,7 @@ export class EmotionTrackingService {
         const elderly = await this.userRepository.findOne({uid: elderlyId},{
             relations: ["modules"]
         })
-        const moduleFive = elderly.modules.filter(module=> module.moduleid === 5)[0];  //5 is the moduleid of Emotion Tracking module
+        const moduleFive = elderly.modules.find(module=> module.moduleid === 5);  
         if(! moduleFive){
             throw new HttpException("Emotion tracking is already disabled", HttpStatus.CONFLICT);
         }
@@ -118,13 +114,4 @@ export class EmotionTrackingService {
         await this.userRepository.save(elderly);
         return {statusCode: 200, message: 'Emotion tracking is successfully disabled'}
     }
-
-    // async isValidCaretaker(caretakerId, elderlyId): Promise<boolean>{
-    //     const caretakers = await this.userService.findCaretakerByElderlyId(elderlyId);
-    //     const caretaker = caretakers.filter(caretaker => caretaker.uid === +caretakerId)[0];
-    //     if(! caretaker){
-    //         throw new HttpException('Invalid uid, this elderly is not taken care by this caretaker', HttpStatus.BAD_REQUEST);
-    //     }
-    //     return true;
-    // }
 }
