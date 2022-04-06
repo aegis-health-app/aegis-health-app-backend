@@ -90,7 +90,6 @@ export class HealthRecordController {
     @Request() req
   ): Promise<HealthRecordAnalyticsDto> {
     const caretakerId = req.user.uid;
-    console.log(elderlyId);
     await this.userService.checkRelationship(Number(elderlyId), caretakerId);
     await this.healthRecordService.checkHealthRecordExist(Number(elderlyId), healthRecordName);
     await this.healthRecordService.checkHealthColumnExist(Number(elderlyId), healthRecordName, columnName);

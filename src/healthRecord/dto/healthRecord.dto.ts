@@ -75,6 +75,7 @@ export class HealthRecordAnalyticsDto {
   columnName: string;
 
   @ApiProperty()
+  @IsString()
   unit: string;
 
   @ApiProperty({ type: analyticDataDto })

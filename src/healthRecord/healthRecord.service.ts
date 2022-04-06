@@ -11,7 +11,7 @@ import {
   Timespan,
   analyticDataDto,
 } from './dto/healthRecord.dto';
-import { healthDataRawInterface } from './healthRecord.interface';
+import { healthTableDataRawInterface, HealthAnalyticsDataRawInterface, HealthDataRawInterface } from './healthRecord.interface';
 
 @Injectable()
 export class HealthRecordService {
@@ -74,35 +74,35 @@ export class HealthRecordService {
       .andWhere('hr.hrName = :hrName', { hrName: healthRecordName })
       .orderBy("DATE_FORMAT(hd.timestamp, '%Y-%m-%d %H:00:00')");
 
-    const healthDataRaw = await healthDataQuery.getRawMany();
+    const healthDataRaw: healthTableDataRawInterface[] = await healthDataQuery.getRawMany();
     if (!healthDataRaw.length) return result;
 
-    const distinctValueByColumns = this.extractDistinctValueByColumns(healthDataRaw, ['columnName', 'unit']);
+    const distinctValueByColumns = this.extractDistinctValueByColumns<healthTableDataRawInterface, { columnName: string; unit: string }>(
+      healthDataRaw,
+      ['columnName', 'unit']
+    );
     distinctValueByColumns.map((d) => {
       result.columnNames.push(d.columnName);
       result.units.push(d.unit);
     });
 
     result.imageId = healthDataRaw[0].imageId;
-    result.data = this.healthDataFormatter(healthDataRaw, result.columnNames, 'table') as HealthTableDataDto[];
+    result.data = this.healthDataFormatter<healthTableDataRawInterface>(healthDataRaw, result.columnNames, 'table') as HealthTableDataDto[];
 
     return result;
   }
 
-  private healthDataFormatter(
-    healthDataRaw: healthDataRawInterface[],
+  private healthDataFormatter<T extends HealthDataRawInterface>(
+    healthDataRaw: Array<T>,
     columnNames: string[],
     format: 'table' | 'analytics'
   ): HealthTableDataDto[] | HealthAnalyticsDataDto[] {
     const columnNumbers = columnNames.length;
     if (format === 'analytics' && columnNumbers === 1) {
-      const healthData: HealthAnalyticsDataDto[] = [];
-      healthDataRaw.forEach((h) => {
-        healthData.push({
-          dateTime: h.timestamp,
-          value: h.value,
-        });
-      });
+      const healthData: HealthAnalyticsDataDto[] = healthDataRaw.map((h) => ({
+        dateTime: h.timestamp,
+        value: h.value,
+      }));
 
       return healthData;
     }
@@ -131,7 +131,7 @@ export class HealthRecordService {
     return healthData;
   }
 
-  private extractDistinctValueByColumns(rawTable: any[], columns: string[]): Array<any> {
+  private extractDistinctValueByColumns<U, T>(rawTable: U[], columns: string[]): Array<T> {
     const allColumns = [];
     rawTable.map((i) => {
       const value = {};
@@ -181,24 +181,18 @@ export class HealthRecordService {
     switch (timespan) {
       case Timespan.Week:
         startQueryUnix = currentTimeUnix - millisecInOneDay;
-        console.log('in week');
         break;
       case Timespan.TwoWeeks:
         startQueryUnix = currentTimeUnix - 2 * millisecInOneDay;
-        console.log('in 2 week');
         break;
       case Timespan.Month:
-        console.log('in month');
         startQueryUnix = currentTimeUnix - 30 * millisecInOneDay;
-        console.log(startQueryUnix);
         break;
       case Timespan.ThreeMonths:
         startQueryUnix = currentTimeUnix - 90 * millisecInOneDay;
-        console.log('in 3 month');
         break;
       case Timespan.Year:
         startQueryUnix = currentTimeUnix - 365 * millisecInOneDay;
-        console.log('in year');
         break;
       default:
         startQueryUnix = 0;
@@ -223,13 +217,17 @@ export class HealthRecordService {
       .andWhere('hd.timestamp > :startQueryDate', { startQueryDate: startQueryDate })
       .orderBy("DATE_FORMAT(hd.timestamp, '%Y-%m-%d %H:00:00')");
 
-    const healthDataRaw = await healthDataQuery.getRawMany();
+    const healthDataRaw: HealthAnalyticsDataRawInterface[] = await healthDataQuery.getRawMany();
     if (!healthDataRaw.length) return result;
 
     const filteredHealthDataRaw = healthDataRaw.filter((h) => h.timestamp >= startQueryDate);
 
     result.unit = healthDataRaw[0].unit;
-    result.data = this.healthDataFormatter(filteredHealthDataRaw, [columnName], 'analytics') as HealthAnalyticsDataDto[];
+    result.data = this.healthDataFormatter<HealthAnalyticsDataRawInterface>(
+      filteredHealthDataRaw,
+      [columnName],
+      'analytics'
+    ) as HealthAnalyticsDataDto[];
     result.analyticData = this.analyseValues(result.data);
 
     return result;
