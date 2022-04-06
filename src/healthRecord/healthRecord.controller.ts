@@ -242,7 +242,7 @@ export class HealthRecordController {
   @ApiOkResponse({ type: String })
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @UseGuards(ElderlyGuard)
-  @Put('/healthRecord/elderly')
+  @Put('/elderly')
   async editHealthRecordByElderly(@Request() req, @Body() editHealthRecordDto: EditHealthRecordDto): Promise<string> {
     return await this.healthRecordService.editHealthRecord(req.user.uid, editHealthRecordDto);
   }
@@ -253,7 +253,7 @@ export class HealthRecordController {
   @ApiOkResponse({ type: String })
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @UseGuards(ElderlyGuard)
-  @Put('/healthRecord/caretaker/:eid')
+  @Put('/caretaker/:eid')
   async editHealthRecordByCaretaker(@Request() req, @Body() editHealthRecordDto: EditHealthRecordDto, @Param('eid') eid): Promise<string> {
     await this.userService.checkRelationship(eid, req.user.uid);
     return await this.healthRecordService.editHealthRecord(eid, editHealthRecordDto);
