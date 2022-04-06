@@ -3,14 +3,12 @@ import { IsNotEmpty, IsNumber, IsString, IsDate } from "class-validator";
 
 export class ElderlyCodeDto {
     @ApiProperty()
-    @IsNotEmpty() 
     @IsString()
     code: string;
 }
 
 export class ElderlyProfileDto{
     @ApiProperty()
-    @IsNotEmpty()
     @IsNumber()
     uid: number;
 
@@ -19,12 +17,10 @@ export class ElderlyProfileDto{
     imageid: string;
 
     @ApiProperty()
-    @IsNotEmpty()
     @IsString()
     fname: string;
 
     @ApiProperty()
-    @IsNotEmpty()
     @IsString()
     lname: string;
 
@@ -35,12 +31,10 @@ export class ElderlyProfileDto{
 
 export class CaretakerInfoDto{
     @ApiProperty()
-    @IsNotEmpty()
     @IsNumber()
     uid: number;
 
     @ApiProperty()
-    @IsNotEmpty()
     @IsString()
     phone: string;
 
@@ -49,12 +43,10 @@ export class CaretakerInfoDto{
     imageid: string;
 
     @ApiProperty()
-    @IsNotEmpty()
     @IsString()
     fname: string;
 
     @ApiProperty()
-    @IsNotEmpty()
     @IsString()
     lname: string;
 
@@ -63,12 +55,10 @@ export class CaretakerInfoDto{
     dname: string;
 
     @ApiProperty()
-    @IsNotEmpty()
     @IsDate()
     bday: Date;
 
     @ApiProperty()
-    @IsNotEmpty()
     @IsString()
     gender: string;
 }
