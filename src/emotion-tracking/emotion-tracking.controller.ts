@@ -2,7 +2,7 @@ import { Controller, Get, Post, Delete, Req, Res, Body, Query, Param, UsePipes, 
 import { EmotionTrackingService } from './emotion-tracking.service';
 import { CreateEmotionRecordDto, EmotionHistoryDto, EmotionTrackingStatusDto } from './dto/emotion-tracking.dto';
 import { ApiOperation, ApiOkResponse, ApiCreatedResponse, ApiBadRequestResponse, ApiBearerAuth, ApiUnauthorizedResponse, ApiForbiddenResponse, ApiConflictResponse, ApiNotFoundResponse, ApiTags } from '@nestjs/swagger';
-import { ElderlyGuard, CaretakerGuard } from '../auth/jwt.guard';
+import { ElderlyGuard, CaretakerGuard, UserGuard} from '../auth/jwt.guard';
 
 @ApiTags('emotion-tracking')
 @Controller('emotion-tracking')
@@ -44,17 +44,16 @@ export class EmotionTrackingController {
 
     @Get('/:uid')
     @ApiBearerAuth()
-    @UseGuards(CaretakerGuard)
+    @UseGuards(UserGuard)
     @ApiOperation({description: 'Get emotion tracking status'})
     @ApiOkResponse({ type: EmotionTrackingStatusDto })
     @ApiUnauthorizedResponse({description: 'Login is required'})
-    @ApiForbiddenResponse({description: 'This endpoint is restricted to caretaker'})
-    @ApiBadRequestResponse({description: 'Invalid uid, this elderly is not taken care by this caretaker'})
+    @ApiBadRequestResponse({description: 'Invalid uid, this user has no access to this elderly info'})
     @ApiNotFoundResponse({description: 'Elderly does not exist'})
     async checkEmotionTrackingStatus(@Req() req, @Param('uid') uid: number): Promise<EmotionTrackingStatusDto>{
-        const caretakerId = req.user.uid;
+        const reqId = req.user.uid;
         const elderlyId = uid;
-        return this.emotionTrackingService.getEmotionTrackingStatus(caretakerId, elderlyId);
+        return this.emotionTrackingService.getEmotionTrackingStatus(reqId, elderlyId);
     }
 
     @Post('/:uid')
