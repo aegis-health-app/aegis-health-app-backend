@@ -227,7 +227,7 @@ export class HealthRecordController {
   @ApiOkResponse({ type: Boolean })
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @UseGuards(CaretakerGuard)
-  @Delete('/healthData/elderly/:eid')
+  @Delete('/healthData/caretaker/:eid')
   async deleteHealthDataByCaretaker(@Request() req, @Body() deleteHealthDataDto: DeleteHealthDataDto, @Res() res, @Param('eid') eid): Promise<string> {
     await this.userService.checkRelationship(eid, req.user.uid);
     await this.healthRecordService.deleteHealthData(eid, deleteHealthDataDto);
@@ -253,7 +253,7 @@ export class HealthRecordController {
   @ApiOkResponse({ type: String })
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @UseGuards(ElderlyGuard)
-  @Put('/healthRecord/elderly/:eid')
+  @Put('/healthRecord/caretaker/:eid')
   async editHealthRecordByCaretaker(@Request() req, @Body() editHealthRecordDto: EditHealthRecordDto, @Param('eid') eid): Promise<string> {
     await this.userService.checkRelationship(eid, req.user.uid);
     return await this.healthRecordService.editHealthRecord(eid, editHealthRecordDto);

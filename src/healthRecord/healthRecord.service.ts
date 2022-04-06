@@ -258,7 +258,6 @@ export class HealthRecordService {
     const existHealthData = await this.healthDataRepository.delete({
       uid: uid,
       hrName: healthData.hrName,
-      columnName: healthData.columnName,
       timestamp: healthData.timestamp
     })
     if (!existHealthData.affected) {
