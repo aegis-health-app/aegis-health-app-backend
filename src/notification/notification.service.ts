@@ -20,7 +20,8 @@ export class NotificationService {
     }
   }
   async registerDevice(uid: number, registrationToken: string): Promise<firestoreAdmin.WriteResult> {
-    if (!this.validateRegistrationToken(registrationToken)) throw new BadRequestException('Invalid token');
+    const validation = await this.validateRegistrationToken(registrationToken);
+    if (!validation) throw new BadRequestException('Invalid token');
     const deviceRef = this.collection.doc(uid.toString());
     const res = await deviceRef.set({
       token: registrationToken,
