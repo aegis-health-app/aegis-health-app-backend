@@ -65,6 +65,76 @@ export class analyticDataDto {
   mean: number;
 }
 
+export class healthDataRawDto {
+  hrName: string
+  columnName: string
+  unit: string
+  value: number;
+  timestamp: Date
+}
+
+export class HealthRecordDto {
+  @ApiProperty()
+  @IsString()
+  hrName: string
+  @ApiProperty()
+  @IsString()
+  imageid: string
+}
+
+export class AllHealthRecordDto {
+  @ApiProperty({ type: [HealthRecordDto] })
+  @IsArray()
+  listHealthRecord: HealthRecordDto[]
+}
+
+export class ElderlyWithCaretaker {
+  @ApiProperty()
+  @IsNumber()
+  elderlyuid: number
+}
+
+export class UploadImageDto {
+  @ApiProperty()
+  @IsString()
+  base64: string;
+  @ApiProperty()
+  @IsString()
+  name: string;
+  @ApiProperty()
+  @IsString()
+  type: string;
+  @ApiProperty()
+  @IsNumber()
+  size: number;
+}
+
+export class HealthDataFieldDto {
+  @ApiProperty()
+  @IsString()
+  name: string
+  @ApiProperty()
+  @IsString()
+  unit: string
+}
+
+export class AddHealthRecordDto {
+  @ApiProperty()
+  @IsString()
+  hrName: string
+  @ApiProperty({ type: UploadImageDto })
+  @IsObject()
+  picture: UploadImageDto
+  @ApiProperty({ type: [HealthDataFieldDto] })
+  @IsArray()
+  listField: HealthDataFieldDto[]
+}
+
+export class AddHealthRecordCaretakerDto extends AddHealthRecordDto {
+  @ApiProperty()
+  @IsNumber()
+  elderlyuid: number
+}
 export class HealthRecordAnalyticsDto {
   @ApiProperty()
   @IsString()

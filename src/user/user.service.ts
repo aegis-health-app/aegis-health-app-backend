@@ -9,6 +9,7 @@ import { AuthService } from 'src/auth/auth.service';
 import { Role } from 'src/common/roles';
 import { GoogleCloudStorage } from 'src/google-cloud/google-storage.service';
 import { ALLOWED_PROFILE_FORMAT } from 'src/utils/global.constant';
+import { BucketName } from 'src/google-cloud/google-cloud.interface';
 @Injectable()
 export class UserService {
   constructor(
@@ -143,7 +144,7 @@ export class UserService {
     if (buffer.byteLength > 5000000) {
       throw new BadRequestException('Image too large');
     }
-    const imageUrl = await this.googleStorageService.uploadImage(foundUid, buffer);
+    const imageUrl = await this.googleStorageService.uploadImage(foundUid, buffer, BucketName.Profile);
     const { imageid } = await this.userRepository.save({
       uid: foundUid,
       imageid: imageUrl,
