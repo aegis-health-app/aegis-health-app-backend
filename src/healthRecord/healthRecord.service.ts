@@ -10,7 +10,6 @@ import { getManager } from 'typeorm';
 import { GoogleCloudStorage } from 'src/google-cloud/google-storage.service';
 import { BucketName } from 'src/google-cloud/google-cloud.interface';
 import {
-  HealthDataDto, 
   healthDataRawDto,
   HealthTableDataDto,
   HealthAnalyticsDataDto,
