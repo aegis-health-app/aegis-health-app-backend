@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from 'src/auth/auth.module';
 import { HealthColumn } from 'src/entities/healthColumn.entity';
 import { HealthData } from 'src/entities/healthData.entity';
 import { HealthRecord } from 'src/entities/healthRecord.entity';
@@ -16,4 +15,4 @@ import { HealthRecordService } from './healthRecord.service';
   providers: [HealthRecordService],
   exports: [HealthRecordService],
 })
-export class HealthRecordModule {}
+export class HealthRecordModule { }
