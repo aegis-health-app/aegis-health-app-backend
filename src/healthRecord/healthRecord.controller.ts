@@ -1,10 +1,10 @@
-import { Body, Controller, Delete, Get, Param, Post, Req, Request,Type, Res, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConflictResponse, ApiForbiddenResponse, ApiNotAcceptableResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
-import { CaretakerGuard, ElderlyGuard, UserGuard } from 'src/auth/jwt.guard';
-import { UserService } from 'src/user/user.service';
-import { AddHealthRecordCaretakerDto, AddHealthRecordDto, AllHealthRecordDto, ElderlyWithCaretaker } from './dto/healthRecord.dto';
-import { HealthRecordService } from './healthRecord.service';
-import { HealthRecordAnalyticsDto, HealthRecordTableDto, Timespan } from './dto/healthRecord.dto';
+import { Controller, UseGuards, Get, Param, UsePipes, ValidationPipe, Post, Body, Res, Delete, Put, Request, Req } from "@nestjs/common";
+import { ApiBearerAuth, ApiTags, ApiUnauthorizedResponse, ApiForbiddenResponse, ApiOkResponse, ApiNotFoundResponse, ApiParam, ApiBadRequestResponse, ApiConflictResponse, ApiBody, ApiNotAcceptableResponse, ApiOperation } from "@nestjs/swagger";
+import { ElderlyGuard, CaretakerGuard } from "src/auth/jwt.guard";
+import { UserService } from "src/user/user.service";
+import { HealthRecordTableDto, HealthRecordAnalyticsDto, Timespan, AddHealthDataDto, DeleteHealthDataDto, EditHealthRecordDto, AddHealthRecordCaretakerDto, AddHealthRecordDto, AllHealthRecordDto, ElderlyWithCaretaker } from "./dto/healthRecord.dto";
+import { HealthRecordService } from "./healthRecord.service";
+
 
 @ApiBearerAuth()
 @ApiTags('health record')
@@ -12,9 +12,7 @@ import { HealthRecordAnalyticsDto, HealthRecordTableDto, Timespan } from './dto/
 @ApiForbiddenResponse({ description: 'Forbidden' })
 @Controller('healthRecord')
 export class HealthRecordController {
-  constructor(
-    private readonly healthRecordService: HealthRecordService,
-    private userService: UserService) { }
+  constructor(private readonly healthRecordService: HealthRecordService, private readonly userService: UserService) { }
 
   @ApiOperation({ description: "Elderly version: Get all health records" })
   @ApiOkResponse({ description: "Succesful in getting all health records" })
@@ -179,4 +177,86 @@ export class HealthRecordController {
     await this.healthRecordService.checkHealthColumnExist(Number(elderlyId), healthRecordName, columnName);
     return await this.healthRecordService.getHealthAnalytics(Number(elderlyId), healthRecordName, columnName, timespan);
   }
+
+  @ApiNotFoundResponse({ description: 'Column not found' })
+  @ApiConflictResponse({ description: 'Health data at that timestamp already exists' })
+  @ApiOkResponse({ type: Boolean })
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  @UseGuards(ElderlyGuard)
+  @Post('/healthData/elderly')
+  async addHealthDataByElderly(@Request() req, @Body() addHealthDataDto: AddHealthDataDto, @Res() res): Promise<string> {
+    await this.healthRecordService.addHealthData(req.user.uid, addHealthDataDto);
+    return res.status(201).json({
+      statusCode: 201,
+      message: "Create health data successfully"
+    })
+  }
+
+  @ApiBadRequestResponse({ description: "Caretaker doesn't have access to this elderly" })
+  @ApiParam({ name: 'eid', type: Number, description: 'id of elderly interested' })
+  @ApiNotFoundResponse({ description: 'Column not found' })
+  @ApiConflictResponse({ description: 'Health data at that timestamp already exists' })
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  @UseGuards(CaretakerGuard)
+  @Post('/healthData/caretaker/:eid')
+  async addHealthDataByCaretaker(@Request() req, @Body() addHealthDataDto: AddHealthDataDto, @Res() res, @Param('eid') eid): Promise<string> {
+    await this.userService.checkRelationship(eid, req.user.uid);
+    await this.healthRecordService.addHealthData(eid, addHealthDataDto);
+    return res.status(201).json({
+      statusCode: 201,
+      message: "Create health data successfully"
+    })
+  }
+
+  @ApiNotFoundResponse({ description: 'Health data not found' })
+  @ApiOkResponse({ type: Boolean })
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  @UseGuards(ElderlyGuard)
+  @Delete('/healthData/elderly')
+  async deleteHealthDataByElderly(@Request() req, @Body() deleteHealthDataDto: DeleteHealthDataDto, @Res() res): Promise<string> {
+    await this.healthRecordService.deleteHealthData(req.user.uid, deleteHealthDataDto);
+    return res.status(200).json({
+      statusCode: 200,
+      message: "Delete health data successfully"
+    })
+  }
+
+  @ApiBadRequestResponse({ description: "Caretaker doesn't have access to this elderly" })
+  @ApiParam({ name: 'eid', type: Number, description: 'id of elderly interested' })
+  @ApiNotFoundResponse({ description: 'Health data not found' })
+  @ApiOkResponse({ type: Boolean })
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  @UseGuards(CaretakerGuard)
+  @Delete('/healthData/caretaker/:eid')
+  async deleteHealthDataByCaretaker(@Request() req, @Body() deleteHealthDataDto: DeleteHealthDataDto, @Res() res, @Param('eid') eid): Promise<string> {
+    await this.userService.checkRelationship(eid, req.user.uid);
+    await this.healthRecordService.deleteHealthData(eid, deleteHealthDataDto);
+    return res.status(200).json({
+      statusCode: 200,
+      message: "Delete health data successfully"
+    })
+  }
+
+  @ApiNotFoundResponse({ description: 'Health record not found' })
+  @ApiBadRequestResponse({ description: 'Image too large'})
+  @ApiOkResponse({ type: String })
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  @UseGuards(ElderlyGuard)
+  @Put('/elderly')
+  async editHealthRecordByElderly(@Request() req, @Body() editHealthRecordDto: EditHealthRecordDto): Promise<string> {
+    return await this.healthRecordService.editHealthRecord(req.user.uid, editHealthRecordDto);
+  }
+
+  @ApiParam({ name: 'eid', type: Number, description: 'id of elderly interested' })
+  @ApiNotFoundResponse({ description: 'Health record not found' })
+  @ApiBadRequestResponse({ description: 'Image too large'})
+  @ApiOkResponse({ type: String })
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  @UseGuards(CaretakerGuard)
+  @Put('/caretaker/:eid')
+  async editHealthRecordByCaretaker(@Request() req, @Body() editHealthRecordDto: EditHealthRecordDto, @Param('eid') eid): Promise<string> {
+    await this.userService.checkRelationship(eid, req.user.uid);
+    return await this.healthRecordService.editHealthRecord(eid, editHealthRecordDto);
+  }
+
 }

@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Expose, Type } from 'class-transformer';
 import { IsArray, IsDate, IsNumber, IsObject, IsString } from 'class-validator';
 
 export enum Timespan {
@@ -73,6 +74,44 @@ export class healthDataRawDto {
   timestamp: Date
 }
 
+export class ColumnDataDto {
+  @ApiProperty()
+  @IsString()
+  columnName: string
+
+  @ApiProperty()
+  @IsNumber()
+  value: number
+}
+
+export class AddHealthDataDto {
+  @ApiProperty()
+  @IsString()
+  hrName: string
+
+  @ApiProperty()
+  @Expose()
+  @Type(() => Date)
+  @IsDate()
+  timestamp: Date
+
+  @ApiProperty({ type: [ColumnDataDto] })
+  @IsArray()
+  data: Array<ColumnDataDto>
+}
+
+export class DeleteHealthDataDto {
+  @ApiProperty()
+  @IsString()
+  hrName: string
+
+  @ApiProperty()
+  @Expose()
+  @Type(() => Date)
+  @IsDate()
+  timestamp: Date
+}
+
 export class HealthRecordDto {
   @ApiProperty()
   @IsString()
@@ -107,6 +146,16 @@ export class UploadImageDto {
   @ApiProperty()
   @IsNumber()
   size: number;
+}
+
+export class EditHealthRecordDto {
+  @ApiProperty()
+  @IsString()
+  hrName: string
+
+  @ApiProperty({ type: UploadImageDto })
+  @IsObject()
+  image: UploadImageDto
 }
 
 export class HealthDataFieldDto {
