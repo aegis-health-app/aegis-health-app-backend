@@ -1,5 +1,6 @@
 import { Injectable, HttpException, HttpStatus, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
+import { HealthRecord } from 'src/entities/healthRecord.entity'
 import { HealthColumn } from "src/entities/healthColumn.entity"
 import { HealthData } from "src/entities/healthData.entity"
 import { User } from "src/entities/user.entity"
@@ -7,9 +8,7 @@ import { BucketName } from "src/google-cloud/google-cloud.interface"
 import { GoogleCloudStorage } from "src/google-cloud/google-storage.service"
 import { Repository, getManager } from "typeorm"
 import { HealthRecordTableDto, HealthTableDataDto, HealthAnalyticsDataDto, AddHealthDataDto, DeleteHealthDataDto, EditHealthRecordDto, analyticDataDto, Timespan, HealthRecordAnalyticsDto } from "./dto/healthRecord.dto"
-import { HealthRecord, AllHealthRecord, AddHealthrecord, healthTableDataRawInterface, HealthDataRawInterface, HealthAnalyticsDataRawInterface } from "./healthRecord.interface"
-
-
+import { AllHealthRecord, AddHealthrecord, healthTableDataRawInterface, HealthDataRawInterface, HealthAnalyticsDataRawInterface } from "./healthRecord.interface"
 
 @Injectable()
 export class HealthRecordService {
