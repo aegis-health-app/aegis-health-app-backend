@@ -4,6 +4,7 @@
 .env
 
 # Logs
+aegis-health-app-be-member.json
 logs
 *.log
 npm-debug.log*
