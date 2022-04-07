@@ -46,7 +46,6 @@ export class AddHealthrecord {
   @IsString()
   hrName: string
   @ApiProperty({ type: UploadImage })
-  @IsObject()
   picture ?: UploadImage
   @ApiProperty({ type: [HealthDataField] })
   @IsArray()
