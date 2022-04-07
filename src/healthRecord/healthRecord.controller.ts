@@ -252,7 +252,7 @@ export class HealthRecordController {
   @ApiBadRequestResponse({ description: 'Image too large'})
   @ApiOkResponse({ type: String })
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  @UseGuards(ElderlyGuard)
+  @UseGuards(CaretakerGuard)
   @Put('/caretaker/:eid')
   async editHealthRecordByCaretaker(@Request() req, @Body() editHealthRecordDto: EditHealthRecordDto, @Param('eid') eid): Promise<string> {
     await this.userService.checkRelationship(eid, req.user.uid);
