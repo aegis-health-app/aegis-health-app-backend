@@ -123,8 +123,7 @@ export class AddHealthRecordDto {
   @IsString()
   hrName: string
   @ApiProperty({ type: UploadImageDto })
-  @IsObject()
-  picture: UploadImageDto
+  picture?: UploadImageDto
   @ApiProperty({ type: [HealthDataFieldDto] })
   @IsArray()
   listField: HealthDataFieldDto[]
