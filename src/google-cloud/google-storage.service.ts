@@ -3,16 +3,16 @@ import { Injectable } from '@nestjs/common';
 import * as CryptoJS from 'crypto-js';
 import path from 'path';
 import { Transform } from 'stream';
+import { BucketName } from './google-cloud.interface';
 
 @Injectable()
 export class GoogleCloudStorage {
   private storage: Storage;
   constructor() {
     this.storage = new Storage();
-
   }
 
-  public async uploadImage(uid: number, img: Buffer, bucketName: string): Promise<string> {
+  public async uploadImage(uid: number, img: Buffer, bucketName: BucketName): Promise<string> {
     const imgStream = new Transform.PassThrough();
     const imgName = await this.getImageFileName(uid, bucketName);
     const bucket = this.storage.bucket(bucketName);

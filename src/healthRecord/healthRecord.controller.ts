@@ -19,7 +19,7 @@ export class HealthRecordController {
   @ApiBadRequestResponse({ description: "No records found for this elderly" })
   @UseGuards(ElderlyGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  @Get('getAll/elderly')
+  @Post('getAll/elderly')
   async getHealthRecordElderly(@Req() req): Promise<AllHealthRecordDto> {
     return await this.healthRecordService.getHealthRecord(req.user.uid)
   }
@@ -30,7 +30,7 @@ export class HealthRecordController {
   @ApiNotFoundResponse({ description: "Caretaker is not responsible for this elderly" })
   @UseGuards(CaretakerGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  @Get('getAll/caretaker')
+  @Post('getAll/caretaker')
   async getHealthRecordCaretaker(@Body() elderlyWithCaretaker: ElderlyWithCaretaker, @Req() req): Promise<AllHealthRecordDto> {
     await this.userService.checkRelationship(elderlyWithCaretaker.elderlyuid, req.user.uid)
     return await this.healthRecordService.getHealthRecord(elderlyWithCaretaker.elderlyuid)

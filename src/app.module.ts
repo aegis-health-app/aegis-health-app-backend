@@ -6,11 +6,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Connection } from 'typeorm';
 import { UserModule } from './user/user.module';
 import { HomeModule } from './home/home.module';
-import { OtpModule } from './otp/otp.module'
+import { OtpModule } from './otp/otp.module';
 import { LinkModule } from './link/link.module';
 import { SettingModule } from './setting/setting.module';
 import { EmotionTrackingModule } from './emotion-tracking/emotion-tracking.module';
 import { HealthRecordModule } from './healthRecord/healthRecord.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -37,7 +38,8 @@ import { HealthRecordModule } from './healthRecord/healthRecord.module';
     LinkModule,
     SettingModule,
     EmotionTrackingModule,
-    HealthRecordModule
+    HealthRecordModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
