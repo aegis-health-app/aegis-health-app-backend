@@ -54,11 +54,16 @@ export class HealthRecordService {
     if (temp)
       throw new HttpException("Health record name is repeated", HttpStatus.CONFLICT)
 
-    const buffer = Buffer.from(info.picture.base64, 'base64');
-    if (buffer.byteLength > 5000000) {
-      throw new HttpException("Image is too large", HttpStatus.NOT_ACCEPTABLE)
+    let imageid
+    if (info.picture) {
+      const buffer = Buffer.from(info.picture.base64, 'base64');
+      if (buffer.byteLength > 5000000) {
+        throw new HttpException("Image is too large", HttpStatus.NOT_ACCEPTABLE)
+      }
+      imageid = (await this.googleStorageService.uploadImage(uid, buffer, BucketName.HealthRecord))
+    } else {
+      imageid = null
     }
-    const imageid = (await this.googleStorageService.uploadImage(uid, buffer, BucketName.HealthRecord))
 
     await this.healthRecordRepository.save({
       hrName: info.hrName,
@@ -74,6 +79,7 @@ export class HealthRecordService {
         unit: info.listField[i].unit,
       })
     })
+
     return 'Complete'
 
   }
@@ -91,7 +97,7 @@ export class HealthRecordService {
     return 'Complete'
 
   }
-  
+
   async checkHealthRecordExist(elderlyId: number, healthRecordName: string) {
     const healthRecordQuery = getManager()
       .createQueryBuilder()
