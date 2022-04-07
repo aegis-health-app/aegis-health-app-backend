@@ -74,12 +74,9 @@ export class EmotionTrackingService {
 
     async getEmotionTrackingStatus(reqId: number, elderlyId: number): Promise<EmotionTrackingStatusDto>{
         const user = await this.userService.findUserById(reqId);
-        console.log(user)
-        if(user.isElderly){
-            if(reqId !== +elderlyId){
-                throw new HttpException("'Invalid uid, this user has no access to this elderly info'", HttpStatus.BAD_REQUEST);
-            }
-        } else{
+        if(user.isElderly && (reqId !== +elderlyId)){
+            throw new HttpException("'Invalid uid, this user has no access to this elderly info'", HttpStatus.BAD_REQUEST);
+        } else if (!user.isElderly){
             await this.userService.checkRelationship(elderlyId, reqId);
         }
         const elderly = await this.userService.findOne({uid: elderlyId}, {relations: ['modules']});
