@@ -2,7 +2,7 @@
 /dist
 /node_modules
 .env
-
+aegis-health-app-be-member.json
 # Logs
 aegis-health-app-be-member.json
 logs

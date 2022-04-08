@@ -11,6 +11,7 @@ import { LinkModule } from './link/link.module';
 import { SettingModule } from './setting/setting.module';
 import { EmotionTrackingModule } from './emotion-tracking/emotion-tracking.module';
 import { HealthRecordModule } from './healthRecord/healthRecord.module';
+import { EmergencyModule } from './notification/emergency/emergency.module';
 import { NotificationModule } from './notification/notification.module';
 
 @Module({
@@ -39,6 +40,7 @@ import { NotificationModule } from './notification/notification.module';
     SettingModule,
     EmotionTrackingModule,
     HealthRecordModule,
+    EmergencyModule,
     NotificationModule,
   ],
   controllers: [AppController],
