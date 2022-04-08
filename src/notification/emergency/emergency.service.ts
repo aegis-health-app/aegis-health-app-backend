@@ -10,11 +10,8 @@ import { EmergencyData, Geolocation } from './emergency.interface';
 @Injectable()
 export class EmergencyService {
   constructor(private notificationService: NotificationService, private userService: UserService) {}
-  async notifyEmergency(createEmergencyRequest: CreateEmergencyRequest) {
-    const elderly = await this.userService.findOne(
-      { uid: createEmergencyRequest.eid },
-      { relations: ['takenCareBy'], shouldBeElderly: true, shouldExist: true }
-    );
+  async notifyEmergency(createEmergencyRequest: CreateEmergencyRequest, eid: number) {
+    const elderly = await this.userService.findOne({ uid: eid }, { relations: ['takenCareBy'], shouldBeElderly: true, shouldExist: true });
     const location: Geolocation = {
       latitude: createEmergencyRequest.latitude,
       longtitude: createEmergencyRequest.longtitude,

@@ -8,15 +8,15 @@ import { ElderlyGuard } from 'src/auth/jwt.guard';
 @Controller('notification/emergency')
 export class EmergencyController {
   constructor(private readonly emergencyService: EmergencyService) {}
-  // @UseGuards(ElderlyGuard)
+  @UseGuards(ElderlyGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @ApiOkResponse({ type: CreateEmergencyResponse })
   @ApiBearerAuth()
   @ApiBadRequestResponse({ description: 'Unregistered Device OR User not found OR Invalid user type' })
   @ApiBody({ type: CreateEmergencyRequest })
   @Post()
-  async notify(@Body() createEmergencyDto: CreateEmergencyRequest): Promise<CreateEmergencyResponse> {
-    const res = await this.emergencyService.notifyEmergency(createEmergencyDto);
+  async notify(@Body() createEmergencyDto: CreateEmergencyRequest, @Req() req): Promise<CreateEmergencyResponse> {
+    const res = await this.emergencyService.notifyEmergency(createEmergencyDto, req.user.uid);
     return { successes: res.successCount, fails: res.failureCount };
   }
 }
