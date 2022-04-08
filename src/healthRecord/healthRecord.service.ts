@@ -1,18 +1,34 @@
-import { Injectable, HttpException, HttpStatus, NotFoundException } from "@nestjs/common"
-import { InjectRepository } from "@nestjs/typeorm"
-import { HealthRecord } from 'src/entities/healthRecord.entity'
-import { HealthColumn } from "src/entities/healthColumn.entity"
-import { HealthData } from "src/entities/healthData.entity"
-import { User } from "src/entities/user.entity"
-import { BucketName } from "src/google-cloud/google-cloud.interface"
-import { GoogleCloudStorage } from "src/google-cloud/google-storage.service"
-import { Repository, getManager } from "typeorm"
-import { HealthRecordTableDto, HealthTableDataDto, HealthAnalyticsDataDto, AddHealthDataDto, DeleteHealthDataDto, EditHealthRecordDto, analyticDataDto, Timespan, HealthRecordAnalyticsDto } from "./dto/healthRecord.dto"
-import { AllHealthRecord, AddHealthrecord, healthTableDataRawInterface, HealthDataRawInterface, HealthAnalyticsDataRawInterface } from "./healthRecord.interface"
+import { Injectable, HttpException, HttpStatus, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { HealthRecord } from 'src/entities/healthRecord.entity';
+import { HealthColumn } from 'src/entities/healthColumn.entity';
+import { HealthData } from 'src/entities/healthData.entity';
+import { User } from 'src/entities/user.entity';
+import { BucketName } from 'src/google-cloud/google-cloud.interface';
+import { GoogleCloudStorage } from 'src/google-cloud/google-storage.service';
+import { Repository, getManager } from 'typeorm';
+import {
+  HealthRecordTableDto,
+  HealthTableDataDto,
+  HealthAnalyticsDataDto,
+  AddHealthDataDto,
+  DeleteHealthDataDto,
+  EditHealthRecordDto,
+  analyticDataDto,
+  Timespan,
+  HealthRecordAnalyticsDto,
+} from './dto/healthRecord.dto';
+import {
+  AllHealthRecord,
+  AddHealthrecord,
+  healthTableDataRawInterface,
+  HealthDataRawInterface,
+  HealthAnalyticsDataRawInterface,
+} from './healthRecord.interface';
+import { exit } from 'process';
 
 @Injectable()
 export class HealthRecordService {
-
   constructor(
     private readonly googleStorageService: GoogleCloudStorage,
     @InjectRepository(User)
@@ -22,46 +38,40 @@ export class HealthRecordService {
     @InjectRepository(HealthColumn)
     private healthColumnRepository: Repository<HealthColumn>,
     @InjectRepository(HealthData)
-    private healthDataRepository: Repository<HealthData>,
-  ) { }
+    private healthDataRepository: Repository<HealthData>
+  ) {}
 
   async getHealthRecord(uid: number): Promise<AllHealthRecord> {
-
-    const healthRecordList = await this.healthRecordRepository.find({ where: { uid: uid }, })
-    if (!healthRecordList.length)
-      throw new HttpException("No records found for this elderly", HttpStatus.BAD_REQUEST)
+    const healthRecordList = await this.healthRecordRepository.find({ where: { uid: uid } });
+    if (!healthRecordList.length) throw new HttpException('No records found for this elderly', HttpStatus.BAD_REQUEST);
     return {
-      listHealthRecord: healthRecordList
-    }
-
+      listHealthRecord: healthRecordList,
+    };
   }
 
   async addHealthRecord(uid: number, info: AddHealthrecord): Promise<string> {
+    const user = await this.userRepository.findOne({ where: { uid: uid } });
+    if (!user) throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
 
-    const user = await this.userRepository.findOne({ where: { uid: uid, }, })
-    if (!user)
-      throw new HttpException("User not found", HttpStatus.BAD_REQUEST)
+    const temp = await this.healthRecordRepository.findOne({ where: { hrName: info.hrName } });
+    if (temp) throw new HttpException('Health record name is repeated', HttpStatus.CONFLICT);
 
-    const temp = await this.healthRecordRepository.findOne({ where: { hrName: info.hrName }, })
-    if (temp)
-      throw new HttpException("Health record name is repeated", HttpStatus.CONFLICT)
-
-    let imageid
+    let imageid;
     if (info.picture) {
       const buffer = Buffer.from(info.picture.base64, 'base64');
       if (buffer.byteLength > 5000000) {
-        throw new HttpException("Image is too large", HttpStatus.NOT_ACCEPTABLE)
+        throw new HttpException('Image is too large', HttpStatus.NOT_ACCEPTABLE);
       }
-      imageid = (await this.googleStorageService.uploadImage(uid, buffer, BucketName.HealthRecord))
+      imageid = await this.googleStorageService.uploadImage(uid, buffer, BucketName.HealthRecord);
     } else {
-      imageid = null
+      imageid = null;
     }
 
     await this.healthRecordRepository.save({
       hrName: info.hrName,
       imageid: imageid,
       uid: uid,
-    })
+    });
 
     info.listField.forEach(async (_, i) => {
       await this.healthColumnRepository.save({
@@ -69,25 +79,20 @@ export class HealthRecordService {
         uid: uid,
         hrName: info.hrName,
         unit: info.listField[i].unit,
-      })
-    })
+      });
+    });
 
-    return 'Complete'
-
+    return 'Complete';
   }
 
   async deleteHealthRecord(uid: number, hrName: string): Promise<string> {
+    const user = await this.userRepository.findOne({ where: { uid: uid } });
+    if (!user) throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
 
-    const user = await this.userRepository.findOne({ where: { uid: uid } },)
-    if (!user)
-      throw new HttpException("User not found", HttpStatus.BAD_REQUEST)
-
-    const deleteRecord = await this.healthRecordRepository.findOne({ where: { uid: uid, hrName: hrName }, })
-    if (!deleteRecord)
-      throw new HttpException("This health record doesn't exist", HttpStatus.CONFLICT)
-    await this.healthRecordRepository.delete(deleteRecord)
-    return 'Complete'
-
+    const deleteRecord = await this.healthRecordRepository.findOne({ where: { uid: uid, hrName: hrName } });
+    if (!deleteRecord) throw new HttpException("This health record doesn't exist", HttpStatus.CONFLICT);
+    await this.healthRecordRepository.delete(deleteRecord);
+    return 'Complete';
   }
 
   async checkHealthRecordExist(elderlyId: number, healthRecordName: string) {
@@ -139,13 +144,13 @@ export class HealthRecordService {
       .addSelect('hc.columnName', 'columnName')
       .addSelect('hc.unit', 'unit')
       .addSelect('hd.value', 'value')
-      .addSelect("DATE_FORMAT(hd.timestamp, '%Y-%m-%d %H:00:00')", 'timestamp')
+      .addSelect("DATE_FORMAT(hd.timestamp, '%Y-%m-%d %H:%i:%S')", 'timestamp')
       .from(HealthRecord, 'hr')
       .innerJoin(HealthColumn, 'hc', 'hr.uid = hc.uid AND hr.hrName = hc.hrName')
       .innerJoin(HealthData, 'hd', 'hc.columnName = hd.columnName AND hc.hrName = hd.hrName AND hc.uid = hd.uid')
       .where('hr.uid = :uid', { uid: uid })
       .andWhere('hr.hrName = :hrName', { hrName: healthRecordName })
-      .orderBy("DATE_FORMAT(hd.timestamp, '%Y-%m-%d %H:00:00')");
+      .orderBy("DATE_FORMAT(hd.timestamp, '%Y-%m-%d %H:%i:%S')");
 
     const healthDataRaw: healthTableDataRawInterface[] = await healthDataQuery.getRawMany();
     if (!healthDataRaw.length) return result;
@@ -180,28 +185,30 @@ export class HealthRecordService {
       return healthData;
     }
 
-    const healthData: HealthTableDataDto[] = [];
-    healthDataRaw.forEach((h) => {
-      healthData.find((v, i) => {
-        if (v.dateTime === h.timestamp) {
-          v.values[columnNames.indexOf(h.columnName)] = h.value.toString();
-          healthData[i] = {
-            dateTime: h.timestamp,
-            values: v.values,
-          };
-          return true;
+    if (format === 'table' && columnNumbers) {
+      const healthData: HealthTableDataDto[] = [];
+      let n = 0;
+      mainLoop: for (const h of healthDataRaw) {
+        n = n + 1;
+        for (const [i, v] of healthData.entries()) {
+          if (v.dateTime === h.timestamp) {
+            v.values[columnNames.indexOf(h.columnName)] = h.value.toString();
+            healthData[i] = {
+              dateTime: h.timestamp,
+              values: v.values,
+            };
+            continue mainLoop;
+          }
         }
-      });
-
-      const values = Array(columnNumbers).fill('');
-      values[columnNames.indexOf(h.columnName)] = h.value.toString();
-      return healthData.push({
-        dateTime: h.timestamp,
-        values: values
-      });
-    });
-
-    return healthData;
+        const values = Array(columnNumbers).fill('');
+        values[columnNames.indexOf(h.columnName)] = h.value.toString();
+        healthData.push({
+          dateTime: h.timestamp,
+          values: values,
+        });
+      }
+      return healthData;
+    }
   }
 
   private extractDistinctValueByColumns<U, T>(rawTable: U[], columns: string[]): Array<T> {
@@ -221,79 +228,71 @@ export class HealthRecordService {
 
   async addHealthData(uid: number, healthData: AddHealthDataDto): Promise<boolean> {
     for (let j = 0; j < healthData.data.length; j++) {
-      const healthColumn = await this.healthColumnRepository.findOne(
-        {
-          where:
-          {
-            uid: uid,
-            hrName: healthData.hrName,
-            columnName: healthData.data[j].columnName
-          },
-        })
-      if (!healthColumn)
-        throw new HttpException("Column not found", HttpStatus.NOT_FOUND)
+      const healthColumn = await this.healthColumnRepository.findOne({
+        where: {
+          uid: uid,
+          hrName: healthData.hrName,
+          columnName: healthData.data[j].columnName,
+        },
+      });
+      if (!healthColumn) throw new HttpException('Column not found', HttpStatus.NOT_FOUND);
     }
 
     for (let i = 0; i < healthData.data.length; i++) {
-      const existHealthData = await this.healthDataRepository.findOne(
-        {
-          where:
-          {
-            uid: uid,
-            hrName: healthData.hrName,
-            columnName: healthData.data[i].columnName,
-            timestamp: healthData.timestamp
-          },
-        })
-      if (existHealthData)
-        throw new HttpException("Health data at that timestamp already exists", HttpStatus.CONFLICT)
+      const existHealthData = await this.healthDataRepository.findOne({
+        where: {
+          uid: uid,
+          hrName: healthData.hrName,
+          columnName: healthData.data[i].columnName,
+          timestamp: healthData.timestamp,
+        },
+      });
+      if (existHealthData) throw new HttpException('Health data at that timestamp already exists', HttpStatus.CONFLICT);
       const newHealthData = this.healthDataRepository.create({
         uid: uid,
         hrName: healthData.hrName,
         columnName: healthData.data[i].columnName,
         timestamp: healthData.timestamp,
-        value: healthData.data[i].value
-      })
-      await this.healthDataRepository.insert(newHealthData)
+        value: healthData.data[i].value,
+      });
+      await this.healthDataRepository.insert(newHealthData);
     }
-    return true
+    return true;
   }
 
   async deleteHealthData(uid: number, healthData: DeleteHealthDataDto): Promise<boolean> {
     const existHealthData = await this.healthDataRepository.delete({
       uid: uid,
       hrName: healthData.hrName,
-      timestamp: healthData.timestamp
-    })
+      timestamp: healthData.timestamp,
+    });
     if (!existHealthData.affected) {
-      throw new HttpException("Health data not found", HttpStatus.NOT_FOUND)
+      throw new HttpException('Health data not found', HttpStatus.NOT_FOUND);
     }
-    return true
+    return true;
   }
 
   async editHealthRecord(uid: number, updatedHealthRecord: EditHealthRecordDto): Promise<string> {
-    const healthRecord = await this.healthRecordRepository.findOne(
-      {
-        where:
-        {
-          uid: uid,
-          hrName: updatedHealthRecord.hrName,
-        },
-      })
+    const healthRecord = await this.healthRecordRepository.findOne({
+      where: {
+        uid: uid,
+        hrName: updatedHealthRecord.hrName,
+      },
+    });
     if (!healthRecord) {
-      throw new HttpException("Health record not found", HttpStatus.NOT_FOUND)
+      throw new HttpException('Health record not found', HttpStatus.NOT_FOUND);
     }
 
     const buffer = Buffer.from(updatedHealthRecord.image.base64, 'base64');
     if (buffer.byteLength > 5000000) {
-      throw new HttpException("Image too large", HttpStatus.BAD_REQUEST)
+      throw new HttpException('Image too large', HttpStatus.BAD_REQUEST);
     }
     const imageUrl = await this.googleStorageService.uploadImage(uid, buffer, BucketName.HealthRecord);
 
-    healthRecord.imageid = imageUrl
-    await this.healthRecordRepository.save(healthRecord)
+    healthRecord.imageid = imageUrl;
+    await this.healthRecordRepository.save(healthRecord);
 
-    return imageUrl
+    return imageUrl;
   }
 
   private analyseValues(healthData: HealthAnalyticsDataDto[]): analyticDataDto {
@@ -356,7 +355,7 @@ export class HealthRecordService {
       .addSelect('hc.columnName', 'columnName')
       .addSelect('hc.unit', 'unit')
       .addSelect('hd.value', 'value')
-      // .addSelect("DATE_FORMAT(hd.timestamp, '%Y-%m-%d %H:00:00')", 'timestamp')
+      // .addSelect("DATE_FORMAT(hd.timestamp, '%Y-%m-%d %H:%i:%S')", 'timestamp')
       .addSelect('hd.timestamp', 'timestamp')
       .from(HealthRecord, 'hr')
       .innerJoin(HealthColumn, 'hc', 'hr.uid = hc.uid AND hr.hrName = hc.hrName')
@@ -365,7 +364,7 @@ export class HealthRecordService {
       .andWhere('hr.hrName = :hrName', { hrName: healthRecordName })
       .andWhere('hc.columnName = :columnName', { columnName: columnName })
       .andWhere('hd.timestamp > :startQueryDate', { startQueryDate: startQueryDate })
-      .orderBy("DATE_FORMAT(hd.timestamp, '%Y-%m-%d %H:00:00')");
+      .orderBy("hd.timestamp");
 
     const healthDataRaw: HealthAnalyticsDataRawInterface[] = await healthDataQuery.getRawMany();
     if (!healthDataRaw.length) return result;
