@@ -37,7 +37,6 @@ export class EmergencyService {
       latitude: location.latitude.toString(),
       longtitude: location.longtitude.toString(),
     };
-    console.log(emergencyData);
     return {
       data: emergencyData,
       notification: {
