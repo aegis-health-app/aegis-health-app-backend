@@ -8,7 +8,7 @@ import { ElderlyGuard } from 'src/auth/jwt.guard';
 @Controller('notification/emergency')
 export class EmergencyController {
   constructor(private readonly emergencyService: EmergencyService) {}
-  @UseGuards(ElderlyGuard)
+  // @UseGuards(ElderlyGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @ApiOkResponse({ type: CreateEmergencyResponse })
   @ApiBearerAuth()

@@ -26,9 +26,11 @@ export class EmergencyService {
     const emergencyData: EmergencyData = {
       elderlyImageId: elderly.imageid,
       elderlyName: elderlyName,
-      location: location,
-      timestamp: new Date(),
+      address: location.address,
+      timestamp: new Date().toISOString(),
       elderlyPhone: elderly.phone,
+      latitude: location.latitude,
+      longtitude: location.longtitude,
     };
     return {
       data: emergencyData,

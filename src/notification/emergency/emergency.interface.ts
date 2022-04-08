@@ -13,10 +13,10 @@ export class Geolocation {
   address: string;
 }
 
-export interface EmergencyData {
+export interface EmergencyData extends Geolocation {
   elderlyImageId: string;
   elderlyName: string;
-  location: Geolocation;
-  timestamp: Date;
+  address: string;
+  timestamp: string;
   elderlyPhone: string;
 }
