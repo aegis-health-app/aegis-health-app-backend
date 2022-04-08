@@ -15,7 +15,12 @@ export class EmergencyService {
       { uid: createEmergencyRequest.eid },
       { relations: ['takenCareBy'], shouldBeElderly: true, shouldExist: true }
     );
-    const message = await this.createEmergencyMessage(elderly, createEmergencyRequest.location);
+    const location: Geolocation = {
+      latitude: createEmergencyRequest.latitude,
+      longtitude: createEmergencyRequest.longtitude,
+      address: createEmergencyRequest.address,
+    };
+    const message = await this.createEmergencyMessage(elderly, location);
     return await this.notificationService.notifyMany(
       elderly.takenCareBy.map((c) => c.uid),
       message
@@ -29,9 +34,10 @@ export class EmergencyService {
       address: location.address,
       timestamp: new Date().toISOString(),
       elderlyPhone: elderly.phone,
-      latitude: location.latitude,
-      longtitude: location.longtitude,
+      latitude: location.latitude.toString(),
+      longtitude: location.longtitude.toString(),
     };
+    console.log(emergencyData);
     return {
       data: emergencyData,
       notification: {
