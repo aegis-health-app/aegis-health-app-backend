@@ -25,7 +25,6 @@ import {
   HealthDataRawInterface,
   HealthAnalyticsDataRawInterface,
 } from './healthRecord.interface';
-import { exit } from 'process';
 
 @Injectable()
 export class HealthRecordService {
@@ -187,9 +186,7 @@ export class HealthRecordService {
 
     if (format === 'table' && columnNumbers) {
       const healthData: HealthTableDataDto[] = [];
-      let n = 0;
       mainLoop: for (const h of healthDataRaw) {
-        n = n + 1;
         for (const [i, v] of healthData.entries()) {
           if (v.dateTime === h.timestamp) {
             v.values[columnNames.indexOf(h.columnName)] = h.value.toString();
