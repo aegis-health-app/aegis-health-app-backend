@@ -23,3 +23,9 @@ export interface EmergencyData {
   latitude: string;
   longtitude: string;
 }
+
+export interface CancelEmergencyData {
+  uid: string;
+  elderlyName: string;
+  isCancelled: 'true' | 'false';
+}

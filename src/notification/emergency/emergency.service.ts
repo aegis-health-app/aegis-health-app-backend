@@ -5,7 +5,7 @@ import { NotificationMessage } from '../interface/notification.interface';
 import { NotificationService } from '../notification.service';
 import { CreateEmergencyRequest } from './dto/create-emergency.dto';
 
-import { EmergencyData, Geolocation } from './emergency.interface';
+import { CancelEmergencyData, EmergencyData, Geolocation } from './emergency.interface';
 
 @Injectable()
 export class EmergencyService {
@@ -26,12 +26,13 @@ export class EmergencyService {
   async cancelEmergencyNotification(eid: number) {
     const elderly = await this.userService.findOne({ uid: eid }, { relations: ['takenCareBy'], shouldBeElderly: true, shouldExist: true });
     const elderlyName = `${elderly.fname} ${elderly.lname}`;
+    const cancelEmergencyData: CancelEmergencyData = {
+      uid: eid.toString(),
+      elderlyName: elderlyName,
+      isCancelled: 'true',
+    };
     const message = {
-      data: {
-        uid: eid.toString(),
-        elderlyName: elderlyName,
-        isCancelled: 'true',
-      },
+      data: cancelEmergencyData,
       notification: {
         title: 'Emergency Cancelled',
         body: `${elderlyName} cancelled the emergency`,
