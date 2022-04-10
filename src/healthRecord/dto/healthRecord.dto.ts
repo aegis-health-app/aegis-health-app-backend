@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
-import { IsArray, IsDate, IsNumber, IsObject, IsString } from 'class-validator';
+import { IsArray, IsDate, IsNumber, IsObject, IsOptional, IsString } from 'class-validator';
 
 export enum Timespan {
   Week = 'week',
@@ -172,6 +172,8 @@ export class AddHealthRecordDto {
   @IsString()
   hrName: string
   @ApiProperty({ type: UploadImageDto })
+  @IsOptional()
+  @IsObject()
   picture?: UploadImageDto
   @ApiProperty({ type: [HealthDataFieldDto] })
   @IsArray()

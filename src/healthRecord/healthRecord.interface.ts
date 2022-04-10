@@ -1,6 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger"
-import { IsArray, IsNumber, IsObject, IsString } from "class-validator"
-import { UploadProfileRequest } from "src/user/dto/user.dto"
+import { IsArray, IsNumber, IsObject, IsOptional, IsString } from "class-validator"
 
 export class HealthRecord {
   @ApiProperty()
@@ -46,6 +45,8 @@ export class AddHealthrecord {
   @IsString()
   hrName: string
   @ApiProperty({ type: UploadImage })
+  @IsOptional()
+  @IsObject()
   picture?: UploadImage
   @ApiProperty({ type: [HealthDataField] })
   @IsArray()
