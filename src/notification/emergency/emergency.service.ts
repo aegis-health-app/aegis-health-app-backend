@@ -23,9 +23,29 @@ export class EmergencyService {
       message
     );
   }
+  async cancelEmergencyNotification(eid: number) {
+    const elderly = await this.userService.findOne({ uid: eid }, { relations: ['takenCareBy'], shouldBeElderly: true, shouldExist: true });
+    const elderlyName = `${elderly.fname} ${elderly.lname}`;
+    const message = {
+      data: {
+        uid: eid.toString(),
+        elderlyName: elderlyName,
+        isCancelled: 'true',
+      },
+      notification: {
+        title: 'Emergency Cancelled',
+        body: `${elderlyName} cancelled the emergency`,
+      },
+    };
+    return await this.notificationService.notifyMany(
+      elderly.takenCareBy.map((c) => c.uid),
+      message
+    );
+  }
   private async createEmergencyMessage(elderly: User, location: Geolocation): Promise<NotificationMessage> {
     const elderlyName = `${elderly.fname} ${elderly.lname}`;
     const emergencyData: EmergencyData = {
+      uid: elderly.uid.toString(),
       elderlyImageId: elderly.imageid,
       elderlyName: elderlyName,
       address: location.address,

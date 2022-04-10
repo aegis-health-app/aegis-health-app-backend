@@ -14,6 +14,7 @@ export class Geolocation {
 }
 
 export interface EmergencyData {
+  uid: string;
   elderlyImageId: string;
   elderlyName: string;
   address: string;
