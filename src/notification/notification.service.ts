@@ -47,13 +47,13 @@ export class NotificationService {
   async createPayload(receiverUids: number[], message: NotificationMessage): Promise<Message | MulticastMessage> {
     if (receiverUids.length > 1) {
       const receiverDevices = await this.findManyDevicesByUids(receiverUids);
-      if (!receiverDevices || !receiverDevices.length) throw new BadRequestException('Unregistered Device');
+      if (!receiverDevices || !receiverDevices.length) throw new BadRequestException('Unregistered Caretaker Device');
       const tokens = receiverDevices.map((device) => device.token);
-      return { data: message.data, tokens: tokens, notification: message.notification };
+      return { data: message.data, tokens: tokens, notification: message.notification, token: '' };
     }
     const receiverDevice = await this.findDeviceByUid(receiverUids[0]);
-    if (!receiverDevice || !receiverDevice.token) throw new BadRequestException('Unregistered Device');
-    return { data: message.data, token: receiverDevice.token, notification: message.notification };
+    if (!receiverDevice || !receiverDevice.token) throw new BadRequestException('Unregistered Caretaker Device');
+    return { data: message.data, token: receiverDevice.token, notification: message.notification, tokens: [receiverDevice.token] };
   }
   async notifyOne(receiverUid: number, message: NotificationMessage): Promise<string> {
     const payload = await this.createPayload([receiverUid], message);
