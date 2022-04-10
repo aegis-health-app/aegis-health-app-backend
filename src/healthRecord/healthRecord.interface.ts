@@ -1,7 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger"
 import { IsArray, IsNumber, IsObject, IsOptional, IsString } from "class-validator"
-import { UploadProfileRequest } from "src/user/dto/user.dto"
-import { IsNull } from "typeorm"
 
 export class HealthRecord {
   @ApiProperty()
