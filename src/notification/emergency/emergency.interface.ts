@@ -14,6 +14,7 @@ export class Geolocation {
 }
 
 export interface EmergencyData {
+  uid: string;
   elderlyImageId: string;
   elderlyName: string;
   address: string;
@@ -21,4 +22,10 @@ export interface EmergencyData {
   elderlyPhone: string;
   latitude: string;
   longtitude: string;
+}
+
+export interface CancelEmergencyData {
+  uid: string;
+  elderlyName: string;
+  isCancelled: 'true' | 'false';
 }
