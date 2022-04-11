@@ -52,7 +52,7 @@ export class HealthRecordService {
     const user = await this.userRepository.findOne({ where: { uid: uid } });
     if (!user) throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
 
-    const temp = await this.healthRecordRepository.findOne({ where: { hrName: info.hrName } });
+    const temp = await this.healthRecordRepository.findOne({ where: { hrName: info.hrName, uid:uid } });
     if (temp) throw new HttpException('Health record name is repeated', HttpStatus.CONFLICT);
 
     let imageid;
@@ -61,7 +61,7 @@ export class HealthRecordService {
       if (buffer.byteLength > 5000000) {
         throw new HttpException('Image is too large', HttpStatus.NOT_ACCEPTABLE);
       }
-      imageid = await this.googleStorageService.uploadImage(uid, buffer, BucketName.HealthRecord);
+      imageid = await this.googleStorageService.uploadImage(uid, buffer, BucketName.HealthRecord, info.hrName);
     } else {
       imageid = null;
     }
@@ -284,7 +284,7 @@ export class HealthRecordService {
     if (buffer.byteLength > 5000000) {
       throw new HttpException('Image too large', HttpStatus.BAD_REQUEST);
     }
-    const imageUrl = await this.googleStorageService.uploadImage(uid, buffer, BucketName.HealthRecord);
+    const imageUrl = await this.googleStorageService.uploadImage(uid, buffer, BucketName.HealthRecord, updatedHealthRecord.hrName);
 
     healthRecord.imageid = imageUrl;
     await this.healthRecordRepository.save(healthRecord);
