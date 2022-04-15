@@ -6,6 +6,7 @@ import {
   ManyToOne,
   OneToOne,
   JoinColumn,
+  PrimaryColumn,
 } from 'typeorm';
 import { MemoryPracticeAnswer } from './memoryPracticeAnswer.entity';
 import { MultipleChoiceQuestion } from './multipleChoiceQuestion.entity';
@@ -13,6 +14,9 @@ import { User } from './user.entity';
 
 @Entity({ name: 'MemoryPracticeQuestion' })
 export class MemoryPracticeQuestion {
+  @PrimaryColumn()
+  uid: number;
+
   @PrimaryGeneratedColumn()
   mid: string;
 
