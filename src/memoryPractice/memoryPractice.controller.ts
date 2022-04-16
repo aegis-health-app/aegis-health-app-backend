@@ -28,7 +28,7 @@ export class MemoryPracticeController {
   }
 
   @ApiOperation({ description: "Get question details for an elderly" })
-  @ApiBody({ type: ElderlyWithCaretakerDto })
+  @ApiBody({ type: SelectQuestionDto })
   @ApiOkResponse({ description: "Get all questions for this elderly successfully" })
   @ApiBadRequestResponse({ description: "This question cannot be found" })
   @ApiNotFoundResponse({ description: "Caretaker doesn't have access to this elderly" })
@@ -41,7 +41,7 @@ export class MemoryPracticeController {
   }
 
   @ApiOperation({ description: "Create a question for an elderly" })
-  @ApiBody({ type: ElderlyWithCaretakerDto })
+  @ApiBody({ type: CreateQuestionDto })
   @ApiOkResponse({ description: "Question created successfully" })
   @ApiNotAcceptableResponse({ description: "Image is too large" })
   @ApiNotFoundResponse({ description: "Caretaker doesn't have access to this elderly" })
@@ -58,7 +58,7 @@ export class MemoryPracticeController {
   }
 
   @ApiOperation({ description: "Edit a question for an elderly" })
-  @ApiBody({ type: ElderlyWithCaretakerDto })
+  @ApiBody({ type: EditQuestionDto })
   @ApiOkResponse({ description: "Question editted successfully" })
   @ApiBadRequestResponse({ description: "This mid doesn't exist" })
   @ApiNotAcceptableResponse({ description: "Image is too large" })
@@ -76,7 +76,7 @@ export class MemoryPracticeController {
   }
 
   @ApiOperation({ description: "Delete a question for an elderly" })
-  @ApiBody({ type: ElderlyWithCaretakerDto })
+  @ApiBody({ type: DeleteQuestionDto })
   @ApiOkResponse({ description: "Question deleted successfully" })
   @ApiBadRequestResponse({ description: "This question doesn't exist" })
   @ApiNotFoundResponse({ description: "Caretaker doesn't have access to this elderly" })
