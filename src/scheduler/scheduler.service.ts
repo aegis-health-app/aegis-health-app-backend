@@ -8,18 +8,25 @@ import { RecurringInterval, RecurringOption, Schedule } from './interface/schedu
 export class SchedulerService {
   constructor(private schedulerRegistry: SchedulerRegistry) {}
   scheduleJob(schedule: Schedule, callback: () => void) {
-    const timeDiff = moment(schedule.startAt).diff(moment(), 'milliseconds');
-    const job = this.createRecurringJob(schedule, callback);
-    const timeout = setTimeout(() => job.start(), timeDiff);
     const name = `${schedule.name}-timeout`;
+    if (schedule.startAt.getTime() < Date.now()) throw new RangeError('Invalid Date: date should be after present');
+    const timeDiff = moment(schedule.startAt).diff(moment(), 'milliseconds');
+    this.schedulerRegistry.deleteTimeout(name);
+    let jobCallback = callback;
+    if (schedule.recursion || schedule.customRecursion) {
+      jobCallback = this.addRecurringJob(schedule, callback);
+    }
+
+    const timeout = setTimeout(jobCallback, timeDiff);
     this.schedulerRegistry.addTimeout(name, timeout);
   }
-  private createRecurringJob(schedule: Schedule, callback: () => void) {
+  private addRecurringJob(schedule: Schedule, callback: () => void) {
     const name = `${schedule.name}-recurring`;
-    const cronExp = schedule.recurringOption.custom ?? this.getCronExpression(schedule.recurringOption.recurring, schedule.startAt);
+    this.schedulerRegistry.deleteCronJob(name);
+    const cronExp = schedule.customRecursion ?? this.getCronExpression(schedule.recursion, schedule.startAt);
     const job = new CronJob(cronExp, callback);
     this.schedulerRegistry.addCronJob(name, job);
-    return job;
+    return () => job.start();
   }
   private getCronExpression(interval: RecurringInterval, date: Date): string {
     let exp = '';

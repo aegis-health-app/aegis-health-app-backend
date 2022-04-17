@@ -1,4 +1,5 @@
 import { CronExpression } from '@nestjs/schedule';
+import { ApiProperty } from '@nestjs/swagger';
 
 export enum RecurringInterval {
   EVERY_DAY,
@@ -6,13 +7,16 @@ export enum RecurringInterval {
   EVERY_MONTH,
 }
 
-export class Schedule {
-  name: string;
-  startAt: Date;
-  recurringOption: RecurringOption;
+export class RecurringOption {
+  @ApiProperty()
+  recursion: RecurringInterval;
+  @ApiProperty()
+  customRecursion?: string;
 }
 
-export class RecurringOption {
-  recurring: RecurringInterval;
-  custom?: string;
+export class Schedule extends RecurringOption {
+  @ApiProperty()
+  name: string;
+  @ApiProperty()
+  startAt: Date;
 }
