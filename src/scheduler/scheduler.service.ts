@@ -9,17 +9,17 @@ export class SchedulerService {
   constructor(private schedulerRegistry: SchedulerRegistry) {}
   scheduleJob(schedule: Schedule, callback: () => void) {
     const timeDiff = moment(schedule.startAt).diff(moment(), 'milliseconds');
-    const jobCallback = this.addRecurringJob(schedule, callback);
-    const timeout = setTimeout(jobCallback, timeDiff);
+    const job = this.createRecurringJob(schedule, callback);
+    const timeout = setTimeout(() => job.start(), timeDiff);
     const name = `${schedule.name}-timeout`;
     this.schedulerRegistry.addTimeout(name, timeout);
   }
-  private addRecurringJob(schedule: Schedule, callback: () => void) {
+  private createRecurringJob(schedule: Schedule, callback: () => void) {
     const name = `${schedule.name}-recurring`;
     const cronExp = schedule.recurringOption.custom ?? this.getCronExpression(schedule.recurringOption.recurring, schedule.startAt);
     const job = new CronJob(cronExp, callback);
     this.schedulerRegistry.addCronJob(name, job);
-    return () => job.start();
+    return job;
   }
   private getCronExpression(interval: RecurringInterval, date: Date): string {
     let exp = '';
