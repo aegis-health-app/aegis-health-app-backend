@@ -10,8 +10,8 @@ export class SchedulerService {
   scheduleJob(schedule: Schedule, callback: () => void) {
     const name = `${schedule.name}-timeout`;
     if (schedule.startAt.getTime() < Date.now()) throw new RangeError('Invalid Date: date should be after present');
+    if (this.schedulerRegistry.getTimeouts().find((timeoutName) => timeoutName === name)) this.schedulerRegistry.deleteTimeout(name);
     const timeDiff = moment(schedule.startAt).diff(moment(), 'milliseconds');
-    this.schedulerRegistry.deleteTimeout(name);
     let jobCallback = callback;
     if (schedule.recursion || schedule.customRecursion) {
       jobCallback = this.addRecurringJob(schedule, callback);
@@ -22,7 +22,7 @@ export class SchedulerService {
   }
   private addRecurringJob(schedule: Schedule, callback: () => void) {
     const name = `${schedule.name}-recurring`;
-    this.schedulerRegistry.deleteCronJob(name);
+    if (this.schedulerRegistry.getCronJobs().has(name)) this.schedulerRegistry.deleteCronJob(name);
     const cronExp = schedule.customRecursion ?? this.getCronExpression(schedule.recursion, schedule.startAt);
     const job = new CronJob(cronExp, callback);
     this.schedulerRegistry.addCronJob(name, job);
