@@ -7,36 +7,37 @@ import { RecurringInterval, Recursion, RecursionPeriod, Schedule } from './inter
 @Injectable()
 export class SchedulerService {
   constructor(private schedulerRegistry: SchedulerRegistry) {}
-  scheduleJob(schedule: Schedule, callback: () => void) {
-    let jobCallback = callback;
-    const name = `${schedule.name}-timeout`;
-    if (schedule.startAt.getTime() < Date.now()) throw new RangeError('Invalid Date: date should be after present');
-    if (this.schedulerRegistry.getTimeouts().find((timeoutName) => timeoutName === name)) this.schedulerRegistry.deleteTimeout(name);
-    const timeDiff = moment(schedule.startAt).diff(moment(), 'milliseconds');
-    if (schedule.recursion || schedule.predefined) {
-      const job = this.addRecurringJob(schedule, callback);
-      jobCallback = () => job.start();
-      if (schedule.recursion?.period === RecursionPeriod.WEEK && schedule.recursion.repeat > 1) {
-        const endOfWeekFromStartDate = moment(schedule.startAt).endOf('isoWeek');
-        const rescheduleJobTimeout = setTimeout(() => {
-          const nextInterval = moment(endOfWeekFromStartDate)
-            .add(schedule.recursion.repeat * 604800000)
-            .toDate();
-          this.schedulerRegistry.deleteCronJob(`${schedule.name}-recurring`);
-          this.scheduleJob({ ...schedule, startAt: nextInterval }, jobCallback);
-        }, moment().diff(endOfWeekFromStartDate, 'milliseconds'));
-        this.schedulerRegistry.addTimeout(`${schedule.name}-reschedule-timeout`, rescheduleJobTimeout);
-      }
+  scheduleRecurringJob(schedule: Schedule, callback: () => void) {
+    if (schedule.startDate.getTime() < Date.now()) throw new RangeError('Invalid Date: date should be after present');
+    const job = this.addRecurringJob(schedule, callback);
+    if (schedule.recursion?.period === RecursionPeriod.WEEK && schedule.recursion.repeat > 1) {
+      const endOfWeekFromStartDate = moment(schedule.startDate).endOf('isoWeek');
+      const rescheduleJob = () => {
+        const nextInterval = moment(endOfWeekFromStartDate)
+          .add((schedule.recursion.repeat - 1) * 604800000)
+          .toDate();
+        this.schedulerRegistry.deleteCronJob(`${schedule.name}-recurring`);
+        this.scheduleRecurringJob({ ...schedule, startDate: nextInterval }, callback);
+      };
+      this.addTimeout(`${schedule.name}-reschedule-timeout`, moment().diff(endOfWeekFromStartDate, 'milliseconds'), rescheduleJob);
     }
-    const timeout = setTimeout(jobCallback, timeDiff);
-    this.schedulerRegistry.addTimeout(name, timeout);
-
-    return;
+    job.start();
   }
-  private addRecurringJob({ name, predefined, recursion, startAt }: Schedule, callback: () => void) {
+  scheduleJob(jobName: string, startDate: Date, callback: () => void) {
+    if (startDate.getTime() < Date.now()) throw new RangeError('Invalid Date: date should be after present');
+    const name = `${jobName}-timeout`;
+    const timeDiff = moment(startDate).diff(moment(), 'milliseconds');
+    this.addTimeout(name, timeDiff, callback);
+  }
+  private addTimeout(name: string, ms: number, callback: () => void) {
+    const timeout = setTimeout(callback, ms);
+    if (this.schedulerRegistry.getTimeouts().find((timeoutName) => timeoutName === name)) this.schedulerRegistry.deleteTimeout(name);
+    this.schedulerRegistry.addTimeout(name, timeout);
+  }
+  private addRecurringJob({ name, predefined, recursion, startDate }: Schedule, callback: () => void) {
     const jobId = `${name}-recurring`;
     if (this.schedulerRegistry.getCronJobs().has(jobId)) this.schedulerRegistry.deleteCronJob(jobId);
-    const cronExp = predefined ? this.getPredefinedCronExpression(predefined, startAt) : this.getCustomCronExpression(recursion, startAt);
+    const cronExp = predefined ? this.getPredefinedCronExpression(predefined, startDate) : this.getCustomCronExpression(recursion, startDate);
     const job = new CronJob(cronExp, callback);
     this.schedulerRegistry.addCronJob(jobId, job);
     return job;
@@ -46,12 +47,18 @@ export class SchedulerService {
     switch (interval) {
       case RecurringInterval.EVERY_DAY:
         exp = `0 ${date.getMinutes()} ${date.getHours()} * * *`;
+        break;
       case RecurringInterval.EVERY_MONTH:
         exp = `0 ${date.getMinutes()} ${date.getHours()} ${date.getDate()} * *`;
+        break;
       case RecurringInterval.EVERY_WEEK:
         exp = `0 ${date.getMinutes()} ${date.getHours()} * * ${date.getDay()}`;
+        break;
       case RecurringInterval.EVERY_YEAR:
         exp = `0 ${date.getMinutes()} ${date.getHours()} ${date.getDate()} ${date.getMonth()} ${date.getDay()}`;
+        break;
+      default:
+        throw new Error('Invalid Enum value: RecurringInterval');
     }
     return exp;
   }
