@@ -1,34 +1,47 @@
 import { Injectable } from '@nestjs/common';
-import { CronExpression, SchedulerRegistry } from '@nestjs/schedule';
+import { SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob } from 'cron';
 import moment from 'moment';
-import { RecurringInterval, RecurringOption, Schedule } from './interface/scheduler.interface';
+import { RecurringInterval, Recursion, RecursionPeriod, Schedule } from './interface/scheduler.interface';
 
 @Injectable()
 export class SchedulerService {
   constructor(private schedulerRegistry: SchedulerRegistry) {}
   scheduleJob(schedule: Schedule, callback: () => void) {
+    let jobCallback = callback;
     const name = `${schedule.name}-timeout`;
     if (schedule.startAt.getTime() < Date.now()) throw new RangeError('Invalid Date: date should be after present');
     if (this.schedulerRegistry.getTimeouts().find((timeoutName) => timeoutName === name)) this.schedulerRegistry.deleteTimeout(name);
     const timeDiff = moment(schedule.startAt).diff(moment(), 'milliseconds');
-    let jobCallback = callback;
-    if (schedule.recursion || schedule.customRecursion) {
-      jobCallback = this.addRecurringJob(schedule, callback);
+    if (schedule.recursion || schedule.predefined) {
+      const job = this.addRecurringJob(schedule, callback);
+      jobCallback = () => job.start();
+      if (schedule.recursion?.period === RecursionPeriod.WEEK && schedule.recursion.repeat > 1) {
+        const endOfWeekFromStartDate = moment(schedule.startAt).endOf('isoWeek');
+        const rescheduleJobTimeout = setTimeout(() => {
+          const nextInterval = moment(endOfWeekFromStartDate)
+            .add(schedule.recursion.repeat * 604800000)
+            .toDate();
+          this.schedulerRegistry.deleteCronJob(`${schedule.name}-recurring`);
+          this.scheduleJob({ ...schedule, startAt: nextInterval }, jobCallback);
+        }, moment().diff(endOfWeekFromStartDate, 'milliseconds'));
+        this.schedulerRegistry.addTimeout(`${schedule.name}-reschedule-timeout`, rescheduleJobTimeout);
+      }
     }
-
     const timeout = setTimeout(jobCallback, timeDiff);
     this.schedulerRegistry.addTimeout(name, timeout);
+
+    return;
   }
-  private addRecurringJob(schedule: Schedule, callback: () => void) {
-    const name = `${schedule.name}-recurring`;
-    if (this.schedulerRegistry.getCronJobs().has(name)) this.schedulerRegistry.deleteCronJob(name);
-    const cronExp = schedule.customRecursion ?? this.getCronExpression(schedule.recursion, schedule.startAt);
+  private addRecurringJob({ name, predefined, recursion, startAt }: Schedule, callback: () => void) {
+    const jobId = `${name}-recurring`;
+    if (this.schedulerRegistry.getCronJobs().has(jobId)) this.schedulerRegistry.deleteCronJob(jobId);
+    const cronExp = predefined ? this.getPredefinedCronExpression(predefined, startAt) : this.getCustomCronExpression(recursion, startAt);
     const job = new CronJob(cronExp, callback);
-    this.schedulerRegistry.addCronJob(name, job);
-    return () => job.start();
+    this.schedulerRegistry.addCronJob(jobId, job);
+    return job;
   }
-  private getCronExpression(interval: RecurringInterval, date: Date): string {
+  private getPredefinedCronExpression(interval: RecurringInterval, date: Date): string {
     let exp = '';
     switch (interval) {
       case RecurringInterval.EVERY_DAY:
@@ -37,6 +50,20 @@ export class SchedulerService {
         exp = `0 ${date.getMinutes()} ${date.getHours()} ${date.getDate()} * *`;
       case RecurringInterval.EVERY_WEEK:
         exp = `0 ${date.getMinutes()} ${date.getHours()} * * ${date.getDay()}`;
+      case RecurringInterval.EVERY_YEAR:
+        exp = `0 ${date.getMinutes()} ${date.getHours()} ${date.getDate()} ${date.getMonth()} ${date.getDay()}`;
+    }
+    return exp;
+  }
+  private getCustomCronExpression(custom: Recursion, date: Date): string {
+    let exp = '';
+    switch (custom.period) {
+      case RecursionPeriod.MONTH:
+        exp = `0 ${date.getMinutes()} ${date.getHours()} ${date.getDate()} */${custom.repeat} *`;
+      case RecursionPeriod.WEEK:
+        const tempArr = custom.days?.map((v) => v.toString());
+        const dayRange = tempArr ? tempArr.reduce((acc, curr) => `${acc},${curr}`) : date.getDay().toString();
+        exp = `0 ${date.getMinutes()} ${date.getHours()} * * ${dayRange}`;
     }
     return exp;
   }
