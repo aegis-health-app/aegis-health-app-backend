@@ -11,6 +11,7 @@ export class SchedulerService {
     if (schedule.startDate.getTime() < Date.now()) throw new RangeError('Invalid Date: date should be after present');
     const job = this.addRecurringJob(schedule, callback);
     if (schedule.recursion?.period === RecursionPeriod.WEEK && schedule.recursion.repeat > 1) {
+      //handle complex custom recursion (specifically every x weeks where x is more than 1)
       const endOfWeekFromStartDate = moment(schedule.startDate).endOf('isoWeek');
       const rescheduleJob = () => {
         const nextInterval = moment(endOfWeekFromStartDate)
