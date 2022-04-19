@@ -26,7 +26,17 @@ export class MemoryPracticeController {
     @UseGuards(CaretakerGuard)
     async getHistory(@Req() req, @Param('eid') eid: number){
         const cid = req.user.uid;
-        return this.memoryPracticeService.getHistory(eid, cid);
+        const limit = req.query.limit;
+        const offset = req.query.offset;
+        return this.memoryPracticeService.getHistory(eid, cid, limit, offset);
+    }
+
+    @Get('/history/timestamp/:eid')
+    @UseGuards(CaretakerGuard)
+    // getHistoryByTimestamp(eid: number, cid: number, timestamp: string){
+    getHistoryByTimestamp(@Req() req, @Param('eid') eid: number, @Query('timestamp') timestamp: string){
+        const cid = req.user.uid;
+        return this.memoryPracticeService.getHistoryByTimestamp(eid, cid, timestamp);
     }
     
 }

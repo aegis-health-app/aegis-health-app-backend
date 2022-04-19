@@ -87,16 +87,16 @@ export class MemoryPracticeService {
         await this.userService.checkRelationship(eid, cid);
 
         const history = await this.memoryPracticeAnswerRepository.createQueryBuilder("answer")
-            .select("answer.timestamp", "timestamp")
-            .addSelect("COUNT(answer.mid)", "totalCount")
-            .addSelect(subQuery => {
-                return subQuery
-                    .select("COUNT(answer2.mid)")
-                    .from(MemoryPracticeAnswer, "answer2")
-                    .leftJoin("answer2.memoryPracticeQuestion", "question2")
-                    .leftJoin("question2.multipleChoiceQuestion", "multipleChoice2")
-                    .where("(answer2.elderAnswer = multipleChoice2.correctAnswer OR multipleChoice2.correctAnswer IS NULL) AND question2.uid = :uid AND answer2.timestamp = answer.timestamp", {uid:eid})
-            }, "correctCount")
+            .select("DATE_FORMAT(answer.timestamp, '%Y-%m-%d %H:%i:%S.%f')", 'timestamp')
+            // .addSelect("COUNT(answer.mid)", "totalCount")
+            // .addSelect(subQuery => {
+            //     return subQuery
+            //         .select("COUNT(answer2.mid)")
+            //         .from(MemoryPracticeAnswer, "answer2")
+            //         .leftJoin("answer2.memoryPracticeQuestion", "question2")
+            //         .leftJoin("question2.multipleChoiceQuestion", "multipleChoice2")
+            //         .where("(answer2.elderAnswer = multipleChoice2.correctAnswer OR multipleChoice2.correctAnswer IS NULL) AND question2.uid = :uid AND answer2.timestamp = answer.timestamp", {uid:eid})
+            // }, "correctCount")
             .innerJoin("answer.memoryPracticeQuestion", "question")
             .leftJoin("question.multipleChoiceQuestion", "multipleChoice")
             .where("question.uid = :uid", {uid:eid})
@@ -106,7 +106,41 @@ export class MemoryPracticeService {
             .offset(offset)
             .getRawMany()
         console.log(history)
-        return 'hi'
+        return history;
+    }
+
+    async getHistoryByTimestamp(eid: number, cid: number, timestamp: string){
+        const questions = await this.memoryPracticeAnswerRepository.createQueryBuilder("answer")
+            .select("answer.mid", "mid")
+            .addSelect("question.imageid", "imageUrl")
+            .addSelect("question.question", "question")
+            .addSelect("multipleChoice.choice1 IS NOT NULL", "isMultipleChoice")
+            .addSelect("answer.elderAnswer = multipleChoice.correctAnswer OR multipleChoice.correctAnswer IS NULL", "isCorrect")
+            .addSelect("multipleChoice.choice1", "choice1")
+            .addSelect("multipleChoice.choice2", "choice2")
+            .addSelect("multipleChoice.choice3", "choice3")
+            .addSelect("multipleChoice.choice4", "choice4")
+            .addSelect("multipleChoice.correctAnswer", "correctAnswer")
+            .addSelect("answer.elderAnswer", "elderlyAnswer")
+            .leftJoin("answer.memoryPracticeQuestion", "question")
+            .leftJoin("question.multipleChoiceQuestion", "multipleChoice")
+            .where("question.uid = :uid", {uid:eid})
+            .andWhere('answer.timestamp = :timestamp', {timestamp: timestamp})
+            .getRawMany();
+        if(questions.length===0){
+            throw new HttpException('No record at this timestamp', HttpStatus.BAD_REQUEST);
+        }
+        questions.forEach(question=> {
+            question['isMultipleChoice'] = question['isMultipleChoice']==='1'? true:false;
+            question['isCorrect'] = question['isCorrect']==='1'? true:false;
+        })
+        
+        const history = {
+            timestamp,
+            questions
+        }
+
+        return history;
     }
 
 
