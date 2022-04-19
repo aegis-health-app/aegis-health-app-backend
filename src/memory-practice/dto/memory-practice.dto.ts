@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNumber, IsString, IsDate, IsOptional, IsBoolean } from "class-validator";
+import { IsNumber, IsString, IsDate, IsOptional, IsBoolean, IsNotEmpty } from "class-validator";
 
 export class multipleChoiceQuestion{
     @ApiProperty()
@@ -48,5 +48,21 @@ export class MemoryPracticeQuestion{
 export class MemoryPracticeQuestionSetDto{
     @ApiProperty({ type: [MemoryPracticeQuestion]})
     questions: Array<MemoryPracticeQuestion>
+}
+
+
+export class ElderlyAnswer{
+    @ApiProperty()
+    @IsNumber()
+    mid: number;
+
+    @ApiProperty()
+    @IsString()
+    answer: string;
+}
+
+export class createElderlyAnswersDto{
+    @ApiProperty({ type: [ElderlyAnswer]})
+    answers: Array<ElderlyAnswer>
 }
 

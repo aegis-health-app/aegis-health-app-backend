@@ -6,9 +6,10 @@ import { MultipleChoiceQuestion } from 'src/entities/multipleChoiceQuestion.enti
 import { MemoryPracticeController } from './memory-practice.controller';
 import { MemoryPracticeService } from './memory-practice.service';
 import { UserModule } from '../user/user.module'
+import { User } from 'src/entities/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([MemoryPracticeQuestion, MemoryPracticeAnswer, MultipleChoiceQuestion]), UserModule],
+  imports: [TypeOrmModule.forFeature([MemoryPracticeQuestion, MemoryPracticeAnswer, MultipleChoiceQuestion, User]), UserModule],
   controllers: [MemoryPracticeController],
   providers: [MemoryPracticeService]
 })

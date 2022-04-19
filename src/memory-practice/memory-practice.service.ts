@@ -1,13 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MemoryPracticeAnswer } from 'src/entities/memoryPracticeAnswer.entity';
 import { MemoryPracticeQuestion } from 'src/entities/memoryPracticeQuestion.entity';
 import { MultipleChoiceQuestion } from 'src/entities/multipleChoiceQuestion.entity';
 import { UserService } from 'src/user/user.service';
-import { Repository } from 'typeorm';
-import { MemoryPracticeQuestionSetDto, multipleChoiceQuestion,  } from './dto/memory-practice.dto'
+import { Repository, Timestamp } from 'typeorm';
+import { MemoryPracticeQuestionSetDto, multipleChoiceQuestion, createElderlyAnswersDto } from './dto/memory-practice.dto'
 import { MultipleChoiceQuestion as McqInterface, MemoryPracticeQuestion as MemoryPracticeQuestionInterface, MemoryPracticeQuestionSet} from './memory-practice.interface'
-
 
 @Injectable()
 export class MemoryPracticeService {
@@ -16,8 +15,8 @@ export class MemoryPracticeService {
         private memoryPracticeQuestionRepository: Repository<MemoryPracticeQuestion>,
         @InjectRepository(MemoryPracticeAnswer)
         private memoryPracticeAnswerRepository: Repository<MemoryPracticeAnswer>,
-        @InjectRepository(MultipleChoiceQuestion)
-        private multipleChoiceQuestionRepository: Repository<MultipleChoiceQuestion>,
+        // @InjectRepository(MultipleChoiceQuestion)
+        // private multipleChoiceQuestionRepository: Repository<MultipleChoiceQuestion>,
         private userService: UserService
     ) {}
     
@@ -56,12 +55,32 @@ export class MemoryPracticeService {
             }
             questionSet['questions'].push(question);
         }
-        console.log(questionSet);
         return questionSet;
     }
 
-    async createElderlyAnswers(eid: number){
-
+    async createElderlyAnswers(eid: number, elderlyAnswers: createElderlyAnswersDto){
+        const timestamp = new Date()
+        const answers = elderlyAnswers['answers'];
+        for (const answer of answers){
+            const memoryPracticeQuestion = await this.memoryPracticeQuestionRepository.findOne({ 
+                where:{
+                    mid: answer['mid']
+                }, 
+                relations: ["users"]
+            })
+            if(!memoryPracticeQuestion){
+                throw new HttpException('This question does not exist', HttpStatus.BAD_REQUEST)
+            }
+            if(memoryPracticeQuestion.users.uid !== eid){
+                throw new HttpException('This question does not belong to this elderly', HttpStatus.FORBIDDEN)
+            }
+            const memoryPracticeAnswer = new MemoryPracticeAnswer();
+            memoryPracticeAnswer.memoryPracticeQuestion = memoryPracticeQuestion;
+            memoryPracticeAnswer.elderAnswer = answer['answer'];
+            memoryPracticeAnswer.timestamp = timestamp;
+            await this.memoryPracticeAnswerRepository.save(memoryPracticeAnswer);
+        }
+        return {message: "Elderly answers are successfully recorded"};
     }
 
 
