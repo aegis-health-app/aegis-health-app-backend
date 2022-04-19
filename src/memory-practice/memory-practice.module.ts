@@ -9,7 +9,7 @@ import { UserModule } from '../user/user.module'
 import { User } from 'src/entities/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([MemoryPracticeQuestion, MemoryPracticeAnswer, MultipleChoiceQuestion, User]), UserModule],
+  imports: [TypeOrmModule.forFeature([MemoryPracticeQuestion, MemoryPracticeAnswer, User]), UserModule],
   controllers: [MemoryPracticeController],
   providers: [MemoryPracticeService]
 })

@@ -2,10 +2,9 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MemoryPracticeAnswer } from 'src/entities/memoryPracticeAnswer.entity';
 import { MemoryPracticeQuestion } from 'src/entities/memoryPracticeQuestion.entity';
-import { MultipleChoiceQuestion } from 'src/entities/multipleChoiceQuestion.entity';
 import { UserService } from 'src/user/user.service';
-import { Repository, Timestamp, getManager } from 'typeorm';
-import { MemoryPracticeQuestionSetDto, multipleChoiceQuestion, createElderlyAnswersDto } from './dto/memory-practice.dto'
+import { Repository } from 'typeorm';
+import { MemoryPracticeQuestionSetDto, CreateElderlyAnswersDto, GetHistoryDto, GetHistoryByTimestampDto} from './dto/memory-practice.dto'
 import { MultipleChoiceQuestion as McqInterface, MemoryPracticeQuestion as MemoryPracticeQuestionInterface, MemoryPracticeQuestionSet} from './memory-practice.interface'
 
 @Injectable()
@@ -15,8 +14,6 @@ export class MemoryPracticeService {
         private memoryPracticeQuestionRepository: Repository<MemoryPracticeQuestion>,
         @InjectRepository(MemoryPracticeAnswer)
         private memoryPracticeAnswerRepository: Repository<MemoryPracticeAnswer>,
-        // @InjectRepository(MultipleChoiceQuestion)
-        // private multipleChoiceQuestionRepository: Repository<MultipleChoiceQuestion>,
         private userService: UserService
     ) {}
     
@@ -58,7 +55,7 @@ export class MemoryPracticeService {
         return questionSet;
     }
 
-    async createElderlyAnswers(eid: number, elderlyAnswers: createElderlyAnswersDto){
+    async createElderlyAnswers(eid: number, elderlyAnswers: CreateElderlyAnswersDto): Promise<{message: string}>{
         const timestamp = new Date()
         const answers = elderlyAnswers['answers'];
         for (const answer of answers){
@@ -72,7 +69,7 @@ export class MemoryPracticeService {
                 throw new HttpException('This question does not exist', HttpStatus.BAD_REQUEST)
             }
             if(memoryPracticeQuestion.users.uid !== eid){
-                throw new HttpException('This question does not belong to this elderly', HttpStatus.FORBIDDEN)
+                throw new HttpException('This question does not belong to this elderly', HttpStatus.NOT_ACCEPTABLE)
             }
             const memoryPracticeAnswer = new MemoryPracticeAnswer();
             memoryPracticeAnswer.memoryPracticeQuestion = memoryPracticeQuestion;
@@ -83,10 +80,9 @@ export class MemoryPracticeService {
         return {message: "Elderly answers are successfully recorded"};
     }
     
-    async getHistory(eid: number, cid: number, limit: number=10, offset:number=0){
+    async getHistory(eid: number, cid: number, limit: number=10, offset:number=0): Promise<GetHistoryDto>{
         await this.userService.checkRelationship(eid, cid);
-
-        const history = await this.memoryPracticeAnswerRepository.createQueryBuilder("answer")
+        const records = await this.memoryPracticeAnswerRepository.createQueryBuilder("answer")
             .select("DATE_FORMAT(answer.timestamp, '%Y-%m-%d %H:%i:%S.%f')", 'timestamp')
             // .addSelect("COUNT(answer.mid)", "totalCount")
             // .addSelect(subQuery => {
@@ -105,13 +101,21 @@ export class MemoryPracticeService {
             .limit(limit)
             .offset(offset)
             .getRawMany()
-        console.log(history)
+        let timestamps = []
+        for (const record of records){
+            timestamps.push(record['timestamp']);
+        }
+        const history = {
+            timestamps
+        }
         return history;
     }
 
-    async getHistoryByTimestamp(eid: number, cid: number, timestamp: string){
+    async getHistoryByTimestamp(eid: number, cid: number, timestamp: string): Promise<GetHistoryByTimestampDto>{
+        await this.userService.checkRelationship(eid, cid);
         const questions = await this.memoryPracticeAnswerRepository.createQueryBuilder("answer")
             .select("answer.mid", "mid")
+            .addSelect("DATE_FORMAT(answer.timestamp, '%Y-%m-%d %H:%i:%S.%f')", 'timestamp')
             .addSelect("question.imageid", "imageUrl")
             .addSelect("question.question", "question")
             .addSelect("multipleChoice.choice1 IS NOT NULL", "isMultipleChoice")
@@ -128,7 +132,7 @@ export class MemoryPracticeService {
             .andWhere('answer.timestamp = :timestamp', {timestamp: timestamp})
             .getRawMany();
         if(questions.length===0){
-            throw new HttpException('No record at this timestamp', HttpStatus.BAD_REQUEST);
+            throw new HttpException('No record at this timestamp', HttpStatus.METHOD_NOT_ALLOWED);
         }
         questions.forEach(question=> {
             question['isMultipleChoice'] = question['isMultipleChoice']==='1'? true:false;
@@ -139,10 +143,6 @@ export class MemoryPracticeService {
             timestamp,
             questions
         }
-
         return history;
     }
-
-
-
 }

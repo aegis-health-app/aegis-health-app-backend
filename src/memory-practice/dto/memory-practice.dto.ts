@@ -1,5 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { Type } from "class-transformer";
 import { IsNumber, IsString, IsDate, IsOptional, IsBoolean, IsNotEmpty } from "class-validator";
+import { Timestamp } from "firebase-admin/firestore";
 
 export class multipleChoiceQuestion{
     @ApiProperty()
@@ -61,8 +63,69 @@ export class ElderlyAnswer{
     answer: string;
 }
 
-export class createElderlyAnswersDto{
+export class CreateElderlyAnswersDto{
     @ApiProperty({ type: [ElderlyAnswer]})
     answers: Array<ElderlyAnswer>
 }
 
+export class GetHistoryDto{
+    @ApiProperty({ type: [String]})
+    timestamps: string[];
+}
+
+export class QuestionAnswer{
+    @ApiProperty()
+    @IsNumber()
+    mid: number
+
+    @ApiProperty()
+    @IsString()
+    imageUrl: string
+
+    @ApiProperty()
+    @IsString()
+    question: string
+
+    @ApiProperty()
+    @IsBoolean()
+    isMultipleChoice: boolean
+
+    @ApiProperty()
+    @IsBoolean()
+    isCorrect: boolean
+
+    @ApiProperty()
+    @IsString()
+    choice1: string
+
+    @ApiProperty()
+    @IsString()
+    choice2: string
+
+    @ApiProperty()
+    @IsString()
+    choice3: string
+
+    @ApiProperty()
+    @IsString()
+    choice4: string
+
+    @ApiProperty()
+    @IsString()
+    correctAnswer: string
+
+    @ApiProperty()
+    @IsString()
+    elderlyAnswer: string
+}
+
+export class GetHistoryByTimestampDto{
+    @ApiProperty()
+    @IsString()
+    timestamp: string;
+
+    @ApiProperty({ type: [QuestionAnswer]})
+    questions: Array<QuestionAnswer>
+
+
+}
