@@ -67,10 +67,14 @@ export class SchedulerService {
     switch (custom.period) {
       case RecursionPeriod.MONTH:
         exp = `0 ${date.getMinutes()} ${date.getHours()} ${date.getDate()} */${custom.repeat} *`;
+        break;
       case RecursionPeriod.WEEK:
         const tempArr = custom.days?.map((v) => v.toString());
         const dayRange = tempArr ? tempArr.reduce((acc, curr) => `${acc},${curr}`) : date.getDay().toString();
         exp = `0 ${date.getMinutes()} ${date.getHours()} * * ${dayRange}`;
+        break;
+      default:
+        throw new Error('Invalid Enum value: RecursionPeriod');
     }
     return exp;
   }
