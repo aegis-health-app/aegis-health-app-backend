@@ -21,5 +21,12 @@ export class MemoryPracticeController {
         const eid = req.user.uid;
         return this.memoryPracticeService.createElderlyAnswers(eid, answers);
     }
+
+    @Get('/history/:eid')
+    @UseGuards(CaretakerGuard)
+    async getHistory(@Req() req, @Param('eid') eid: number){
+        const cid = req.user.uid;
+        return this.memoryPracticeService.getHistory(eid, cid);
+    }
     
 }

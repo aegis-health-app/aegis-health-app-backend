@@ -4,7 +4,7 @@ import { MemoryPracticeAnswer } from 'src/entities/memoryPracticeAnswer.entity';
 import { MemoryPracticeQuestion } from 'src/entities/memoryPracticeQuestion.entity';
 import { MultipleChoiceQuestion } from 'src/entities/multipleChoiceQuestion.entity';
 import { UserService } from 'src/user/user.service';
-import { Repository, Timestamp } from 'typeorm';
+import { Repository, Timestamp, getManager } from 'typeorm';
 import { MemoryPracticeQuestionSetDto, multipleChoiceQuestion, createElderlyAnswersDto } from './dto/memory-practice.dto'
 import { MultipleChoiceQuestion as McqInterface, MemoryPracticeQuestion as MemoryPracticeQuestionInterface, MemoryPracticeQuestionSet} from './memory-practice.interface'
 
@@ -82,6 +82,33 @@ export class MemoryPracticeService {
         }
         return {message: "Elderly answers are successfully recorded"};
     }
+    
+    async getHistory(eid: number, cid: number, limit: number=10, offset:number=0){
+        await this.userService.checkRelationship(eid, cid);
+
+        const history = await this.memoryPracticeAnswerRepository.createQueryBuilder("answer")
+            .select("answer.timestamp", "timestamp")
+            .addSelect("COUNT(answer.mid)", "totalCount")
+            .addSelect(subQuery => {
+                return subQuery
+                    .select("COUNT(answer2.mid)")
+                    .from(MemoryPracticeAnswer, "answer2")
+                    .leftJoin("answer2.memoryPracticeQuestion", "question2")
+                    .leftJoin("question2.multipleChoiceQuestion", "multipleChoice2")
+                    .where("(answer2.elderAnswer = multipleChoice2.correctAnswer OR multipleChoice2.correctAnswer IS NULL) AND question2.uid = :uid AND answer2.timestamp = answer.timestamp", {uid:eid})
+            }, "correctCount")
+            .innerJoin("answer.memoryPracticeQuestion", "question")
+            .leftJoin("question.multipleChoiceQuestion", "multipleChoice")
+            .where("question.uid = :uid", {uid:eid})
+            .groupBy("answer.timestamp")
+            .orderBy("answer.timestamp", "DESC")
+            .limit(limit)
+            .offset(offset)
+            .getRawMany()
+        console.log(history)
+        return 'hi'
+    }
+
 
 
 }
