@@ -27,7 +27,7 @@ export class SchedulerService {
         const cronExpArray = this.getCustomCronExpression(schedule.recursion, schedule.startDate).split(' ');
         const IsStartDayMatchCron = this.getDayRange(schedule.recursion.days) === cronExpArray[cronExpArray.length - 1];
         if (IsStartDayMatchCron) callback();
-      }
+      } else callback();
       job.start();
     });
   }
