@@ -8,8 +8,7 @@ import { RecurringInterval, Recursion, RecursionPeriod, Schedule } from './inter
 export class SchedulerService {
   constructor(private schedulerRegistry: SchedulerRegistry) {}
   scheduleRecurringJob(schedule: Schedule, callback: () => void) {
-    const now = moment().utcOffset(420);
-    if (schedule.startDate.getTime() < now.milliseconds()) throw new RangeError('Invalid Date: date should be after present');
+    if (moment(schedule.startDate).utcOffset(0).milliseconds() < Date.now()) throw new RangeError('Invalid Date: date should be after present');
     const job = this.addRecurringJob(schedule, callback);
     this.scheduleJob(schedule.name, schedule.startDate, () => {
       if (schedule.recursion && schedule.recursion.days) {
@@ -22,10 +21,9 @@ export class SchedulerService {
     });
   }
   scheduleJob(jobName: string, startDate: Date, callback: () => void) {
-    const now = moment().utcOffset(420);
-    if (startDate.getTime() < now.milliseconds()) throw new RangeError('Invalid Date: date should be after present');
+    if (moment(startDate).utcOffset(0).milliseconds() < Date.now()) throw new RangeError('Invalid Date: date should be after present');
     const name = `${jobName}-timeout`;
-    const timeDiff = moment(startDate).diff(moment().utcOffset(420), 'milliseconds');
+    const timeDiff = moment(startDate).utcOffset(0).diff(moment(), 'milliseconds');
     this.addTimeout(name, timeDiff, callback);
   }
   private addTimeout(name: string, ms: number, callback: () => void) {
@@ -42,16 +40,17 @@ export class SchedulerService {
     return job;
   }
   private getPredefinedCronExpression(interval: RecurringInterval, date: Date): string {
+    const dateUtc = moment(date).utcOffset(0).toDate();
     let exp = '';
     switch (interval) {
       case RecurringInterval.EVERY_DAY:
-        exp = `0 ${date.getMinutes()} ${date.getHours()} * * *`;
+        exp = `0 ${dateUtc.getMinutes()} ${dateUtc.getHours()} * * *`;
         break;
       case RecurringInterval.EVERY_MONTH:
-        exp = `0 ${date.getMinutes()} ${date.getHours()} ${date.getDate()} * *`;
+        exp = `0 ${dateUtc.getMinutes()} ${dateUtc.getHours()} ${dateUtc.getDate()} * *`;
         break;
       case RecurringInterval.EVERY_WEEK:
-        exp = `0 ${date.getMinutes()} ${date.getHours()} * * ${date.getDay()}`;
+        exp = `0 ${dateUtc.getMinutes()} ${dateUtc.getHours()} * * ${dateUtc.getDay()}`;
         break;
       case RecurringInterval.EVERY_10_MINUTES:
         exp = CronExpression.EVERY_10_MINUTES;
@@ -65,15 +64,16 @@ export class SchedulerService {
     return tempArr.reduce((acc, curr) => `${acc},${curr}`);
   }
   private getCustomCronExpression(custom: Recursion, date: Date): string {
+    const dateUtc = moment(date).utcOffset(0).toDate();
     let exp = '';
     switch (custom.period) {
       case RecursionPeriod.MONTH:
         const dateRange = custom.dates ? this.toCsvString(custom.dates) : date.getDate();
-        exp = `0 ${date.getMinutes()} ${date.getHours()} ${dateRange} * *`;
+        exp = `0 ${dateUtc.getMinutes()} ${dateUtc.getHours()} ${dateRange} * *`;
         break;
       case RecursionPeriod.WEEK:
-        const dayRange = custom.days ? this.toCsvString(custom.days) : date.getDay().toString();
-        exp = `0 ${date.getMinutes()} ${date.getHours()} * * ${dayRange}`;
+        const dayRange = custom.days ? this.toCsvString(custom.days) : dateUtc.getDay().toString();
+        exp = `0 ${dateUtc.getMinutes()} ${dateUtc.getHours()} * * ${dayRange}`;
         break;
       default:
         throw new Error('Invalid Enum value: RecursionPeriod');
