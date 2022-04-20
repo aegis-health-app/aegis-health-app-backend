@@ -11,10 +11,10 @@ export class SchedulerService {
     if (moment(schedule.startDate).utcOffset(0).milliseconds() < Date.now()) throw new RangeError('Invalid Date: date should be after present');
     const job = this.addRecurringJob(schedule, callback);
     this.scheduleJob(schedule.name, schedule.startDate, () => {
-      if (schedule.recursion && schedule.recursion.days) {
+      if (schedule.customRecursion && schedule.customRecursion.days) {
         //handle start day doesn't match recurring pattern
-        const cronExpArray = this.getCustomCronExpression(schedule.recursion, schedule.startDate).split(' ');
-        const IsStartDayMatchCron = this.toCsvString(schedule.recursion.days) === cronExpArray[cronExpArray.length - 1];
+        const cronExpArray = this.getCustomCronExpression(schedule.customRecursion, schedule.startDate).split(' ');
+        const IsStartDayMatchCron = this.toCsvString(schedule.customRecursion.days) === cronExpArray[cronExpArray.length - 1];
         if (IsStartDayMatchCron) callback();
       } else callback();
       job.start();
@@ -31,10 +31,10 @@ export class SchedulerService {
     if (this.schedulerRegistry.getTimeouts().find((timeoutName) => timeoutName === name)) this.schedulerRegistry.deleteTimeout(name);
     this.schedulerRegistry.addTimeout(name, timeout);
   }
-  private addRecurringJob({ name, predefined, recursion, startDate }: Schedule, callback: () => void) {
+  private addRecurringJob({ name, recursion, customRecursion, startDate }: Schedule, callback: () => void) {
     const jobId = `${name}-recurring`;
     if (this.schedulerRegistry.getCronJobs().has(jobId)) this.schedulerRegistry.deleteCronJob(jobId);
-    const cronExp = predefined ? this.getPredefinedCronExpression(predefined, startDate) : this.getCustomCronExpression(recursion, startDate);
+    const cronExp = recursion ? this.getPredefinedCronExpression(recursion, startDate) : this.getCustomCronExpression(customRecursion, startDate);
     const job = new CronJob(cronExp, callback);
     this.schedulerRegistry.addCronJob(jobId, job);
     return job;
@@ -63,16 +63,16 @@ export class SchedulerService {
     const tempArr = arr.map((v) => v.toString());
     return tempArr.reduce((acc, curr) => `${acc},${curr}`);
   }
-  private getCustomCronExpression(custom: Recursion, date: Date): string {
+  private getCustomCronExpression(recursion: Recursion, date: Date): string {
     const dateUtc = moment(date).utcOffset(0).toDate();
     let exp = '';
-    switch (custom.period) {
+    switch (recursion.period) {
       case RecursionPeriod.MONTH:
-        const dateRange = custom.dates ? this.toCsvString(custom.dates) : date.getDate();
+        const dateRange = recursion.dates ? this.toCsvString(recursion.dates) : date.getDate();
         exp = `0 ${dateUtc.getMinutes()} ${dateUtc.getHours()} ${dateRange} * *`;
         break;
       case RecursionPeriod.WEEK:
-        const dayRange = custom.days ? this.toCsvString(custom.days) : dateUtc.getDay().toString();
+        const dayRange = recursion.days ? this.toCsvString(recursion.days) : dateUtc.getDay().toString();
         exp = `0 ${dateUtc.getMinutes()} ${dateUtc.getHours()} * * ${dayRange}`;
         break;
       default:
