@@ -8,7 +8,8 @@ import { RecurringInterval, Recursion, RecursionPeriod, Schedule } from './inter
 export class SchedulerService {
   constructor(private schedulerRegistry: SchedulerRegistry) {}
   scheduleRecurringJob(schedule: Schedule, callback: () => void) {
-    if (schedule.startDate.getTime() < Date.now()) throw new RangeError('Invalid Date: date should be after present');
+    const now = moment().utcOffset(420);
+    if (schedule.startDate.getTime() < now.milliseconds()) throw new RangeError('Invalid Date: date should be after present');
     const job = this.addRecurringJob(schedule, callback);
     this.scheduleJob(schedule.name, schedule.startDate, () => {
       if (schedule.recursion && schedule.recursion.days) {
@@ -21,9 +22,10 @@ export class SchedulerService {
     });
   }
   scheduleJob(jobName: string, startDate: Date, callback: () => void) {
-    if (startDate.getTime() < Date.now()) throw new RangeError('Invalid Date: date should be after present');
+    const now = moment().utcOffset(420);
+    if (startDate.getTime() < now.milliseconds()) throw new RangeError('Invalid Date: date should be after present');
     const name = `${jobName}-timeout`;
-    const timeDiff = moment(startDate).diff(moment(), 'milliseconds');
+    const timeDiff = moment(startDate).diff(moment().utcOffset(420), 'milliseconds');
     this.addTimeout(name, timeDiff, callback);
   }
   private addTimeout(name: string, ms: number, callback: () => void) {
