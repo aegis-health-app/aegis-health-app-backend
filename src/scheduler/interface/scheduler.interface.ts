@@ -5,7 +5,7 @@ export enum RecurringInterval {
   EVERY_DAY = 1,
   EVERY_WEEK,
   EVERY_MONTH,
-  EVERY_YEAR,
+  EVERY_10_MINUTES,
 }
 //repeat every x week or every x month (for custom recursion)
 export enum RecursionPeriod {
@@ -15,8 +15,8 @@ export enum RecursionPeriod {
 
 export class Recursion {
   period: RecursionPeriod;
-  repeat: number;
   days?: (0 | 1 | 2 | 3 | 4 | 5 | 6)[];
+  dates?: number[];
 }
 
 export class Schedule {

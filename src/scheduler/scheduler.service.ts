@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { SchedulerRegistry } from '@nestjs/schedule';
+import { CronExpression, SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob } from 'cron';
 import moment from 'moment';
 import { RecurringInterval, Recursion, RecursionPeriod, Schedule } from './interface/scheduler.interface';
@@ -10,22 +10,11 @@ export class SchedulerService {
   scheduleRecurringJob(schedule: Schedule, callback: () => void) {
     if (schedule.startDate.getTime() < Date.now()) throw new RangeError('Invalid Date: date should be after present');
     const job = this.addRecurringJob(schedule, callback);
-    if (schedule.recursion?.period === RecursionPeriod.WEEK && schedule.recursion.repeat > 1) {
-      //handle complex custom recursion (specifically every x weeks where x is more than 1)
-      const endOfWeekFromStartDate = moment(schedule.startDate).endOf('isoWeek');
-      const rescheduleJob = () => {
-        const nextInterval = moment(endOfWeekFromStartDate)
-          .add((schedule.recursion.repeat - 1) * 604800000)
-          .toDate();
-        this.schedulerRegistry.deleteCronJob(`${schedule.name}-recurring`);
-        this.scheduleRecurringJob({ ...schedule, startDate: nextInterval }, callback);
-      };
-      this.addTimeout(`${schedule.name}-reschedule-timeout`, moment().diff(endOfWeekFromStartDate, 'milliseconds'), rescheduleJob);
-    }
     this.scheduleJob(schedule.name, schedule.startDate, () => {
       if (schedule.recursion && schedule.recursion.days) {
+        //handle start day doesn't match recurring pattern
         const cronExpArray = this.getCustomCronExpression(schedule.recursion, schedule.startDate).split(' ');
-        const IsStartDayMatchCron = this.getDayRange(schedule.recursion.days) === cronExpArray[cronExpArray.length - 1];
+        const IsStartDayMatchCron = this.toCsvString(schedule.recursion.days) === cronExpArray[cronExpArray.length - 1];
         if (IsStartDayMatchCron) callback();
       } else callback();
       job.start();
@@ -62,26 +51,26 @@ export class SchedulerService {
       case RecurringInterval.EVERY_WEEK:
         exp = `0 ${date.getMinutes()} ${date.getHours()} * * ${date.getDay()}`;
         break;
-      case RecurringInterval.EVERY_YEAR:
-        exp = `0 ${date.getMinutes()} ${date.getHours()} ${date.getDate()} ${date.getMonth()} ${date.getDay()}`;
-        break;
+      case RecurringInterval.EVERY_10_MINUTES:
+        exp = CronExpression.EVERY_10_MINUTES;
       default:
         throw new Error('Invalid Enum value: RecurringInterval');
     }
     return exp;
   }
-  private getDayRange(days: (0 | 1 | 2 | 3 | 4 | 5 | 6)[]) {
-    const tempArr = days?.map((v) => v.toString());
+  private toCsvString(arr: any[]) {
+    const tempArr = arr.map((v) => v.toString());
     return tempArr.reduce((acc, curr) => `${acc},${curr}`);
   }
   private getCustomCronExpression(custom: Recursion, date: Date): string {
     let exp = '';
     switch (custom.period) {
       case RecursionPeriod.MONTH:
-        exp = `0 ${date.getMinutes()} ${date.getHours()} ${date.getDate()} */${custom.repeat} *`;
+        const dateRange = custom.dates ? this.toCsvString(custom.dates) : date.getDate();
+        exp = `0 ${date.getMinutes()} ${date.getHours()} ${dateRange} * *`;
         break;
       case RecursionPeriod.WEEK:
-        const dayRange = custom.days ? this.getDayRange(custom.days) : date.getDay().toString();
+        const dayRange = custom.days ? this.toCsvString(custom.days) : date.getDay().toString();
         exp = `0 ${date.getMinutes()} ${date.getHours()} * * ${dayRange}`;
         break;
       default:
