@@ -22,7 +22,14 @@ export class SchedulerService {
       };
       this.addTimeout(`${schedule.name}-reschedule-timeout`, moment().diff(endOfWeekFromStartDate, 'milliseconds'), rescheduleJob);
     }
-    job.start();
+    this.scheduleJob(schedule.name, schedule.startDate, () => {
+      if (schedule.recursion && schedule.recursion.days) {
+        const cronExpArray = this.getCustomCronExpression(schedule.recursion, schedule.startDate).split(' ');
+        const IsStartDayMatchCron = this.getDayRange(schedule.recursion.days) === cronExpArray[cronExpArray.length - 1];
+        if (IsStartDayMatchCron) callback();
+      }
+      job.start();
+    });
   }
   scheduleJob(jobName: string, startDate: Date, callback: () => void) {
     if (startDate.getTime() < Date.now()) throw new RangeError('Invalid Date: date should be after present');
@@ -63,6 +70,10 @@ export class SchedulerService {
     }
     return exp;
   }
+  private getDayRange(days: (0 | 1 | 2 | 3 | 4 | 5 | 6)[]) {
+    const tempArr = days?.map((v) => v.toString());
+    return tempArr.reduce((acc, curr) => `${acc},${curr}`);
+  }
   private getCustomCronExpression(custom: Recursion, date: Date): string {
     let exp = '';
     switch (custom.period) {
@@ -70,8 +81,7 @@ export class SchedulerService {
         exp = `0 ${date.getMinutes()} ${date.getHours()} ${date.getDate()} */${custom.repeat} *`;
         break;
       case RecursionPeriod.WEEK:
-        const tempArr = custom.days?.map((v) => v.toString());
-        const dayRange = tempArr ? tempArr.reduce((acc, curr) => `${acc},${curr}`) : date.getDay().toString();
+        const dayRange = custom.days ? this.getDayRange(custom.days) : date.getDay().toString();
         exp = `0 ${date.getMinutes()} ${date.getHours()} * * ${dayRange}`;
         break;
       default:
