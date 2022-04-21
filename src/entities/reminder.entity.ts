@@ -5,6 +5,7 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  Timestamp,
 } from 'typeorm';
 import { Recurring } from './recurring.entity';
 import { User } from './user.entity';
@@ -15,7 +16,7 @@ export class Reminder {
   rid: number;
 
   @Column({type: "date"})
-  startingDate: Date;
+  startingDateTime: Timestamp;
 
   @Column()
   title: string;
