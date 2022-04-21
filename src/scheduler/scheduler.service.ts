@@ -68,12 +68,12 @@ export class SchedulerService {
     let exp = '';
     switch (recursion.period) {
       case RecursionPeriod.MONTH:
-        const dateRange = recursion.dates ? this.toCsvString(recursion.dates) : date.getDate();
-        exp = `0 ${dateUtc.getMinutes()} ${dateUtc.getHours()} ${dateRange} * *`;
+        const dateCsv = recursion.dates ? this.toCsvString(recursion.dates) : dateUtc.getDate();
+        exp = `0 ${dateUtc.getMinutes()} ${dateUtc.getHours()} ${dateCsv} * *`;
         break;
       case RecursionPeriod.WEEK:
-        const dayRange = recursion.days ? this.toCsvString(recursion.days) : dateUtc.getDay().toString();
-        exp = `0 ${dateUtc.getMinutes()} ${dateUtc.getHours()} * * ${dayRange}`;
+        const dayCsv = recursion.days ? this.toCsvString(recursion.days) : dateUtc.getDay().toString();
+        exp = `0 ${dateUtc.getMinutes()} ${dateUtc.getHours()} * * ${dayCsv}`;
         break;
       default:
         throw new Error('Invalid Enum value: RecursionPeriod');
