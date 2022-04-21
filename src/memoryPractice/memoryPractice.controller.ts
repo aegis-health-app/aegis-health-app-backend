@@ -17,7 +17,7 @@ export class MemoryPracticeController {
 
   @ApiOperation({ description: "Get all questions for an elderly" })
   @ApiBody({ type: ElderlyWithCaretakerDto })
-  @ApiOkResponse({  description: "Get all questions for this elderly successfully" })
+  @ApiOkResponse({ description: "Get all questions for this elderly successfully" })
   @ApiNotFoundResponse({ description: "Caretaker doesn't have access to this elderly" })
   @UseGuards(CaretakerGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
