@@ -11,9 +11,13 @@ export class DeleteReminderDto {
 
 export class GetReminderDto extends DeleteReminderDto {}
 
-
 export class RecurringDto {
+  @ApiProperty()
+  @IsNumber()
   recurringDateOfMonth: number
+
+  @ApiProperty()
+  @IsNumber()
   recurringDay: number
 }
 
@@ -53,4 +57,46 @@ export class ReminderDto {
   @ApiProperty({ type: [RecurringDto] })
   @IsArray()
   recurrings: Array<RecurringDto>
+}
+
+export class GetFinishedReminderDto {
+  @ApiProperty()
+  @IsDate()
+  currentDate: Date
+}
+
+export class FinisedReminderDto {
+  @ApiProperty()
+  @IsNumber()
+  rid: number
+
+  @ApiProperty()
+  @IsString()
+  title: string
+
+  @ApiProperty()
+  @IsString()
+  note: string
+
+  @ApiProperty()
+  @IsBoolean()
+  isRemindCaretaker: boolean
+
+  @ApiProperty()
+  @IsString()
+  importanceLevel: string
+
+  @ApiProperty()
+  @IsString()
+  imageid: string
+}
+
+export class ListFinishedReminderDto {
+  @ApiProperty()
+  @IsDate()
+  date: Date
+
+  @ApiProperty({ type: [FinisedReminderDto] })
+  @IsArray()
+  reminder: Array<FinisedReminderDto>
 }
