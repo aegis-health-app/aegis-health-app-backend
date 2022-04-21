@@ -15,7 +15,7 @@ export enum RecursionPeriod {
 
 export class Recursion {
   period: RecursionPeriod;
-  days?: (0 | 1 | 2 | 3 | 4 | 5 | 6)[];
+  days?: (1 | 2 | 3 | 4 | 5 | 6 | 7)[];
   dates?: number[];
 }
 
