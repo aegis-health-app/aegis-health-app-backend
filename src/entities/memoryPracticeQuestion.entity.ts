@@ -14,7 +14,7 @@ import { User } from './user.entity';
 
 @Entity({ name: 'MemoryPracticeQuestion' })
 export class MemoryPracticeQuestion {
-  @PrimaryColumn()
+  @Column()
   uid: number;
 
   @PrimaryGeneratedColumn()
