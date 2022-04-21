@@ -1,8 +1,8 @@
-import { Body, Controller, Delete, Param, Req, Res, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Req, Res, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { CaretakerGuard, ElderlyGuard } from 'src/auth/jwt.guard';
 import { UserService } from 'src/user/user.service';
-import { DeleteReminderDto } from './dto/reminder.dto';
+import { DeleteReminderDto, GetReminderDto, ReminderDto } from './dto/reminder.dto';
 import { ReminderService } from './reminder.service';
 
 @ApiBearerAuth()
@@ -13,7 +13,7 @@ export class ReminderController {
 
     @ApiUnauthorizedResponse({ description: "Must login to use this endpoints" })
     @ApiForbiddenResponse({ description: "Must be elderly to use this endpoints" })
-    @ApiOkResponse({ description: "Deleted health record from the database succesfully" })
+    @ApiOkResponse({ description: "Deleted reminder from the database succesfully" })
     @ApiBody({ type: DeleteReminderDto })
     @ApiNotFoundResponse({ description: "Reminder not found" })
     @UseGuards(ElderlyGuard)
@@ -30,7 +30,7 @@ export class ReminderController {
 
     @ApiUnauthorizedResponse({ description: "Must login to use this endpoints" })
     @ApiForbiddenResponse({ description: "Must be caretaker to use this endpoints" })
-    @ApiOkResponse({ description: "Deleted health record from the database succesfully" })
+    @ApiOkResponse({ description: "Deleted reminder from the database succesfully" })
     @ApiBadRequestResponse({ description: "Caretaker doesn't have access to this elderly"})
     @ApiBody({ type: DeleteReminderDto })
     @ApiNotFoundResponse({ description: "Reminder not found" })
@@ -44,5 +44,32 @@ export class ReminderController {
             statusCode: 200,
             message: "Deleted reminder from the database successfully"
         })
+    }
+
+    @ApiUnauthorizedResponse({ description: "Must login to use this endpoints" })
+    @ApiForbiddenResponse({ description: "Must be elderly to use this endpoints" })
+    @ApiOkResponse({ description: "Get reminder from the database succesfully" })
+    @ApiBody({ type: GetReminderDto })
+    @ApiNotFoundResponse({ description: "Reminder not found" })
+    @UseGuards(ElderlyGuard)
+    @UsePipes(new ValidationPipe({ whitelist: true }))
+    @Get('get/elderly')
+    async getReminderElderly(@Body() body: GetReminderDto): Promise<ReminderDto> {
+        return await this.reminderService.getReminder(body.rid)
+    }
+
+
+    @ApiUnauthorizedResponse({ description: "Must login to use this endpoints" })
+    @ApiForbiddenResponse({ description: "Must be caretaker to use this endpoints" })
+    @ApiOkResponse({ description: "Get reminder from the database succesfully" })
+    @ApiBadRequestResponse({ description: "Caretaker doesn't have access to this elderly"})
+    @ApiBody({ type: GetReminderDto })
+    @ApiNotFoundResponse({ description: "Reminder not found" })
+    @UseGuards(CaretakerGuard)
+    @UsePipes(new ValidationPipe({ whitelist: true }))
+    @Get('get/caretaker/:eid')
+    async getReminderCaretaker(@Param("eid") eid: number, @Req() req, @Body() body: GetReminderDto): Promise<ReminderDto> {
+        await this.userService.checkRelationship(eid, req.user.uid)
+        return await this.reminderService.getReminder(body.rid)
     }
 }

@@ -9,11 +9,18 @@ export class ReminderService {
     @InjectRepository(Reminder)
     private reminderRepository: Repository<Reminder>
 
-    async deleteReminder(rid: string): Promise<string>{
+    async deleteReminder(rid: number): Promise<string>{
         const reminder = await this.reminderRepository.findOne({where: {rid: rid}})
         if (!reminder) throw new HttpException('Reminder not found', HttpStatus.NOT_FOUND)
 
         await this.reminderRepository.delete(reminder);
         return 'Complete'
+    }
+
+    async getReminder(rid: number): Promise<AddReminder>{
+        const reminder = await this.reminderRepository.findOne({where: {rid: rid}})
+        if (!reminder) throw new HttpException('Reminder not found', HttpStatus.NOT_FOUND)
+        
+        return reminder
     }
 }
