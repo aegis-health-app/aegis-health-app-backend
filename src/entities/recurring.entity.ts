@@ -9,9 +9,6 @@ export class Recurring {
   @PrimaryColumn({ default: 0})
   recurringDay: number;
 
-  @PrimaryColumn({type: "time"})
-  recurringTime
-
   @ManyToOne(() => Reminder, (reminder) => reminder.recurrings, {
     onUpdate: 'NO ACTION',
     onDelete: 'CASCADE',
