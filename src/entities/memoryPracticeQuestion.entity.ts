@@ -1,18 +1,13 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  OneToMany,
-  ManyToOne,
-  OneToOne,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, OneToOne, JoinColumn, PrimaryColumn } from 'typeorm';
 import { MemoryPracticeAnswer } from './memoryPracticeAnswer.entity';
 import { MultipleChoiceQuestion } from './multipleChoiceQuestion.entity';
 import { User } from './user.entity';
 
 @Entity({ name: 'MemoryPracticeQuestion' })
 export class MemoryPracticeQuestion {
+  @Column()
+  uid: number;
+
   @PrimaryGeneratedColumn()
   mid: string;
 
@@ -33,16 +28,9 @@ export class MemoryPracticeQuestion {
   @JoinColumn({ name: 'uid', referencedColumnName: 'uid' })
   users: User;
 
-  @OneToMany(
-    () => MemoryPracticeAnswer,
-    (memoryPracticeAnswer) => memoryPracticeAnswer.memoryPracticeQuestion,
-  )
+  @OneToMany(() => MemoryPracticeAnswer, (memoryPracticeAnswer) => memoryPracticeAnswer.memoryPracticeQuestion)
   memoryPracticeAnswers: MemoryPracticeAnswer[];
 
-  @OneToOne(
-    () => MultipleChoiceQuestion,
-    (multipleChoiceQuestion) =>
-      multipleChoiceQuestion.memoryPracticeQuestion,
-  )
+  @OneToOne(() => MultipleChoiceQuestion, (multipleChoiceQuestion) => multipleChoiceQuestion.memoryPracticeQuestion)
   multipleChoiceQuestion: MultipleChoiceQuestion;
 }

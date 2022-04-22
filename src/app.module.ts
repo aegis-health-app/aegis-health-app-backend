@@ -14,6 +14,7 @@ import { HealthRecordModule } from './healthRecord/healthRecord.module';
 import { EmergencyModule } from './notification/emergency/emergency.module';
 import { NotificationModule } from './notification/notification.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
+import { MemoryPracticeModule } from './memoryPractice/memoryPractice.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     EmergencyModule,
     NotificationModule,
     SchedulerModule,
+    MemoryPracticeModule,
   ],
   controllers: [AppController],
   providers: [AppService],
