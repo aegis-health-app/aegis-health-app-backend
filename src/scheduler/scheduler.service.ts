@@ -68,7 +68,7 @@ export class SchedulerService {
     let exp = '';
     switch (recursion.period) {
       case RecursionPeriod.MONTH:
-        const dateCsv = recursion.dates ? this.toCsvString(recursion.dates) : dateUtc.getDate();
+        const dateCsv = recursion.date ?? dateUtc.getDate();
         exp = `0 ${dateUtc.getMinutes()} ${dateUtc.getHours()} ${dateCsv} * *`;
         break;
       case RecursionPeriod.WEEK:
