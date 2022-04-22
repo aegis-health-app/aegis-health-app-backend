@@ -22,7 +22,7 @@ export class MemoryPracticeController {
   @UseGuards(CaretakerGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @Get('/allQuestions')
-  async getAllQuestions(@Body() elderlyWithCaretaker: ElderlyWithCaretakerDto, @Req() req): Promise<AllQuestionsCaretaker> {
+  async getAllQuestions(@Body() elderlyWithCaretaker: ElderlyWithCaretakerDto, @Req() req): Promise<AllQuestionsCaretakerDto> {
     await this.userService.checkRelationship(elderlyWithCaretaker.elderlyuid, req.user.uid)
     return await this.memoryPracticeService.getAllQuestions(elderlyWithCaretaker.elderlyuid)
   }
@@ -35,7 +35,7 @@ export class MemoryPracticeController {
   @UseGuards(CaretakerGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @Get('/selectedQuestion')
-  async getSelectedQuestion(@Body() selectQuestionDto: SelectQuestionDto, @Req() req): Promise<QuestionDetails> {
+  async getSelectedQuestion(@Body() selectQuestionDto: SelectQuestionDto, @Req() req): Promise<QuestionDetailsDto> {
     await this.userService.checkRelationship(selectQuestionDto.elderlyuid, req.user.uid)
     return await this.memoryPracticeService.getSelectedQuestion(selectQuestionDto.elderlyuid, selectQuestionDto.mid)
   }

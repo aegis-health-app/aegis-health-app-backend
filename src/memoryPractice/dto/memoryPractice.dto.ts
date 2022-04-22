@@ -20,7 +20,7 @@ export class Question {
 }
 
 export class AllQuestionsCaretakerDto {
-  @ApiProperty({ type: Question })
+  @ApiProperty({ type: [Question] })
   @IsArray()
   questions: Question[];
 }
