@@ -3,8 +3,8 @@ import { MemoryPracticeQuestion } from './memoryPracticeQuestion.entity';
 
 @Entity({name: 'MemoryPracticeAnswer'})
 export class MemoryPracticeAnswer {
-  @CreateDateColumn({ primary: true })
-  timestamp: Timestamp;
+  @CreateDateColumn({ primary: true, type: "timestamp" })
+  timestamp: Date;
 
   @Column()
   elderAnswer: string;
