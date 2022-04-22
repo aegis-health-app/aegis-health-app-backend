@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { MemoryPracticeController } from './memory-practice.controller';
+import { MemoryPracticeController } from './memoryPractice.controller';
 
 describe('MemoryPracticeController', () => {
   let controller: MemoryPracticeController;

@@ -13,7 +13,7 @@ import { EmotionTrackingModule } from './emotion-tracking/emotion-tracking.modul
 import { HealthRecordModule } from './healthRecord/healthRecord.module';
 import { EmergencyModule } from './notification/emergency/emergency.module';
 import { NotificationModule } from './notification/notification.module';
-import { MemoryPracticeModule } from './memory-practice/memory-practice.module';
+import { MemoryPracticeModule } from './memoryPractice/memoryPractice.module';
 
 @Module({
   imports: [
@@ -43,7 +43,7 @@ import { MemoryPracticeModule } from './memory-practice/memory-practice.module';
     HealthRecordModule,
     EmergencyModule,
     NotificationModule,
-    MemoryPracticeModule
+    MemoryPracticeModule,
   ],
   controllers: [AppController],
   providers: [AppService],
