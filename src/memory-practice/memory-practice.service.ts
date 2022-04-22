@@ -56,7 +56,8 @@ export class MemoryPracticeService {
     }
 
     async createElderlyAnswers(eid: number, elderlyAnswers: CreateElderlyAnswersDto): Promise<{message: string}>{
-        const timestamp = new Date()
+        const timestamp = new Date();
+        console.log(elderlyAnswers)
         const answers = elderlyAnswers['answers'];
         for (const answer of answers){
             const memoryPracticeQuestion = await this.memoryPracticeQuestionRepository.findOne({ 
@@ -113,24 +114,29 @@ export class MemoryPracticeService {
 
     async getHistoryByTimestamp(eid: number, cid: number, timestamp: string): Promise<GetHistoryByTimestampDto>{
         await this.userService.checkRelationship(eid, cid);
+    
         const questions = await this.memoryPracticeAnswerRepository.createQueryBuilder("answer")
-            .select("answer.mid", "mid")
-            .addSelect("DATE_FORMAT(answer.timestamp, '%Y-%m-%d %H:%i:%S.%f')", 'timestamp')
-            .addSelect("question.imageid", "imageUrl")
-            .addSelect("question.question", "question")
-            .addSelect("multipleChoice.choice1 IS NOT NULL", "isMultipleChoice")
-            .addSelect("answer.elderAnswer = multipleChoice.correctAnswer OR multipleChoice.correctAnswer IS NULL", "isCorrect")
-            .addSelect("multipleChoice.choice1", "choice1")
-            .addSelect("multipleChoice.choice2", "choice2")
-            .addSelect("multipleChoice.choice3", "choice3")
-            .addSelect("multipleChoice.choice4", "choice4")
-            .addSelect("multipleChoice.correctAnswer", "correctAnswer")
-            .addSelect("answer.elderAnswer", "elderlyAnswer")
-            .leftJoin("answer.memoryPracticeQuestion", "question")
-            .leftJoin("question.multipleChoiceQuestion", "multipleChoice")
-            .where("question.uid = :uid", {uid:eid})
-            .andWhere('answer.timestamp = :timestamp', {timestamp: timestamp})
-            .getRawMany();
+        .select("answer.mid", "mid")
+        .addSelect("DATE_FORMAT(answer.timestamp, '%Y-%m-%d %H:%i:%S.%f')", 'timestamp')
+        .addSelect("question.imageid", "imageUrl")
+        .addSelect("question.question", "question")
+        .addSelect("multipleChoice.choice1 IS NOT NULL", "isMultipleChoice")
+        .addSelect("answer.elderAnswer = multipleChoice.correctAnswer OR multipleChoice.correctAnswer IS NULL", "isCorrect")
+        .addSelect("multipleChoice.choice1", "choice1")
+        .addSelect("multipleChoice.choice2", "choice2")
+        .addSelect("multipleChoice.choice3", "choice3")
+        .addSelect("multipleChoice.choice4", "choice4")
+        .addSelect("multipleChoice.correctAnswer", "correctAnswer")
+        .addSelect("answer.elderAnswer", "elderlyAnswer")
+        .leftJoin("answer.memoryPracticeQuestion", "question")
+        .leftJoin("question.multipleChoiceQuestion", "multipleChoice")
+        .where("question.uid = :uid", {uid:eid})
+        .andWhere('answer.timestamp = :timestamp', {timestamp: timestamp})
+        .getRawMany()
+        .catch(()=> {
+            throw new HttpException('Invalid timestamp format', HttpStatus.BAD_REQUEST)
+        });
+        
         if(questions.length===0){
             throw new HttpException('No record at this timestamp', HttpStatus.METHOD_NOT_ALLOWED);
         }

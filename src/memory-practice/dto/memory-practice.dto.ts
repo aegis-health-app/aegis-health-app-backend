@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsNumber, IsString, IsDate, IsOptional, IsBoolean, IsNotEmpty } from "class-validator";
+import { IsNumber, IsString, IsDate, IsOptional, IsBoolean, IsNotEmpty, ValidateNested } from "class-validator";
 import { Timestamp } from "firebase-admin/firestore";
 
 export class multipleChoiceQuestion{
@@ -65,7 +65,9 @@ export class ElderlyAnswer{
 
 export class CreateElderlyAnswersDto{
     @ApiProperty({ type: [ElderlyAnswer]})
-    answers: Array<ElderlyAnswer>
+    @ValidateNested()
+    @Type(() => ElderlyAnswer)
+    answers: ElderlyAnswer[]
 }
 
 export class GetHistoryDto{
@@ -80,7 +82,8 @@ export class QuestionAnswer{
 
     @ApiProperty()
     @IsString()
-    imageUrl: string
+    @IsOptional()
+    imageUrl?: string
 
     @ApiProperty()
     @IsString()
@@ -96,23 +99,28 @@ export class QuestionAnswer{
 
     @ApiProperty()
     @IsString()
-    choice1: string
+    @IsOptional()
+    choice1?: string
 
     @ApiProperty()
     @IsString()
-    choice2: string
+    @IsOptional()
+    choice2?: string
 
     @ApiProperty()
     @IsString()
-    choice3: string
+    @IsOptional()
+    choice3?: string
 
     @ApiProperty()
     @IsString()
-    choice4: string
+    @IsOptional()
+    choice4?: string
 
     @ApiProperty()
     @IsString()
-    correctAnswer: string
+    @IsOptional()
+    correctAnswer?: string
 
     @ApiProperty()
     @IsString()
@@ -125,6 +133,8 @@ export class GetHistoryByTimestampDto{
     timestamp: string;
 
     @ApiProperty({ type: [QuestionAnswer]})
+    @ValidateNested()
+    @Type(() => QuestionAnswer)
     questions: Array<QuestionAnswer>
 
 

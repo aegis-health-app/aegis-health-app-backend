@@ -16,7 +16,7 @@ export class MemoryPracticeController {
     @ApiOkResponse({ type: MemoryPracticeQuestionSetDto })
     @ApiUnauthorizedResponse({description: 'Login is required'})
     @ApiForbiddenResponse({description: 'This endpoint is restricted to elderly'})
-    @UsePipes(new ValidationPipe({ whitelist: true }))    
+    @UsePipes(new ValidationPipe())    
     async getQuestionSet(@Req() req): Promise<MemoryPracticeQuestionSetDto>{
         const eid = req.user.uid;
         return this.memoryPracticeService.getQuestionSet(eid);
@@ -31,7 +31,7 @@ export class MemoryPracticeController {
     @ApiForbiddenResponse({description: 'This endpoint is restricted to elderly'})
     @ApiBadRequestResponse({description: 'This question does not exist'})
     @ApiNotAcceptableResponse({description: 'This question does not belong to this elderly'})
-    // @UsePipes(new ValidationPipe({ whitelist: true }))
+    @UsePipes(new ValidationPipe({ whitelist: true }))
     async createElderlyAnswers(@Req() req, @Body() answers: CreateElderlyAnswersDto): Promise<{message: string}>{
         const eid = req.user.uid;
         return this.memoryPracticeService.createElderlyAnswers(eid, answers);
