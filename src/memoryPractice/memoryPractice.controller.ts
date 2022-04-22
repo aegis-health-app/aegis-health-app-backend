@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, Post, Put, Req, Res, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiForbiddenResponse, ApiNotAcceptableResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiForbiddenResponse, ApiNotAcceptableResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { CaretakerGuard } from 'src/auth/jwt.guard';
 import { UserService } from 'src/user/user.service';
-import { CreateQuestionDto, DeleteQuestionDto, EditQuestionDto, ElderlyWithCaretakerDto, SelectQuestionDto } from './dto/memoryPractice.dto';
+import { AllQuestionsCaretakerDto, CreateQuestionDto, DeleteQuestionDto, EditQuestionDto, ElderlyWithCaretakerDto, QuestionDetailsDto, SelectQuestionDto } from './dto/memoryPractice.dto';
 import { AllQuestionsCaretaker, QuestionDetails } from './memoryPractice.interface';
 import { MemoryPracticeService } from './memoryPractice.service';
 
@@ -17,7 +17,7 @@ export class MemoryPracticeController {
 
   @ApiOperation({ description: "Get all questions for an elderly" })
   @ApiBody({ type: ElderlyWithCaretakerDto })
-  @ApiOkResponse({ description: "Get all questions for this elderly successfully" })
+  @ApiOkResponse({ type: AllQuestionsCaretakerDto })
   @ApiNotFoundResponse({ description: "Caretaker doesn't have access to this elderly" })
   @UseGuards(CaretakerGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
@@ -29,7 +29,7 @@ export class MemoryPracticeController {
 
   @ApiOperation({ description: "Get question details for an elderly" })
   @ApiBody({ type: SelectQuestionDto })
-  @ApiOkResponse({ description: "Get all questions for this elderly successfully" })
+  @ApiOkResponse({ type: QuestionDetailsDto })
   @ApiBadRequestResponse({ description: "This question cannot be found" })
   @ApiNotFoundResponse({ description: "Caretaker doesn't have access to this elderly" })
   @UseGuards(CaretakerGuard)
@@ -42,7 +42,7 @@ export class MemoryPracticeController {
 
   @ApiOperation({ description: "Create a question for an elderly" })
   @ApiBody({ type: CreateQuestionDto })
-  @ApiOkResponse({ description: "Question created successfully" })
+  @ApiCreatedResponse({ description: "Question created successfully" })
   @ApiNotAcceptableResponse({ description: "Image is too large" })
   @ApiNotFoundResponse({ description: "Caretaker doesn't have access to this elderly" })
   @UseGuards(CaretakerGuard)
@@ -51,8 +51,8 @@ export class MemoryPracticeController {
   async createQuestion(@Body() createQuestionDto: CreateQuestionDto, @Req() req, @Res() res): Promise<string> {
     await this.userService.checkRelationship(createQuestionDto.elderlyuid, req.user.uid)
     await this.memoryPracticeService.createQuestion(createQuestionDto)
-    return res.status(200).json({
-      statusCode: 200,
+    return res.status(201).json({
+      statusCode: 201,
       message: "Question created successfully"
     })
   }

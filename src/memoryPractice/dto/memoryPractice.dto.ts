@@ -1,5 +1,61 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsBoolean, IsNumber, IsObject, IsOptional, IsString } from "class-validator";
+import { IsArray, IsBoolean, IsNumber, IsObject, IsOptional, IsString } from "class-validator";
+
+export class Question {
+  @ApiProperty()
+  @IsString()
+  mid: string;
+  @ApiProperty()
+  @IsString()
+  question: string;
+  @ApiProperty()
+  @IsBoolean()
+  isSelected: boolean;
+  @ApiProperty()
+  @IsString()
+  imageid: string;
+  @ApiProperty()
+  @IsNumber()
+  uid: number;
+}
+
+export class AllQuestionsCaretakerDto {
+  @ApiProperty({ type: Question })
+  @IsArray()
+  questions: Question[];
+}
+
+export class QuestionDetailsDto {
+  @ApiProperty()
+  @IsString()
+  question: string;
+  @ApiProperty()
+  @IsString()
+  imageid: string;
+  @ApiProperty()
+  @IsBoolean()
+  isMCQ: boolean;
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  choice1?: string;
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  choice2?: string;
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  choice3?: string;
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  choice4?: string;
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  correctAnswer?: string;
+}
 
 export class ElderlyWithCaretakerDto {
   @ApiProperty()
