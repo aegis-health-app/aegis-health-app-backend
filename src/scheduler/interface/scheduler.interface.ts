@@ -22,6 +22,6 @@ export class Recursion {
 export class Schedule {
   name: string;
   startDate: Date;
-  recursion: RecurringInterval;
+  recursion?: RecurringInterval;
   customRecursion?: Recursion;
 }
