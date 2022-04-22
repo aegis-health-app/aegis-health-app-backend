@@ -85,15 +85,6 @@ export class MemoryPracticeService {
         await this.userService.checkRelationship(eid, cid);
         const records = await this.memoryPracticeAnswerRepository.createQueryBuilder("answer")
             .select("DATE_FORMAT(answer.timestamp, '%Y-%m-%d %H:%i:%S.%f')", 'timestamp')
-            // .addSelect("COUNT(answer.mid)", "totalCount")
-            // .addSelect(subQuery => {
-            //     return subQuery
-            //         .select("COUNT(answer2.mid)")
-            //         .from(MemoryPracticeAnswer, "answer2")
-            //         .leftJoin("answer2.memoryPracticeQuestion", "question2")
-            //         .leftJoin("question2.multipleChoiceQuestion", "multipleChoice2")
-            //         .where("(answer2.elderAnswer = multipleChoice2.correctAnswer OR multipleChoice2.correctAnswer IS NULL) AND question2.uid = :uid AND answer2.timestamp = answer.timestamp", {uid:eid})
-            // }, "correctCount")
             .innerJoin("answer.memoryPracticeQuestion", "question")
             .leftJoin("question.multipleChoiceQuestion", "multipleChoice")
             .where("question.uid = :uid", {uid:eid})
