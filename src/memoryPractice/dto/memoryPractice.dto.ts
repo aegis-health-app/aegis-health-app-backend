@@ -165,7 +165,7 @@ export class MemoryPracticeQuestion{
   @IsOptional()
   imageid?: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: multipleChoiceQuestion })
   @IsOptional()
   multipleChoiceQuestion?: multipleChoiceQuestion;
 
@@ -176,6 +176,7 @@ export class MemoryPracticeQuestion{
 
 export class MemoryPracticeQuestionSetDto{
   @ApiProperty({ type: [MemoryPracticeQuestion]})
+  @IsArray()
   questions: Array<MemoryPracticeQuestion>
 }
 
@@ -198,6 +199,7 @@ export class CreateElderlyAnswersDto{
 
 export class GetHistoryDto{
   @ApiProperty({ type: [String]})
+  @IsArray()
   timestamps: string[];
 }
 

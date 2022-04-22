@@ -101,7 +101,7 @@ export class MemoryPracticeController {
     })
   }
 
-  @Get('/question-set/')
+  @Get('/questionSet/')
   @ApiOperation({description: 'Get a list of memory recall questions for an elderly'})
   @ApiBearerAuth()
   @UseGuards(ElderlyGuard)
@@ -114,7 +114,7 @@ export class MemoryPracticeController {
       return this.memoryPracticeService.getQuestionSet(eid);
   }
 
-  @Post('/elderly-answers')
+  @Post('/elderlyAnswers')
   @ApiOperation({description: "Create a record of elderly's answers"})
   @ApiBearerAuth()
   @UseGuards(ElderlyGuard)

@@ -21,13 +21,13 @@ export class MemoryPracticeService {
 
   constructor(
     private readonly googleStorageService: GoogleCloudStorage,
+    private userService: UserService,
     @InjectRepository(MemoryPracticeQuestion)
     private memoryPracticeQuestionRepository: Repository<MemoryPracticeQuestion>,
     @InjectRepository(MultipleChoiceQuestion)
     private multipleChoiceQuestionRepository: Repository<MultipleChoiceQuestion>,
     @InjectRepository(MemoryPracticeAnswer)
-        private memoryPracticeAnswerRepository: Repository<MemoryPracticeAnswer>,
-        private userService: UserService
+    private memoryPracticeAnswerRepository: Repository<MemoryPracticeAnswer>    
   ) { }
 
   async getAllQuestions(eid: number): Promise<AllQuestionsCaretaker> {
