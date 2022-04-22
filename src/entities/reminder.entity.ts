@@ -1,21 +1,13 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  OneToMany,
-  JoinColumn,
-  Timestamp,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn, Timestamp } from 'typeorm';
 import { Recurring } from './recurring.entity';
 import { User } from './user.entity';
 
-@Entity({name: 'Reminder'})
+@Entity({ name: 'Reminder' })
 export class Reminder {
   @PrimaryGeneratedColumn()
   rid: number;
 
-  @Column({type: "date"})
+  @Column({ type: 'date' })
   startingDateTime: Timestamp;
 
   @Column()
@@ -27,7 +19,7 @@ export class Reminder {
   @Column()
   isRemindCaretaker: boolean;
 
-  @Column({ default: 'Low'})
+  @Column({ default: 'Low' })
   importanceLevel: string;
 
   @Column({ nullable: true })
@@ -41,7 +33,7 @@ export class Reminder {
     onUpdate: 'NO ACTION',
     nullable: false,
   })
-  @JoinColumn({name: 'uid', referencedColumnName: 'uid'})
+  @JoinColumn({ name: 'uid', referencedColumnName: 'uid' })
   user: User;
 
   @OneToMany(() => Recurring, (recurring) => recurring.reminder)

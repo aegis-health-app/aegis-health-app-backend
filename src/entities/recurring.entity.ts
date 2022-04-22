@@ -1,12 +1,12 @@
 import { Entity, PrimaryColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Reminder } from './reminder.entity';
 
-@Entity({name: 'Recurring'})
+@Entity({ name: 'Recurring' })
 export class Recurring {
   @PrimaryColumn({ default: 0 })
   recurringDateOfMonth: number;
 
-  @PrimaryColumn({ default: 0})
+  @PrimaryColumn({ default: 0 })
   recurringDay: number;
 
   @ManyToOne(() => Reminder, (reminder) => reminder.recurrings, {
@@ -15,6 +15,6 @@ export class Recurring {
     nullable: false,
     primary: true,
   })
-  @JoinColumn({name: 'rid', referencedColumnName: 'rid'})
+  @JoinColumn({ name: 'rid', referencedColumnName: 'rid' })
   reminder: Reminder;
 }

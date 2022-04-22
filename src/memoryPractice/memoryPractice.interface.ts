@@ -44,7 +44,7 @@ export interface EditQuestion extends CreateQuestion {
   mid: string;
 }
 
-export interface MultipleChoiceQuestion{
+export interface MultipleChoiceQuestion {
   choice1: string;
   choice2: string;
   choice3: string;
@@ -52,7 +52,7 @@ export interface MultipleChoiceQuestion{
   correctAnswer: string;
 }
 
-export interface MemoryPracticeQuestion{
+export interface MemoryPracticeQuestion {
   mid: number;
   question: string;
   imageid?: string;
@@ -60,7 +60,6 @@ export interface MemoryPracticeQuestion{
   isMultipleChoice: boolean;
 }
 
-export interface MemoryPracticeQuestionSet{
+export interface MemoryPracticeQuestionSet {
   questions: MemoryPracticeQuestion[];
 }
-
