@@ -63,13 +63,14 @@ export class MemoryPracticeService {
     }
   }
 
-  async editSelection(eid: number, mid: string): Promise<string> {
+  async editSelection(eid: number, mid: string, isSelected: string): Promise<string> {
     const question = await this.memoryPracticeQuestionRepository.findOne({ where: { uid: eid, mid: mid } });
     if (!question)
       throw new HttpException('This question cannot be found', HttpStatus.BAD_REQUEST);
+    const isSelectedBoolean = (isSelected === 'true');
     await this.memoryPracticeQuestionRepository.update(mid,
       {
-        isSelected: !question.isSelected
+        isSelected: isSelectedBoolean
       })
     return 'Complete'
   }

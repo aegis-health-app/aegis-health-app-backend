@@ -71,10 +71,10 @@ export class MemoryPracticeController {
   @ApiNotFoundResponse({ description: "Caretaker doesn't have access to this elderly" })
   @UseGuards(CaretakerGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  @Put('/editSelection')
-  async editSelection(@Body() editSelectionDto: EditSelectionDto, @Req() req, @Res() res): Promise<string> {
+  @Put('/editSelection/:isSelected')
+  async editSelection(@Param("isSelected") isSelected: string, @Body() editSelectionDto: EditSelectionDto, @Req() req, @Res() res): Promise<string> {
     await this.userService.checkRelationship(editSelectionDto.elderlyuid, req.user.uid)
-    await this.memoryPracticeService.editSelection(editSelectionDto.elderlyuid, editSelectionDto.mid)
+    await this.memoryPracticeService.editSelection(editSelectionDto.elderlyuid, editSelectionDto.mid, isSelected)
     return res.status(200).json({
       statusCode: 200,
       message: "Question selection editted succesfully"
