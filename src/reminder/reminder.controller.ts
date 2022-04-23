@@ -17,11 +17,11 @@ export class ReminderController {
     return this.reminderService.create(createReminderDto, req.user.uid);
   }
   @Put()
-  @UseGuards()
+  @UseGuards(UserGuard)
   @ApiBearerAuth()
   @ApiBody({ type: UpdateReminderDto })
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  update(@Body() updateReminderDto: UpdateReminderDto) {
-    return this.reminderService.update(updateReminderDto.rid, updateReminderDto);
+  update(@Body() updateReminderDto: UpdateReminderDto, @Req() req) {
+    return this.reminderService.update(updateReminderDto, req.user.uid);
   }
 }

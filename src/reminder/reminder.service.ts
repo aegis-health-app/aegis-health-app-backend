@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnsupportedMediaTypeException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, UnsupportedMediaTypeException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import moment from 'moment';
 import { Recurring } from 'src/entities/recurring.entity';
@@ -56,11 +56,13 @@ export class ReminderService {
     return reminder;
   }
 
-  async update(rid: number, dto: UpdateReminderDto) {
+  async update(dto: UpdateReminderDto, uid: number) {
     if (dto.customRecursion && dto.recursion) throw new BadRequestException('Reminder cannot have both custom and predefied recursion');
     if (moment(dto.startingDateTime).utcOffset(0).valueOf() < Date.now()) throw new BadRequestException('Start date cannot be in the past');
-    const reminder = await this.reminderRepository.findOne({ rid: rid });
+    const reminder = await this.reminderRepository.findOne({ rid: dto.rid }, { relations: ['user'] });
     if (!reminder) throw new BadRequestException('Reminder does not exist');
+    if (uid !== reminder.user.uid && !(await this.userService.checkRelationship(reminder.user.uid, uid)))
+      throw new ForbiddenException('You do not have permission to access this reminder');
     let newRecursion = undefined;
     if (dto.recursion || dto.customRecursion)
       newRecursion = this.getRecursion(
