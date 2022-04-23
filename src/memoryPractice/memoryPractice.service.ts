@@ -38,7 +38,7 @@ export class MemoryPracticeService {
     };
   }
 
-  async getSelectedQuestion(eid: number, mid: number): Promise<QuestionDetails> {
+  async getSelectedQuestion(eid: number, mid: string): Promise<QuestionDetails> {
     const question = await this.memoryPracticeQuestionRepository.findOne({ where: { uid: eid, mid: mid } });
     if (!question) throw new HttpException('This question cannot be found', HttpStatus.BAD_REQUEST);
     const MCQ = await this.multipleChoiceQuestionRepository.findOne({ where: { mid: mid } });
@@ -61,6 +61,18 @@ export class MemoryPracticeService {
         correctAnswer: MCQ.correctAnswer,
       };
     }
+  }
+
+  async editSelection(eid: number, mid: string, isSelected: string): Promise<string> {
+    const question = await this.memoryPracticeQuestionRepository.findOne({ where: { uid: eid, mid: mid } });
+    if (!question)
+      throw new HttpException('This question cannot be found', HttpStatus.BAD_REQUEST);
+    const isSelectedBoolean = (isSelected === 'true');
+    await this.memoryPracticeQuestionRepository.update(mid,
+      {
+        isSelected: isSelectedBoolean
+      })
+    return 'Complete'
   }
 
   async createQuestion(createQuestion: CreateQuestion): Promise<string> {

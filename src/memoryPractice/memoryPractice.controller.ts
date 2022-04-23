@@ -27,6 +27,7 @@ import {
   CreateElderlyAnswersDto,
   GetHistoryDto,
   GetHistoryByTimestampDto,
+  EditSelectionDto,
 } from './dto/memoryPractice.dto';
 import { MemoryPracticeService } from './memoryPractice.service';
 
@@ -36,7 +37,7 @@ import { MemoryPracticeService } from './memoryPractice.service';
 @ApiForbiddenResponse({ description: 'Forbidden' })
 @Controller('memoryPractice')
 export class MemoryPracticeController {
-  constructor(private readonly memoryPracticeService: MemoryPracticeService, private readonly userService: UserService) {}
+  constructor(private readonly memoryPracticeService: MemoryPracticeService, private readonly userService: UserService) { }
 
   @ApiOperation({ description: 'Get all questions for an elderly' })
   @ApiBody({ type: ElderlyWithCaretakerDto })
@@ -44,7 +45,7 @@ export class MemoryPracticeController {
   @ApiNotFoundResponse({ description: "Caretaker doesn't have access to this elderly" })
   @UseGuards(CaretakerGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  @Get('/allQuestions')
+  @Post('/allQuestions')
   async getAllQuestions(@Body() elderlyWithCaretaker: ElderlyWithCaretakerDto, @Req() req): Promise<AllQuestionsCaretakerDto> {
     await this.userService.checkRelationship(elderlyWithCaretaker.elderlyuid, req.user.uid);
     return await this.memoryPracticeService.getAllQuestions(elderlyWithCaretaker.elderlyuid);
@@ -57,13 +58,30 @@ export class MemoryPracticeController {
   @ApiNotFoundResponse({ description: "Caretaker doesn't have access to this elderly" })
   @UseGuards(CaretakerGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  @Get('/selectedQuestion')
+  @Post('/selectedQuestion')
   async getSelectedQuestion(@Body() selectQuestionDto: SelectQuestionDto, @Req() req): Promise<QuestionDetailsDto> {
     await this.userService.checkRelationship(selectQuestionDto.elderlyuid, req.user.uid);
     return await this.memoryPracticeService.getSelectedQuestion(selectQuestionDto.elderlyuid, selectQuestionDto.mid);
   }
 
-  @ApiOperation({ description: 'Create a question for an elderly' })
+  @ApiOperation({ description: 'Change question selection status' })
+  @ApiBody({ type: EditSelectionDto })
+  @ApiOkResponse({ description: 'Question selection editted successfully' })
+  @ApiBadRequestResponse({ description: 'This question cannot be found' })
+  @ApiNotFoundResponse({ description: "Caretaker doesn't have access to this elderly" })
+  @UseGuards(CaretakerGuard)
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  @Put('/editSelection/:isSelected')
+  async editSelection(@Param("isSelected") isSelected: string, @Body() editSelectionDto: EditSelectionDto, @Req() req, @Res() res): Promise<string> {
+    await this.userService.checkRelationship(editSelectionDto.elderlyuid, req.user.uid)
+    await this.memoryPracticeService.editSelection(editSelectionDto.elderlyuid, editSelectionDto.mid, isSelected)
+    return res.status(200).json({
+      statusCode: 200,
+      message: "Question selection editted succesfully"
+    })
+  }
+
+  @ApiOperation({ description: "Create a question for an elderly" })
   @ApiBody({ type: CreateQuestionDto })
   @ApiCreatedResponse({ description: 'Question created successfully' })
   @ApiNotAcceptableResponse({ description: 'Image is too large' })
