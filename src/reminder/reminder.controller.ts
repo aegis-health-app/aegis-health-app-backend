@@ -1,8 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Req, Res, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Param, Put, Req, Res, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConflictResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { CaretakerGuard, ElderlyGuard } from 'src/auth/jwt.guard';
 import { UserService } from 'src/user/user.service';
-import { DeleteReminderDto, GetFinishedReminderDto, GetReminderDto, GetUnFinishedReminderDto, ListReminderEachDateDto, ListUnfinishedReminderDto, ReminderDto } from './dto/reminder.dto';
+import { DeleteReminderDto, GetFinishedReminderDto, GetReminderDto, GetUnFinishedReminderDto, ListReminderEachDateDto, ListUnfinishedReminderDto, MarkAsNotCompleteDto, ReminderDto } from './dto/reminder.dto';
 import { ReminderService } from './reminder.service';
 
 @ApiBearerAuth()
@@ -26,7 +26,6 @@ export class ReminderController {
             message: "Deleted reminder from the database successfully"
         })
     }
-
 
     @ApiUnauthorizedResponse({ description: "Must login to use this endpoints" })
     @ApiForbiddenResponse({ description: "Must be caretaker to use this endpoints" })
@@ -121,4 +120,39 @@ export class ReminderController {
         return await this.reminderService.getUnfinishedReminder(body.currentDate, req.user.id)
     }
     
+    @ApiConflictResponse({ description: "This reminder is not yet completed" })
+    @ApiUnauthorizedResponse({ description: "Must login to use this endpoints" })
+    @ApiForbiddenResponse({ description: "Must be elderly to use this endpoints" })
+    @ApiOkResponse({ description: "Mark reminder as not complete from the database succesfully" })
+    @ApiBody({ type: MarkAsNotCompleteDto })
+    @ApiNotFoundResponse({ description: "Reminder not found" })
+    @UseGuards(ElderlyGuard)
+    @UsePipes(new ValidationPipe({ whitelist: true }))
+    @Put('markAsNotComplete/elderly')
+    async markAsNotCompleteElderly(@Res() res, @Body() body: MarkAsNotCompleteDto): Promise<string> {
+        await this.reminderService.markAsNotComplete(body.rid)
+        return res.status(200).json({
+            statusCode: 200,
+            message: "Mark reminder as not complete from the database successfully"
+        })
+    }
+
+    @ApiConflictResponse({ description: "This reminder is not yet completed" })
+    @ApiUnauthorizedResponse({ description: "Must login to use this endpoints" })
+    @ApiForbiddenResponse({ description: "Must be caretaker to use this endpoints" })
+    @ApiOkResponse({ description: "Mark reminder as not complete from the database succesfully" })
+    @ApiBadRequestResponse({ description: "Caretaker doesn't have access to this elderly"})
+    @ApiBody({ type: MarkAsNotCompleteDto })
+    @ApiNotFoundResponse({ description: "Reminder not found" })
+    @UseGuards(CaretakerGuard)
+    @UsePipes(new ValidationPipe({ whitelist: true }))
+    @Put('markAsNotComplete/caretaker/:eid')
+    async markAsNotCompleteCaretaker(@Param("eid") eid: number, @Res() res, @Req() req, @Body() body: MarkAsNotCompleteDto): Promise<string> {
+        await this.userService.checkRelationship(eid, req.user.uid)
+        await this.reminderService.markAsNotComplete(body.rid)
+        return res.status(200).json({
+            statusCode: 200,
+            message: "Mark reminder as not complete from the database successfully"
+        })
+    }
 }

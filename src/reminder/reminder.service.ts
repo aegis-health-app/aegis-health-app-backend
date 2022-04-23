@@ -211,4 +211,14 @@ export class ReminderService {
             future: future
         }
     }
+
+    async markAsNotComplete(rid: number): Promise<string>{
+        const reminder = await this.reminderRepository.findOne({ where: { rid: rid } })
+        if (!reminder) throw new HttpException('Reminder not found', HttpStatus.NOT_FOUND)
+        if (!reminder.isDone) throw new HttpException('This reminder is not yet completed', HttpStatus.CONFLICT)
+        reminder.isDone = false
+        
+        await this.reminderRepository.save(reminder);
+        return 'Complete'
+    }
 }

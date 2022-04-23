@@ -120,3 +120,5 @@ export class ListUnfinishedReminderDto {
   @IsArray()
   future: Array<ListReminderEachDateDto>
 }
+
+export class MarkAsNotCompleteDto extends DeleteReminderDto {}
