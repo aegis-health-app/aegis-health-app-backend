@@ -44,11 +44,6 @@ export interface EditQuestion extends CreateQuestion {
   mid: string;
 }
 
-export interface EditSelection {
-  elderlyuid: number;
-  mid: string;
-}
-
 export interface MultipleChoiceQuestion {
   choice1: string;
   choice2: string;
