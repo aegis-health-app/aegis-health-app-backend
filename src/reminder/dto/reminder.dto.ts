@@ -122,3 +122,9 @@ export class ListUnfinishedReminderDto {
 }
 
 export class MarkAsNotCompleteDto extends DeleteReminderDto {}
+
+export class MarkAsCompleteDto extends DeleteReminderDto {
+  @ApiProperty()
+  @IsDate()
+  currentDate: Date
+}

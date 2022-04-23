@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, Put, Req, Res, UseGuards, UsePipe
 import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConflictResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { CaretakerGuard, ElderlyGuard } from 'src/auth/jwt.guard';
 import { UserService } from 'src/user/user.service';
-import { DeleteReminderDto, GetFinishedReminderDto, GetReminderDto, GetUnFinishedReminderDto, ListReminderEachDateDto, ListUnfinishedReminderDto, MarkAsNotCompleteDto, ReminderDto } from './dto/reminder.dto';
+import { DeleteReminderDto, GetFinishedReminderDto, GetReminderDto, GetUnFinishedReminderDto, ListReminderEachDateDto, ListUnfinishedReminderDto, MarkAsCompleteDto, MarkAsNotCompleteDto, ReminderDto } from './dto/reminder.dto';
 import { ReminderService } from './reminder.service';
 
 @ApiBearerAuth()
@@ -153,6 +153,42 @@ export class ReminderController {
         return res.status(200).json({
             statusCode: 200,
             message: "Mark reminder as not complete from the database successfully"
+        })
+    }
+
+    @ApiConflictResponse({ description: "This reminder is already completed or Can not mark reminder in advance over 30 minutes or Can not mark reminder that have recurring" })
+    @ApiUnauthorizedResponse({ description: "Must login to use this endpoints" })
+    @ApiForbiddenResponse({ description: "Must be elderly to use this endpoints" })
+    @ApiOkResponse({ description: "Mark reminder as complete from the database succesfully" })
+    @ApiBody({ type: MarkAsCompleteDto })
+    @ApiNotFoundResponse({ description: "Reminder not found" })
+    @UseGuards(ElderlyGuard)
+    @UsePipes(new ValidationPipe({ whitelist: true }))
+    @Put('markAsComplete/elderly')
+    async markAsCompleteElderly(@Res() res, @Body() body: MarkAsCompleteDto): Promise<string> {
+        await this.reminderService.markAsComplete(body.rid, body.currentDate)
+        return res.status(200).json({
+            statusCode: 200,
+            message: "Mark reminder as complete from the database successfully"
+        })
+    }
+
+    @ApiConflictResponse({ description: "This reminder is already completed or Can not mark reminder in advance over 30 minutes or Can not mark reminder that have recurring" })
+    @ApiUnauthorizedResponse({ description: "Must login to use this endpoints" })
+    @ApiForbiddenResponse({ description: "Must be caretaker to use this endpoints" })
+    @ApiOkResponse({ description: "Mark reminder as complete from the database succesfully" })
+    @ApiBadRequestResponse({ description: "Caretaker doesn't have access to this elderly"})
+    @ApiBody({ type: MarkAsCompleteDto })
+    @ApiNotFoundResponse({ description: "Reminder not found" })
+    @UseGuards(CaretakerGuard)
+    @UsePipes(new ValidationPipe({ whitelist: true }))
+    @Put('markAsComplete/caretaker/:eid')
+    async markAsCompleteCaretaker(@Param("eid") eid: number, @Res() res, @Req() req, @Body() body: MarkAsCompleteDto): Promise<string> {
+        await this.userService.checkRelationship(eid, req.user.uid)
+        await this.reminderService.markAsComplete(body.rid, body.currentDate)
+        return res.status(200).json({
+            statusCode: 200,
+            message: "Mark reminder as complete from the database successfully"
         })
     }
 }

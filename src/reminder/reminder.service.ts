@@ -2,9 +2,8 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Reminder } from 'src/entities/reminder.entity';
 import { Recurring } from 'src/entities/recurring.entity';
-import { Between, LessThan, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+import { Between, LessThan, MoreThanOrEqual, Repository } from 'typeorm';
 import { ModifiedReminder, GetReminder, ListReminderEachDate, ListUnfinishedReminder } from './reminder.interface';
-import { Contains } from 'class-validator';
 
 @Injectable()
 export class ReminderService {
@@ -217,6 +216,19 @@ export class ReminderService {
         if (!reminder) throw new HttpException('Reminder not found', HttpStatus.NOT_FOUND)
         if (!reminder.isDone) throw new HttpException('This reminder is not yet completed', HttpStatus.CONFLICT)
         reminder.isDone = false
+        
+        await this.reminderRepository.save(reminder);
+        return 'Complete'
+    }
+
+    async markAsComplete(rid: number, currentDate: Date): Promise<string>{
+        const reminder = await this.reminderRepository.findOne({ where: { rid: rid } })
+        if (!reminder) throw new HttpException('Reminder not found', HttpStatus.NOT_FOUND)
+        if (reminder.isDone) throw new HttpException('This reminder is already completed', HttpStatus.CONFLICT)
+        if ((reminder.startingDateTime.getTime() - currentDate.getTime()) > 1800000) throw new HttpException('Can not mark reminder in advance over 30 minutes', HttpStatus.CONFLICT)
+        if (reminder.recurrings.length!==0) throw new HttpException('Can not mark reminder that have recurring', HttpStatus.CONFLICT)
+        // not sure about reminder.recurrings.length
+        reminder.isDone = true
         
         await this.reminderRepository.save(reminder);
         return 'Complete'
