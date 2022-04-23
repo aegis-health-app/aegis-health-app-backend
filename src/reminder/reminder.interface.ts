@@ -18,7 +18,7 @@ export interface GetReminder extends Reminder {
     recurrings: Recurring[]
 }
 
-export interface FinishedReminder  {
+export interface ModifiedReminder  {
     rid: number
     title: string
     note: string
@@ -29,7 +29,8 @@ export interface FinishedReminder  {
     minute: number
 }
 
-export interface ListFinishedReminder {
+export interface ListReminderEachDate {
     date: Date
-    reminder: FinishedReminder[]
+    reminder: ModifiedReminder[]
+}
 }

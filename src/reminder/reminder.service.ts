@@ -24,10 +24,10 @@ export class ReminderService {
         return reminder
     }
 
-    async getFinishedReminder(currentDate: Date, uid: number): Promise<ListFinishedReminder[]> {
+    async getFinishedReminder(currentDate: Date, uid: number): Promise<ListReminderEachDate[]> {
         currentDate.setDate(currentDate.getDate() - 7)
-        currentDate.setHours(0, 0, 0, 0)
-        let reminders: Reminder[] = await this.reminderRepository.find({
+        currentDate.setHours(0, 0, 0)
+        const reminders: Reminder[] = await this.reminderRepository.find({
             where: {
                 uid: uid,
                 isDone: true,
@@ -37,9 +37,11 @@ export class ReminderService {
                 startingDate: "DESC"
             }
         })
-        let listReminderGroupByDate = []
-        for (let i = 0; i < 8; i++) {
-            const listReminderEachDate: FinishedReminder[] = []
+
+        currentDate.setDate(currentDate.getDate()+8)
+        const listReminderGroupByDate = []
+        for (let i = 0; i < 9; i++) {
+            const listReminderEachDate: ModifiedReminder[] = []
             for (const reminder of reminders) {
                 if (reminder.startingDate.getDate() === currentDate.getDate()) {
                     listReminderEachDate.push({
@@ -50,7 +52,7 @@ export class ReminderService {
                         importanceLevel: reminder.importanceLevel,
                         imageid: reminder.imageid,
                         hour: reminder.startingDate.getHours(),
-                        minute: reminder.startingDate.getTime()
+                        minute: reminder.startingDate.getMinutes()
                     })
                     reminders.splice(reminders.indexOf(reminder), 1)
                 }
@@ -59,7 +61,7 @@ export class ReminderService {
                 date: currentDate,
                 reminder: listReminderEachDate
             })
-            currentDate.setDate(currentDate.getDate() + 1)
+            currentDate.setDate(currentDate.getDate() - 1)
         }
         return listReminderGroupByDate
     }
