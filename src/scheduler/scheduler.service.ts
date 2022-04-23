@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CronExpression, SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob } from 'cron';
 import moment from 'moment';
-import { RecurringInterval, Recursion, RecursionPeriod, Schedule } from './interface/scheduler.interface';
+import { RecurringInterval, Recursion, RecursionPeriod, Repetition, Schedule } from './interface/scheduler.interface';
 
 @Injectable()
 export class SchedulerService {
@@ -26,18 +26,60 @@ export class SchedulerService {
     const timeDiff = moment(startDate).utcOffset(0).diff(moment(), 'milliseconds');
     this.addTimeout(name, timeDiff, callback);
   }
+  scheduleInterval(jobName: string, startDate: Date, repetition: Repetition, callback: () => void) {
+    if (moment(startDate).utcOffset(0).milliseconds() < Date.now()) throw new RangeError('Invalid Date: date should be after present');
+    const name = `${jobName}-interval`;
+    let iteration = 0;
+    const intervalCallback = () => {
+      callback();
+      iteration++;
+      if (repetition.maxIteration && iteration >= repetition.maxIteration) this.schedulerRegistry.deleteInterval(name);
+    };
+    this.scheduleJob(name, startDate, () => {
+      const interval = setInterval(intervalCallback, repetition.interval);
+      this.schedulerRegistry.addInterval(`${jobName}-interval-timeout`, interval);
+    });
+  }
   private addTimeout(name: string, ms: number, callback: () => void) {
     const timeout = setTimeout(callback, ms);
-    if (this.schedulerRegistry.getTimeouts().find((timeoutName) => timeoutName === name)) this.schedulerRegistry.deleteTimeout(name);
-    this.schedulerRegistry.addTimeout(name, timeout);
+    try {
+      this.schedulerRegistry.addTimeout(name, timeout);
+    } catch (e) {
+      this.schedulerRegistry.deleteTimeout(name);
+      this.schedulerRegistry.addTimeout(name, timeout);
+    }
+    return timeout;
   }
   private addRecurringJob({ name, recursion, customRecursion, startDate }: Schedule, callback: () => void) {
     const jobId = `${name}-recurring`;
-    if (this.schedulerRegistry.getCronJobs().has(jobId)) this.schedulerRegistry.deleteCronJob(jobId);
     const cronExp = recursion ? this.getPredefinedCronExpression(recursion, startDate) : this.getCustomCronExpression(customRecursion, startDate);
     const job = new CronJob(cronExp, callback);
-    this.schedulerRegistry.addCronJob(jobId, job);
+    try {
+      this.schedulerRegistry.addCronJob(jobId, job);
+    } catch (e) {
+      this.schedulerRegistry.deleteCronJob(jobId);
+      this.schedulerRegistry.addCronJob(jobId, job);
+    }
     return job;
+  }
+  deleteInterval(name: string) {
+    try {
+      this.schedulerRegistry.deleteInterval(`${name}-interval`);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  clearJobs(name: string): void {
+    //clear all jobs when deleting reminders
+    if (this.schedulerRegistry.getIntervals().find((intervalName) => intervalName === `${name}-interval`))
+      this.schedulerRegistry.deleteInterval(`${name}-interval`);
+    if (this.schedulerRegistry.getCronJobs().has(`${name}-recurring`)) this.schedulerRegistry.deleteCronJob(`${name}-recurring`);
+    this.schedulerRegistry.getTimeouts().forEach((timeoutName) => {
+      if (timeoutName === `${name}-timeout` || timeoutName === `${name}-interval-timeout`) {
+        this.schedulerRegistry.deleteTimeout(timeoutName);
+      }
+    });
   }
   private getPredefinedCronExpression(interval: RecurringInterval, date: Date): string {
     const dateUtc = moment(date).utcOffset(0).toDate();

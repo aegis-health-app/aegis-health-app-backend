@@ -21,10 +21,15 @@ export class Recursion {
   @ApiPropertyOptional()
   date?: number;
 }
-
-export class Schedule {
+export class Repetition {
+  maxIteration?: number;
+  interval: number;
+}
+export class RecurringOption {
+  recursion: RecurringInterval;
+  customRecursion: Recursion;
+}
+export class Schedule extends PartialType(RecurringOption) {
   name: string;
   startDate: Date;
-  recursion?: RecurringInterval;
-  customRecursion?: Recursion;
 }
