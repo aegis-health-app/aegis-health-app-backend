@@ -10,7 +10,7 @@ import { MemoryPracticeController } from './memoryPractice.controller';
 import { MemoryPracticeService } from './memoryPractice.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([MemoryPracticeQuestion, MemoryPracticeAnswer, MultipleChoiceQuestion, User]), UserModule, GoogleModule, UserModule],
+  imports: [TypeOrmModule.forFeature([MemoryPracticeQuestion, MemoryPracticeAnswer, MultipleChoiceQuestion, User]), UserModule, GoogleModule],
   controllers: [MemoryPracticeController],
   providers: [MemoryPracticeService],
 })
