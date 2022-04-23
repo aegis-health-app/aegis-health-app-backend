@@ -7,9 +7,10 @@ import { Reminder } from 'src/entities/reminder.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GoogleModule } from 'src/google-cloud/google.module';
 import { User } from 'src/entities/user.entity';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Reminder, User]), SchedulerModule, NotificationModule, GoogleModule],
+  imports: [TypeOrmModule.forFeature([Reminder, User]), SchedulerModule, NotificationModule, GoogleModule, UserModule],
   controllers: [ReminderController],
   providers: [ReminderService],
 })

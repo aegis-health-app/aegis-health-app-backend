@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsDate, IsDateString, IsNotEmpty, IsNotEmptyObject, IsString } from 'class-validator';
+import { IsBoolean, IsDate, IsDateString, IsNotEmpty, IsNotEmptyObject, IsNumber, IsOptional, IsString } from 'class-validator';
 import { RecurringInterval, Recursion } from 'src/scheduler/interface/scheduler.interface';
 import { ImageDto } from 'src/utils/global.dto';
 import { ImportanceLevel } from '../reminder.interface';
@@ -15,6 +15,7 @@ export class CreateReminderDto {
   @IsBoolean()
   isRemindCaretaker: boolean;
   @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
   note?: string;
   @ApiProperty()
@@ -24,7 +25,13 @@ export class CreateReminderDto {
   @IsString()
   importanceLevel: ImportanceLevel;
   @ApiPropertyOptional({ enum: ['EVERY_DAY', 'EVERY_MONTH', 'EVERY_WEEK'] })
+  @IsOptional()
   recursion?: RecurringInterval;
   @ApiPropertyOptional()
+  @IsOptional()
   customRecursion?: Recursion;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  eid?: number;
 }

@@ -14,7 +14,6 @@ export class ReminderController {
   @ApiBody({ type: CreateReminderDto })
   @UsePipes(new ValidationPipe({ whitelist: true }))
   create(@Body() createReminderDto: CreateReminderDto, @Req() req) {
-    console.log(createReminderDto);
     return this.reminderService.create(createReminderDto, req.user.uid);
   }
 }
