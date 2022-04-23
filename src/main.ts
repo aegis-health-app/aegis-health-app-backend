@@ -14,6 +14,8 @@ async function bootstrap() {
   app.use('/healthRecord/caretaker', json({ limit: '5mb' }));
   app.use('/healthRecord/add/elderly', json({ limit: '5mb' }));
   app.use('/healthRecord/add/caretaker', json({ limit: '5mb' }));
+  app.use('/memoryPractice/createQuestion', json({ limit: '5mb' }));
+  app.use('/memoryPractice/editQuestion', json({ limit: '5mb' }));
   app.use(json({ limit: '100kb' }));
   const config = new DocumentBuilder()
     .setTitle('Aegis Health Application')
