@@ -12,7 +12,12 @@ export enum RecursionPeriod {
   WEEK = 'WEEK',
   MONTH = 'MONTH',
 }
-
+export enum JobType {
+  INTERVAL = 'interval',
+  RECURRING = 'recurring',
+  TIMEOUT = 'timeout',
+  INTERVAL_TIMEOUT = 'interval-timeout',
+}
 export class Recursion {
   @ApiProperty({ enum: ['WEEK', 'MONTH'] })
   period: RecursionPeriod;

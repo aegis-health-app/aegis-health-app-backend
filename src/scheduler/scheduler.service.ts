@@ -2,13 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { CronExpression, SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob } from 'cron';
 import moment from 'moment';
-import { RecurringInterval, Recursion, RecursionPeriod, Repetition, Schedule } from './interface/scheduler.interface';
+import { JobType, RecurringInterval, Recursion, RecursionPeriod, Repetition, Schedule } from './interface/scheduler.interface';
 
 @Injectable()
 export class SchedulerService {
   constructor(private schedulerRegistry: SchedulerRegistry) {}
   scheduleRecurringJob(schedule: Schedule, callback: () => void) {
-    if (moment(schedule.startDate).utcOffset(0).milliseconds() < Date.now()) throw new RangeError('Invalid Date: date should be after present');
     const job = this.addRecurringJob(schedule, callback);
     this.scheduleJob(schedule.name, schedule.startDate, () => {
       if (schedule.customRecursion && schedule.customRecursion.days) {
@@ -21,23 +20,26 @@ export class SchedulerService {
     });
   }
   scheduleJob(jobName: string, startDate: Date, callback: () => void) {
-    if (moment(startDate).utcOffset(0).milliseconds() < Date.now()) throw new RangeError('Invalid Date: date should be after present');
     const name = `${jobName}-timeout`;
     const timeDiff = moment(startDate).utcOffset(0).diff(moment(), 'milliseconds');
     this.addTimeout(name, timeDiff, callback);
   }
   scheduleInterval(jobName: string, startDate: Date, repetition: Repetition, callback: () => void) {
-    if (moment(startDate).utcOffset(0).milliseconds() < Date.now()) throw new RangeError('Invalid Date: date should be after present');
     const name = `${jobName}-interval`;
     let iteration = 0;
     const intervalCallback = () => {
       callback();
       iteration++;
-      if (repetition.maxIteration && iteration >= repetition.maxIteration) this.schedulerRegistry.deleteInterval(name);
+      if (repetition.maxIteration && iteration >= repetition.maxIteration) this.deleteJob(jobName, JobType.INTERVAL);
     };
     this.scheduleJob(name, startDate, () => {
       const interval = setInterval(intervalCallback, repetition.interval);
-      this.schedulerRegistry.addInterval(`${jobName}-interval-timeout`, interval);
+      try {
+        this.schedulerRegistry.addInterval(name, interval);
+      } catch (e) {
+        this.schedulerRegistry.deleteInterval(name);
+        this.schedulerRegistry.addInterval(name, interval);
+      }
     });
   }
   private addTimeout(name: string, ms: number, callback: () => void) {
@@ -62,24 +64,25 @@ export class SchedulerService {
     }
     return job;
   }
-  deleteInterval(name: string) {
+  deleteJob(name: string, jobType: JobType, shouldFail?: boolean) {
+    const jobName = `${name}-${jobType}`;
     try {
-      this.schedulerRegistry.deleteInterval(`${name}-interval`);
+      switch (jobType) {
+        case JobType.INTERVAL:
+          this.schedulerRegistry.deleteInterval(jobName);
+          break;
+        case JobType.INTERVAL_TIMEOUT || JobType.TIMEOUT:
+          this.schedulerRegistry.deleteTimeout(jobName);
+          break;
+        case JobType.RECURRING:
+          this.schedulerRegistry.deleteCronJob(jobName);
+          break;
+      }
       return true;
     } catch (e) {
+      if (shouldFail) throw new Error('Job not found');
       return false;
     }
-  }
-  clearJobs(name: string): void {
-    //clear all jobs when deleting reminders
-    if (this.schedulerRegistry.getIntervals().find((intervalName) => intervalName === `${name}-interval`))
-      this.schedulerRegistry.deleteInterval(`${name}-interval`);
-    if (this.schedulerRegistry.getCronJobs().has(`${name}-recurring`)) this.schedulerRegistry.deleteCronJob(`${name}-recurring`);
-    this.schedulerRegistry.getTimeouts().forEach((timeoutName) => {
-      if (timeoutName === `${name}-timeout` || timeoutName === `${name}-interval-timeout`) {
-        this.schedulerRegistry.deleteTimeout(timeoutName);
-      }
-    });
   }
   private getPredefinedCronExpression(interval: RecurringInterval, date: Date): string {
     const dateUtc = moment(date).utcOffset(0).toDate();
