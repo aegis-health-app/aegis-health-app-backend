@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, Req, Res, UseGuards, UsePipes, Va
 import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { CaretakerGuard, ElderlyGuard } from 'src/auth/jwt.guard';
 import { UserService } from 'src/user/user.service';
-import { DeleteReminderDto, GetFinishedReminderDto, GetReminderDto, ListFinishedReminderDto, ReminderDto } from './dto/reminder.dto';
+import { DeleteReminderDto, GetFinishedReminderDto, GetReminderDto, GetUnFinishedReminderDto, ListReminderEachDateDto, ListUnfinishedReminderDto, ReminderDto } from './dto/reminder.dto';
 import { ReminderService } from './reminder.service';
 
 @ApiBearerAuth()
@@ -80,7 +80,7 @@ export class ReminderController {
     @UseGuards(ElderlyGuard)
     @UsePipes(new ValidationPipe({ whitelist: true }))
     @Get('get/finishedReminder/elderly')
-    async getFinishedReminderElderly(@Body() body: GetFinishedReminderDto, @Req() req): Promise<ListFinishedReminderDto[]> {
+    async getFinishedReminderElderly(@Body() body: GetFinishedReminderDto, @Req() req): Promise<ListReminderEachDateDto[]> {
         return await this.reminderService.getFinishedReminder(body.currentDate, req.user.id)
     }
 
@@ -92,8 +92,33 @@ export class ReminderController {
     @UseGuards(CaretakerGuard)
     @UsePipes(new ValidationPipe({ whitelist: true }))
     @Get('get/finishedReminder/caretaker/:eid')
-    async getFinishedReminderCaretaker(@Param("eid") eid: number, @Req() req, @Body() body: GetFinishedReminderDto): Promise<ListFinishedReminderDto[]> {
+    async getFinishedReminderCaretaker(@Param("eid") eid: number, @Req() req, @Body() body: GetFinishedReminderDto): Promise<ListReminderEachDateDto[]> {
         await this.userService.checkRelationship(eid, req.user.uid)
         return await this.reminderService.getFinishedReminder(body.currentDate, req.user.id)
     }
+    
+    @ApiUnauthorizedResponse({ description: "Must login to use this endpoints" })
+    @ApiForbiddenResponse({ description: "Must be elderly to use this endpoints" })
+    @ApiOkResponse({ description: "Get unfinished reminder from the database succesfully" })
+    @ApiBody({ type: GetUnFinishedReminderDto })
+    @UseGuards(ElderlyGuard)
+    @UsePipes(new ValidationPipe({ whitelist: true }))
+    @Get('get/unfinishedReminder/elderly')
+    async getUnfinishedReminderElderly(@Body() body: GetUnFinishedReminderDto, @Req() req): Promise<ListUnfinishedReminderDto> {
+        return await this.reminderService.getUnfinishedReminder(body.currentDate, req.user.id)
+    }
+
+    @ApiUnauthorizedResponse({ description: "Must login to use this endpoints" })
+    @ApiForbiddenResponse({ description: "Must be caretaker to use this endpoints" })
+    @ApiOkResponse({ description: "Get unfinished reminder from the database succesfully" })
+    @ApiBadRequestResponse({ description: "Caretaker doesn't have access to this elderly"})
+    @ApiBody({ type: GetUnFinishedReminderDto })
+    @UseGuards(CaretakerGuard)
+    @UsePipes(new ValidationPipe({ whitelist: true }))
+    @Get('get/unfinishedReminder/caretaker/:eid')
+    async getUnfinishedReminderCaretaker(@Param("eid") eid: number, @Req() req, @Body() body: GetUnFinishedReminderDto): Promise<ListUnfinishedReminderDto> {
+        await this.userService.checkRelationship(eid, req.user.uid)
+        return await this.reminderService.getUnfinishedReminder(body.currentDate, req.user.id)
+    }
+    
 }

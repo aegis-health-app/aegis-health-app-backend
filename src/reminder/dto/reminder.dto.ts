@@ -65,7 +65,9 @@ export class GetFinishedReminderDto {
   currentDate: Date
 }
 
-export class FinisedReminderDto {
+export class GetUnFinishedReminderDto extends GetFinishedReminderDto{}
+
+export class ModifiedReminderDto {
   @ApiProperty()
   @IsNumber()
   rid: number
@@ -99,12 +101,22 @@ export class FinisedReminderDto {
   minute: number
 }
 
-export class ListFinishedReminderDto {
+export class ListReminderEachDateDto {
   @ApiProperty()
   @IsDate()
   date: Date
 
-  @ApiProperty({ type: [FinisedReminderDto] })
+  @ApiProperty({ type: [ModifiedReminderDto] })
   @IsArray()
-  reminder: Array<FinisedReminderDto>
+  reminder: Array<ModifiedReminderDto>
+}
+
+export class ListUnfinishedReminderDto {
+  @ApiProperty({ type: [ListReminderEachDateDto] })
+  @IsArray()
+  overdue: Array<ListReminderEachDateDto>
+
+  @ApiProperty({ type: [ListReminderEachDateDto] })
+  @IsArray()
+  future: Array<ListReminderEachDateDto>
 }

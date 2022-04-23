@@ -33,4 +33,8 @@ export interface ListReminderEachDate {
     date: Date
     reminder: ModifiedReminder[]
 }
+
+export interface ListUnfinishedReminder {
+    overdue: ListReminderEachDate[]
+    future: ListReminderEachDate[]
 }
