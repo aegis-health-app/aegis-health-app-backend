@@ -19,6 +19,7 @@ import { CreateReminderDto, UpdateReminderDto } from './dto/create-reminder.dto'
 export class ReminderService {
   constructor(
     @InjectRepository(Reminder) private reminderRepository: Repository<Reminder>,
+    @InjectRepository(Recurring) private recurringRepository: Repository<Recurring>,
     private notificationService: NotificationService,
     private schedulerService: SchedulerService,
     private googleCloudStorage: GoogleCloudStorage,
@@ -26,13 +27,11 @@ export class ReminderService {
   ) {}
   async create(dto: CreateReminderDto, uid: number) {
     if (dto.customRecursion && dto.recursion) throw new BadRequestException('Reminder cannot have both custom and predefied recursion');
-    if (moment(dto.startingDateTime).utcOffset(0).milliseconds() < Date.now()) throw new BadRequestException('Start date cannot be in the past');
-    const recursion = this.getRecursion(dto.startingDateTime, dto.recursion, dto.customRecursion);
+    if (moment(dto.startingDateTime).utcOffset(0).valueOf() < Date.now()) throw new BadRequestException('Start date cannot be in the past');
     const user = await this.userService.findOne(
       { uid: dto.eid ?? uid },
       { relations: dto.isRemindCaretaker ? ['takenCareBy'] : undefined, shouldBeElderly: true }
     );
-
     const payload = this.reminderRepository.create({
       startingDateTime: moment(dto.startingDateTime).set('seconds', 0).format('YYYY-MM-DD hh:mm:ss'),
       title: dto.title,
@@ -41,9 +40,12 @@ export class ReminderService {
       importanceLevel: dto.importanceLevel,
       user: user,
       isDone: false,
-      recurrings: recursion,
+      recurrings: [],
     });
     const reminder = await this.reminderRepository.save(payload);
+    reminder.recurrings = await this.recurringRepository.save(
+      this.getRecursion(reminder.rid, dto.startingDateTime, dto.recursion, dto.customRecursion)
+    );
     const schedule: Schedule = {
       customRecursion: dto.customRecursion,
       recursion: dto.recursion,
@@ -53,18 +55,25 @@ export class ReminderService {
     this.scheduleReminder(reminder, schedule);
     return reminder;
   }
-  async update(dto: UpdateReminderDto) {
+
+  async update(rid: number, dto: UpdateReminderDto) {
     if (dto.customRecursion && dto.recursion) throw new BadRequestException('Reminder cannot have both custom and predefied recursion');
-    if (moment(dto.startingDateTime).utcOffset(0).milliseconds() < Date.now()) throw new BadRequestException('Start date cannot be in the past');
-    const reminder = await this.reminderRepository.findOne({ rid: dto.rid });
+    if (moment(dto.startingDateTime).utcOffset(0).valueOf() < Date.now()) throw new BadRequestException('Start date cannot be in the past');
+    const reminder = await this.reminderRepository.findOne({ rid: rid });
     if (!reminder) throw new BadRequestException('Reminder does not exist');
     let newRecursion = undefined;
     if (dto.recursion || dto.customRecursion)
-      newRecursion = this.getRecursion(dto.startingDateTime ?? new Date(reminder.startingDateTime.toNumber()), dto.recursion, dto.customRecursion);
-    const updatedReminder = await this.reminderRepository.save({ recurrings: newRecursion ?? reminder.recurrings, ...dto });
-    //handle 2 cases
-    // 1. change custom recur to predefined or vice versa or change to no recur (atleast one null)
-    // 2. no change or change recursion (both undefined or one undefined, no null)
+      newRecursion = this.getRecursion(
+        reminder.rid,
+        dto.startingDateTime ?? new Date(reminder.startingDateTime.toNumber()),
+        dto.recursion,
+        dto.customRecursion
+      );
+    const updatedReminder = await this.reminderRepository.save({
+      ...dto,
+      recurrings: newRecursion ?? reminder.recurrings,
+      startingDateTime: dto.startingDateTime ? moment(dto.startingDateTime).set('seconds', 0).format('YYYY-MM-DD hh:mm:ss') : undefined,
+    });
     if (dto.customRecursion === null || dto.recursion === null) {
       this.schedulerService.deleteJob(updatedReminder.rid.toString(), JobType.RECURRING);
     }
@@ -81,6 +90,7 @@ export class ReminderService {
     this.scheduleReminder(updatedReminder, schedule);
     return updatedReminder;
   }
+
   scheduleReminder(reminder: Reminder, schedule: Schedule) {
     const jobCallback = () => {
       const message: NotificationMessage = {
@@ -112,6 +122,7 @@ export class ReminderService {
       }
     }
   }
+
   async uploadReminderImage(image: ImageDto, rid: number) {
     if (!image || !ALLOWED_PROFILE_FORMAT.includes(image.type)) {
       throw new UnsupportedMediaTypeException('Invalid image type');
@@ -126,8 +137,9 @@ export class ReminderService {
     reminder.imageid = imgUrl;
     return await this.reminderRepository.save(reminder);
   }
-  private getRecursion(startDate: Date, recursion?: RecurringInterval, customRecursion?: Recursion): Partial<Recurring>[] {
-    const recurrings: Partial<Recurring>[] = [];
+
+  private getRecursion(rid: number, startDate: Date, recursion?: RecurringInterval, customRecursion?: Recursion): Partial<Recurring>[] {
+    const recurrings = [];
     if (customRecursion?.days && customRecursion?.period === RecursionPeriod.WEEK) {
       return customRecursion.days.map((day) => ({ recurringDateOfMonth: 0, recurringDay: day }));
     } else if (customRecursion?.date && customRecursion?.period === RecursionPeriod.MONTH) {
@@ -139,6 +151,7 @@ export class ReminderService {
             recurrings.push({
               recurringDateOfMonth: 0,
               recurringDay: i,
+              reminder: { rid: rid },
             });
           }
           break;
@@ -146,12 +159,14 @@ export class ReminderService {
           recurrings.push({
             recurringDateOfMonth: 0,
             recurringDay: startDate.getDay() ?? 7,
+            reminder: { rid: rid },
           });
           break;
         case RecurringInterval.EVERY_MONTH:
           recurrings.push({
             recurringDateOfMonth: startDate.getDate(),
             recurringDay: 0,
+            reminder: { rid: rid },
           });
           break;
         default:

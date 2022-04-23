@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, UsePipes, ValidationPipe, Put } from '@nestjs/common';
 import { ReminderService } from './reminder.service';
-import { CreateReminderDto } from './dto/create-reminder.dto';
+import { CreateReminderDto, UpdateReminderDto } from './dto/create-reminder.dto';
 import { UserGuard } from 'src/auth/jwt.guard';
 import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 @ApiTags('reminder')
@@ -15,5 +15,13 @@ export class ReminderController {
   @UsePipes(new ValidationPipe({ whitelist: true }))
   create(@Body() createReminderDto: CreateReminderDto, @Req() req) {
     return this.reminderService.create(createReminderDto, req.user.uid);
+  }
+  @Put()
+  @UseGuards()
+  @ApiBearerAuth()
+  @ApiBody({ type: UpdateReminderDto })
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  update(@Body() updateReminderDto: UpdateReminderDto) {
+    return this.reminderService.update(updateReminderDto.rid, updateReminderDto);
   }
 }
