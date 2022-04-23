@@ -18,13 +18,15 @@ export interface GetReminder extends Reminder {
     recurrings: Recurring[]
 }
 
-export interface FinishedReminder {
+export interface FinishedReminder  {
     rid: number
     title: string
     note: string
     isRemindCaretaker: boolean
     importanceLevel: string
     imageid: string
+    hour: number
+    minute: number
 }
 
 export interface ListFinishedReminder {

@@ -89,6 +89,14 @@ export class FinisedReminderDto {
   @ApiProperty()
   @IsString()
   imageid: string
+
+  @ApiProperty()
+  @IsNumber()
+  hour: number
+
+  @ApiProperty()
+  @IsNumber()
+  minute: number
 }
 
 export class ListFinishedReminderDto {
