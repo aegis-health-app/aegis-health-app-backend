@@ -1,22 +1,19 @@
-import { BadRequestException, HttpException, Injectable, UnsupportedMediaTypeException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnsupportedMediaTypeException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import moment from 'moment';
 import { Recurring } from 'src/entities/recurring.entity';
 import { Reminder } from 'src/entities/reminder.entity';
-import { User } from 'src/entities/user.entity';
 import { BucketName } from 'src/google-cloud/google-cloud.interface';
 import { GoogleCloudStorage } from 'src/google-cloud/google-storage.service';
 import { NotificationMessage } from 'src/notification/interface/notification.interface';
 import { NotificationService } from 'src/notification/notification.service';
-import { RecurringInterval, Recursion, RecursionPeriod, Schedule } from 'src/scheduler/interface/scheduler.interface';
+import { JobType, RecurringInterval, Recursion, RecursionPeriod, Repetition, Schedule } from 'src/scheduler/interface/scheduler.interface';
 import { SchedulerService } from 'src/scheduler/scheduler.service';
 import { UserService } from 'src/user/user.service';
 import { ALLOWED_PROFILE_FORMAT } from 'src/utils/global.constant';
 import { ImageDto } from 'src/utils/global.dto';
 import { Repository } from 'typeorm';
-import { domainToASCII } from 'url';
-import { CreateReminderDto } from './dto/create-reminder.dto';
-import { ReminderController } from './reminder.controller';
+import { CreateReminderDto, UpdateReminderDto } from './dto/create-reminder.dto';
 
 @Injectable()
 export class ReminderService {
@@ -28,63 +25,92 @@ export class ReminderService {
     private userService: UserService
   ) {}
   async create(dto: CreateReminderDto, uid: number) {
-    if (dto.recursion && dto.customRecursion) throw new BadRequestException('Reminder cannot have both predefined and custom recursion');
-    let recursion: Partial<Recurring>[] | undefined = undefined;
-    if (dto.recursion) {
-      recursion = this.getRecursionFromEnum(dto.recursion, dto.startingDateTime);
-    } else if (dto.customRecursion) {
-      recursion = this.getRecursion(dto.customRecursion);
-    }
+    if (dto.customRecursion && dto.recursion) throw new BadRequestException('Reminder cannot have both custom and predefied recursion');
+    if (moment(dto.startingDateTime).utcOffset(0).milliseconds() < Date.now()) throw new BadRequestException('Start date cannot be in the past');
+    const recursion = this.getRecursion(dto.startingDateTime, dto.recursion, dto.customRecursion);
     const user = await this.userService.findOne(
       { uid: dto.eid ?? uid },
       { relations: dto.isRemindCaretaker ? ['takenCareBy'] : undefined, shouldBeElderly: true }
     );
-    const payload = {
+
+    const payload = this.reminderRepository.create({
       startingDateTime: moment(dto.startingDateTime).set('seconds', 0).format('YYYY-MM-DD hh:mm:ss'),
       title: dto.title,
       note: dto.note,
       isRemindCaretaker: dto.isRemindCaretaker,
       importanceLevel: dto.importanceLevel,
-      imageid: null,
       user: user,
       isDone: false,
       recurrings: recursion,
-    };
-    const reminder = this.reminderRepository.create(payload);
-    const rid = (await this.reminderRepository.insert(reminder)).identifiers[0].rid;
-    const imgUrl = await this.uploadReminderImage(dto.image, rid);
-    reminder.rid = rid;
-    reminder.imageid = imgUrl;
-    const savedReminder = await this.reminderRepository.save(reminder);
-    const jobCallback = () => {
-      const message: NotificationMessage = {
-        data: {
-          title: savedReminder.title,
-          note: savedReminder.note,
-          isDone: savedReminder.isDone,
-          startingDateTime: savedReminder.startingDateTime,
-          user: savedReminder.user.uid,
-        },
-        notification: {
-          title: savedReminder.title,
-          body: savedReminder.note,
-        },
-      };
-      if (savedReminder.isRemindCaretaker) {
-        const receivers = savedReminder.user.takenCareBy.map((caretaker) => caretaker.uid);
-        receivers.push(savedReminder.user.uid);
-        this.notificationService.notifyMany(receivers, message);
-      } else this.notificationService.notifyOne(savedReminder.user.uid, message);
-    };
+    });
+    const reminder = await this.reminderRepository.save(payload);
     const schedule: Schedule = {
       customRecursion: dto.customRecursion,
       recursion: dto.recursion,
       startDate: dto.startingDateTime,
-      name: savedReminder.rid.toString(),
+      name: reminder.rid.toString(),
+    };
+    this.scheduleReminder(reminder, schedule);
+    return reminder;
+  }
+  async update(dto: UpdateReminderDto) {
+    if (dto.customRecursion && dto.recursion) throw new BadRequestException('Reminder cannot have both custom and predefied recursion');
+    if (moment(dto.startingDateTime).utcOffset(0).milliseconds() < Date.now()) throw new BadRequestException('Start date cannot be in the past');
+    const reminder = await this.reminderRepository.findOne({ rid: dto.rid });
+    if (!reminder) throw new BadRequestException('Reminder does not exist');
+    let newRecursion = undefined;
+    if (dto.recursion || dto.customRecursion)
+      newRecursion = this.getRecursion(dto.startingDateTime ?? new Date(reminder.startingDateTime.toNumber()), dto.recursion, dto.customRecursion);
+    const updatedReminder = await this.reminderRepository.save({ recurrings: newRecursion ?? reminder.recurrings, ...dto });
+    //handle 2 cases
+    // 1. change custom recur to predefined or vice versa or change to no recur (atleast one null)
+    // 2. no change or change recursion (both undefined or one undefined, no null)
+    if (dto.customRecursion === null || dto.recursion === null) {
+      this.schedulerService.deleteJob(updatedReminder.rid.toString(), JobType.RECURRING);
+    }
+    if (dto.importanceLevel) {
+      this.schedulerService.deleteJob(updatedReminder.rid.toString(), JobType.INTERVAL_TIMEOUT);
+      this.schedulerService.deleteJob(updatedReminder.rid.toString(), JobType.INTERVAL);
+    }
+    const schedule: Schedule = {
+      customRecursion: dto.customRecursion,
+      recursion: dto.recursion,
+      startDate: dto.startingDateTime ?? new Date(reminder.startingDateTime.toNumber()),
+      name: updatedReminder.rid.toString(),
+    };
+    this.scheduleReminder(updatedReminder, schedule);
+    return updatedReminder;
+  }
+  scheduleReminder(reminder: Reminder, schedule: Schedule) {
+    const jobCallback = () => {
+      const message: NotificationMessage = {
+        data: {
+          title: reminder.title,
+          note: reminder.note,
+          isDone: reminder.isDone,
+          startingDateTime: reminder.startingDateTime,
+          user: reminder.user.uid,
+        },
+        notification: {
+          title: reminder.title,
+          body: reminder.note,
+        },
+      };
+      if (reminder.isRemindCaretaker) {
+        const receivers = reminder.user.takenCareBy.map((caretaker) => caretaker.uid);
+        receivers.push(reminder.user.uid);
+        this.notificationService.notifyMany(receivers, message);
+      } else this.notificationService.notifyOne(reminder.user.uid, message);
     };
     if (schedule.customRecursion || schedule.recursion) this.schedulerService.scheduleRecurringJob(schedule, jobCallback);
-    else this.schedulerService.scheduleJob(savedReminder.rid.toString(), dto.startingDateTime, jobCallback);
-    return savedReminder;
+    else {
+      this.schedulerService.scheduleJob(reminder.rid.toString(), schedule.startDate, jobCallback);
+      if (reminder.importanceLevel === 'Mid') {
+        this.schedulerService.scheduleInterval(reminder.rid.toString(), schedule.startDate, { maxIteration: 3, interval: 600000 }, jobCallback);
+      } else if (reminder.importanceLevel === 'High') {
+        this.schedulerService.scheduleInterval(reminder.rid.toString(), schedule.startDate, { interval: 600000 }, jobCallback);
+      }
+    }
   }
   async uploadReminderImage(image: ImageDto, rid: number) {
     if (!image || !ALLOWED_PROFILE_FORMAT.includes(image.type)) {
@@ -94,41 +120,43 @@ export class ReminderService {
     if (buffer.byteLength > 5000000) {
       throw new BadRequestException('Image too large');
     }
-    return await this.googleCloudStorage.uploadImage(rid, buffer, BucketName.Reminder);
+    const reminder = await this.reminderRepository.findOne({ rid });
+    if (!reminder) throw new BadRequestException('Reminder does not exist');
+    const imgUrl = await this.googleCloudStorage.uploadImage(rid, buffer, BucketName.Reminder);
+    reminder.imageid = imgUrl;
+    return await this.reminderRepository.save(reminder);
   }
-  private getRecursion(custom: Recursion): Partial<Recurring>[] {
-    if (custom.days && custom.period === RecursionPeriod.WEEK) {
-      return custom.days.map((day) => ({ recurringDateOfMonth: 0, recurringDay: day }));
-    } else if (custom.date && custom.period === RecursionPeriod.MONTH) {
-      return [{ recurringDateOfMonth: custom.date }];
-    }
-    throw new BadRequestException('Invalid recurring interval');
-  }
-  private getRecursionFromEnum(recurringInterval: RecurringInterval, startDate: Date): Partial<Recurring>[] {
+  private getRecursion(startDate: Date, recursion?: RecurringInterval, customRecursion?: Recursion): Partial<Recurring>[] {
     const recurrings: Partial<Recurring>[] = [];
-    switch (recurringInterval) {
-      case RecurringInterval.EVERY_DAY:
-        for (let i = 1; i < 8; i++) {
+    if (customRecursion?.days && customRecursion?.period === RecursionPeriod.WEEK) {
+      return customRecursion.days.map((day) => ({ recurringDateOfMonth: 0, recurringDay: day }));
+    } else if (customRecursion?.date && customRecursion?.period === RecursionPeriod.MONTH) {
+      return [{ recurringDateOfMonth: customRecursion.date }];
+    } else if (recursion) {
+      switch (recursion) {
+        case RecurringInterval.EVERY_DAY:
+          for (let i = 1; i < 8; i++) {
+            recurrings.push({
+              recurringDateOfMonth: 0,
+              recurringDay: i,
+            });
+          }
+          break;
+        case RecurringInterval.EVERY_WEEK:
           recurrings.push({
             recurringDateOfMonth: 0,
-            recurringDay: i,
+            recurringDay: startDate.getDay() ?? 7,
           });
-        }
-        break;
-      case RecurringInterval.EVERY_WEEK:
-        recurrings.push({
-          recurringDateOfMonth: 0,
-          recurringDay: startDate.getDay() ?? 7,
-        });
-        break;
-      case RecurringInterval.EVERY_MONTH:
-        recurrings.push({
-          recurringDateOfMonth: startDate.getDate(),
-          recurringDay: 0,
-        });
-        break;
-      default:
-        throw new BadRequestException('Invalid recurring inveral');
+          break;
+        case RecurringInterval.EVERY_MONTH:
+          recurrings.push({
+            recurringDateOfMonth: startDate.getDate(),
+            recurringDay: 0,
+          });
+          break;
+        default:
+          throw new BadRequestException('Invalid recurring inveral');
+      }
     }
     return recurrings;
   }
