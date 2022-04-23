@@ -32,6 +32,8 @@ export class ReminderService {
       { uid: dto.eid ?? uid },
       { relations: dto.isRemindCaretaker ? ['takenCareBy'] : undefined, shouldBeElderly: true }
     );
+    if (dto.eid && !user.takenCareBy.find((caretaker) => caretaker.uid === uid))
+      throw new BadRequestException('You do not have permission to access this elderly');
     const payload = this.reminderRepository.create({
       startingDateTime: moment(dto.startingDateTime).set('seconds', 0).format('YYYY-MM-DD hh:mm:ss'),
       title: dto.title,
