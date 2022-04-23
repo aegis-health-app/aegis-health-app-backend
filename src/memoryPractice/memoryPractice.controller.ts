@@ -2,8 +2,7 @@ import { Body, Controller, Delete, Get, Post, Put, Req, Res, UseGuards, UsePipes
 import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiForbiddenResponse, ApiNotAcceptableResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { CaretakerGuard } from 'src/auth/jwt.guard';
 import { UserService } from 'src/user/user.service';
-import { AllQuestionsCaretakerDto, CreateQuestionDto, DeleteQuestionDto, EditQuestionDto, ElderlyWithCaretakerDto, QuestionDetailsDto, SelectQuestionDto } from './dto/memoryPractice.dto';
-import { AllQuestionsCaretaker, QuestionDetails } from './memoryPractice.interface';
+import { AllQuestionsCaretakerDto, CreateQuestionDto, DeleteQuestionDto, EditQuestionDto, EditSelectionDto, ElderlyWithCaretakerDto, QuestionDetailsDto, SelectQuestionDto } from './dto/memoryPractice.dto';
 import { MemoryPracticeService } from './memoryPractice.service';
 
 @ApiBearerAuth()
@@ -21,7 +20,7 @@ export class MemoryPracticeController {
   @ApiNotFoundResponse({ description: "Caretaker doesn't have access to this elderly" })
   @UseGuards(CaretakerGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  @Get('/allQuestions')
+  @Post('/allQuestions')
   async getAllQuestions(@Body() elderlyWithCaretaker: ElderlyWithCaretakerDto, @Req() req): Promise<AllQuestionsCaretakerDto> {
     await this.userService.checkRelationship(elderlyWithCaretaker.elderlyuid, req.user.uid)
     return await this.memoryPracticeService.getAllQuestions(elderlyWithCaretaker.elderlyuid)
@@ -34,10 +33,20 @@ export class MemoryPracticeController {
   @ApiNotFoundResponse({ description: "Caretaker doesn't have access to this elderly" })
   @UseGuards(CaretakerGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  @Get('/selectedQuestion')
+  @Post('/selectedQuestion')
   async getSelectedQuestion(@Body() selectQuestionDto: SelectQuestionDto, @Req() req): Promise<QuestionDetailsDto> {
     await this.userService.checkRelationship(selectQuestionDto.elderlyuid, req.user.uid)
     return await this.memoryPracticeService.getSelectedQuestion(selectQuestionDto.elderlyuid, selectQuestionDto.mid)
+  }
+
+  @Put('/editSelection')
+  async editSelection(@Body() editSelectionDto: EditSelectionDto, @Req() req, @Res() res): Promise<string> {
+    await this.userService.checkRelationship(editSelectionDto.elderlyuid, req.user.uid)
+    await this.memoryPracticeService.editSelection(editSelectionDto.elderlyuid, editSelectionDto.mid)
+    return res.status(200).json({
+      statusCode: 200,
+      message: "Question editted succesfully"
+    })
   }
 
   @ApiOperation({ description: "Create a question for an elderly" })

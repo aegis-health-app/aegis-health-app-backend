@@ -43,3 +43,8 @@ export interface CreateQuestion {
 export interface EditQuestion extends CreateQuestion {
   mid: string;
 }
+
+export interface EditSelection {
+  elderlyuid: number;
+  mid: string;
+}
