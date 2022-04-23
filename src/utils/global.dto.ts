@@ -15,3 +15,9 @@ export class ImageDto {
   @IsNumber()
   size: number;
 }
+
+export class ImageResponse {
+  @ApiProperty()
+  @IsString()
+  url: string;
+}

@@ -38,3 +38,15 @@ export class UpdateReminderDto extends PartialType(CreateReminderDto) {
   @IsNumber()
   rid: number;
 }
+
+export class SimpleStatusResponse {
+  @ApiProperty({ enum: ['success', 'fail'] })
+  @IsString()
+  status: string;
+}
+
+export class UploadReminderImageDto extends ImageDto {
+  @ApiProperty()
+  @IsNumber()
+  rid: number;
+}

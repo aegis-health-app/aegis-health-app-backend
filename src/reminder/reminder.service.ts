@@ -1,4 +1,12 @@
-import { BadRequestException, ForbiddenException, Injectable, UnsupportedMediaTypeException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  MethodNotAllowedException,
+  NotFoundException,
+  UnsupportedMediaTypeException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import moment from 'moment';
 import { Recurring } from 'src/entities/recurring.entity';
@@ -13,7 +21,7 @@ import { UserService } from 'src/user/user.service';
 import { ALLOWED_PROFILE_FORMAT } from 'src/utils/global.constant';
 import { ImageDto } from 'src/utils/global.dto';
 import { Repository } from 'typeorm';
-import { CreateReminderDto, UpdateReminderDto } from './dto/create-reminder.dto';
+import { CreateReminderDto, UpdateReminderDto, UploadReminderImageDto } from './dto/create-reminder.dto';
 
 @Injectable()
 export class ReminderService {
@@ -26,14 +34,14 @@ export class ReminderService {
     private userService: UserService
   ) {}
   async create(dto: CreateReminderDto, uid: number) {
-    if (dto.customRecursion && dto.recursion) throw new BadRequestException('Reminder cannot have both custom and predefied recursion');
+    if (dto.customRecursion && dto.recursion) throw new ConflictException('Reminder cannot have both custom and predefied recursion');
     if (moment(dto.startingDateTime).utcOffset(0).valueOf() < Date.now()) throw new BadRequestException('Start date cannot be in the past');
     const user = await this.userService.findOne(
       { uid: dto.eid ?? uid },
       { relations: dto.isRemindCaretaker ? ['takenCareBy'] : undefined, shouldBeElderly: true }
     );
     if (dto.eid && !user.takenCareBy.find((caretaker) => caretaker.uid === uid))
-      throw new BadRequestException('You do not have permission to access this elderly');
+      throw new MethodNotAllowedException('You do not have permission to access this elderly');
     const payload = this.reminderRepository.create({
       startingDateTime: moment(dto.startingDateTime).set('seconds', 0).format('YYYY-MM-DD hh:mm:ss'),
       title: dto.title,
@@ -59,10 +67,10 @@ export class ReminderService {
   }
 
   async update(dto: UpdateReminderDto, uid: number) {
-    if (dto.customRecursion && dto.recursion) throw new BadRequestException('Reminder cannot have both custom and predefied recursion');
+    if (dto.customRecursion && dto.recursion) throw new ConflictException('Reminder cannot have both custom and predefied recursion');
     if (moment(dto.startingDateTime).utcOffset(0).valueOf() < Date.now()) throw new BadRequestException('Start date cannot be in the past');
     const reminder = await this.reminderRepository.findOne({ rid: dto.rid }, { relations: ['user'] });
-    if (!reminder) throw new BadRequestException('Reminder does not exist');
+    if (!reminder) throw new NotFoundException('Reminder does not exist');
     if (uid !== reminder.user.uid && !(await this.userService.checkRelationship(reminder.user.uid, uid)))
       throw new ForbiddenException('You do not have permission to access this reminder');
     let newRecursion = undefined;
@@ -127,7 +135,7 @@ export class ReminderService {
     }
   }
 
-  async uploadReminderImage(image: ImageDto, rid: number) {
+  async uploadReminderImage({ rid, ...image }: UploadReminderImageDto, uid: number) {
     if (!image || !ALLOWED_PROFILE_FORMAT.includes(image.type)) {
       throw new UnsupportedMediaTypeException('Invalid image type');
     }
@@ -135,11 +143,14 @@ export class ReminderService {
     if (buffer.byteLength > 5000000) {
       throw new BadRequestException('Image too large');
     }
-    const reminder = await this.reminderRepository.findOne({ rid });
-    if (!reminder) throw new BadRequestException('Reminder does not exist');
+    const reminder = await this.reminderRepository.findOne({ rid }, { relations: ['user'] });
+    if (!reminder) throw new NotFoundException('Reminder does not exist');
+    if (uid !== reminder.user.uid && !(await this.userService.checkRelationship(reminder.user.uid, uid)))
+      throw new ForbiddenException('You do not have permission to access this reminder');
     const imgUrl = await this.googleCloudStorage.uploadImage(rid, buffer, BucketName.Reminder);
     reminder.imageid = imgUrl;
-    return await this.reminderRepository.save(reminder);
+    await this.reminderRepository.save(reminder);
+    return imgUrl;
   }
 
   private getRecursion(rid: number, startDate: Date, recursion?: RecurringInterval, customRecursion?: Recursion): Partial<Recurring>[] {
