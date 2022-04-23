@@ -27,6 +27,7 @@ import {
   CreateElderlyAnswersDto,
   GetHistoryDto,
   GetHistoryByTimestampDto,
+  EditSelectionDto,
 } from './dto/memoryPractice.dto';
 import { MemoryPracticeService } from './memoryPractice.service';
 
@@ -36,7 +37,7 @@ import { MemoryPracticeService } from './memoryPractice.service';
 @ApiForbiddenResponse({ description: 'Forbidden' })
 @Controller('memoryPractice')
 export class MemoryPracticeController {
-  constructor(private readonly memoryPracticeService: MemoryPracticeService, private readonly userService: UserService) {}
+  constructor(private readonly memoryPracticeService: MemoryPracticeService, private readonly userService: UserService) { }
 
   @ApiOperation({ description: 'Get all questions for an elderly' })
   @ApiBody({ type: ElderlyWithCaretakerDto })
@@ -63,13 +64,20 @@ export class MemoryPracticeController {
     return await this.memoryPracticeService.getSelectedQuestion(selectQuestionDto.elderlyuid, selectQuestionDto.mid);
   }
 
+  @ApiOperation({ description: 'Change question selection status' })
+  @ApiBody({ type: EditSelectionDto })
+  @ApiOkResponse({ description: 'Question selection editted successfully' })
+  @ApiBadRequestResponse({ description: 'This question cannot be found' })
+  @ApiNotFoundResponse({ description: "Caretaker doesn't have access to this elderly" })
+  @UseGuards(CaretakerGuard)
+  @UsePipes(new ValidationPipe({ whitelist: true }))
   @Put('/editSelection')
   async editSelection(@Body() editSelectionDto: EditSelectionDto, @Req() req, @Res() res): Promise<string> {
     await this.userService.checkRelationship(editSelectionDto.elderlyuid, req.user.uid)
     await this.memoryPracticeService.editSelection(editSelectionDto.elderlyuid, editSelectionDto.mid)
     return res.status(200).json({
       statusCode: 200,
-      message: "Question editted succesfully"
+      message: "Question selection editted succesfully"
     })
   }
 
