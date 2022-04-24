@@ -53,6 +53,10 @@ export class ReminderService {
       recurrings: [],
     });
     const reminder = await this.reminderRepository.save(payload);
+    if (dto.image) {
+      reminder.imageid = await this.uploadReminderImage(reminder.rid, dto.image);
+      await this.reminderRepository.save(reminder);
+    }
     reminder.recurrings = await this.recurringRepository.save(
       this.getRecursion(reminder.rid, dto.startingDateTime, dto.recursion, dto.customRecursion)
     );
@@ -83,6 +87,7 @@ export class ReminderService {
       );
     const updatedReminder = await this.reminderRepository.save({
       ...dto,
+      imageid: dto.image ? await this.uploadReminderImage(reminder.rid, dto.image) : undefined,
       recurrings: newRecursion ?? reminder.recurrings,
       startingDateTime: dto.startingDateTime ? moment(dto.startingDateTime).set('seconds', 0).format('YYYY-MM-DD hh:mm:ss') : undefined,
     });
@@ -93,13 +98,15 @@ export class ReminderService {
       this.schedulerService.deleteJob(updatedReminder.rid.toString(), JobType.INTERVAL_TIMEOUT);
       this.schedulerService.deleteJob(updatedReminder.rid.toString(), JobType.INTERVAL);
     }
-    const schedule: Schedule = {
-      customRecursion: dto.customRecursion,
-      recursion: dto.recursion,
-      startDate: dto.startingDateTime ?? new Date(reminder.startingDateTime.toNumber()),
-      name: updatedReminder.rid.toString(),
-    };
-    this.scheduleReminder(updatedReminder, schedule);
+    if (dto.customRecursion || dto.recursion || dto.startingDateTime) {
+      const schedule: Schedule = {
+        customRecursion: dto.customRecursion,
+        recursion: dto.recursion,
+        startDate: dto.startingDateTime ?? new Date(reminder.startingDateTime.toNumber()),
+        name: updatedReminder.rid.toString(),
+      };
+      this.scheduleReminder(updatedReminder, schedule);
+    }
     return updatedReminder;
   }
 
@@ -135,7 +142,7 @@ export class ReminderService {
     }
   }
 
-  async uploadReminderImage({ rid, ...image }: UploadReminderImageDto, uid: number) {
+  private async uploadReminderImage(rid: number, image: ImageDto) {
     if (!image || !ALLOWED_PROFILE_FORMAT.includes(image.type)) {
       throw new UnsupportedMediaTypeException('Invalid image type');
     }
@@ -143,13 +150,7 @@ export class ReminderService {
     if (buffer.byteLength > 5000000) {
       throw new BadRequestException('Image too large');
     }
-    const reminder = await this.reminderRepository.findOne({ rid }, { relations: ['user'] });
-    if (!reminder) throw new NotFoundException('Reminder does not exist');
-    if (uid !== reminder.user.uid && !(await this.userService.checkRelationship(reminder.user.uid, uid)))
-      throw new ForbiddenException('You do not have permission to access this reminder');
     const imgUrl = await this.googleCloudStorage.uploadImage(rid, buffer, BucketName.Reminder);
-    reminder.imageid = imgUrl;
-    await this.reminderRepository.save(reminder);
     return imgUrl;
   }
 

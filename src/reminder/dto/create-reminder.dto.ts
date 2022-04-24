@@ -31,6 +31,8 @@ export class CreateReminderDto {
   @IsOptional()
   @IsNumber()
   eid?: number;
+  @ApiProperty()
+  image: ImageDto;
 }
 
 export class UpdateReminderDto extends PartialType(CreateReminderDto) {

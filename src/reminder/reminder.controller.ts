@@ -13,7 +13,6 @@ import {
   ApiTags,
   ApiUnsupportedMediaTypeResponse,
 } from '@nestjs/swagger';
-import { ImageDto, ImageResponse } from 'src/utils/global.dto';
 @ApiTags('reminder')
 @Controller('reminder')
 export class ReminderController {
@@ -24,6 +23,7 @@ export class ReminderController {
   @ApiBearerAuth()
   @ApiBadRequestResponse({ description: 'Invalid Recurring Interval | Start date cannot be in the past' })
   @ApiMethodNotAllowedResponse({ description: 'You do not have permission to access this elderly' })
+  @ApiUnsupportedMediaTypeResponse({ description: 'Image too large | Invalid Image type' })
   @ApiConflictResponse({ description: 'Reminder cannot have both custom and predefined recursion' })
   @ApiBody({ type: CreateReminderDto })
   @ApiResponse({ type: SimpleStatusResponse })
@@ -31,22 +31,12 @@ export class ReminderController {
   async create(@Body() createReminderDto: CreateReminderDto, @Req() req) {
     return { status: (await this.reminderService.create(createReminderDto, req.user.uid)) ? 'success' : 'fail' };
   }
-  @Post('image')
-  @UseGuards(UserGuard)
-  @ApiBearerAuth()
-  @ApiUnsupportedMediaTypeResponse({ description: 'Image too large | Invalid Image type' })
-  @ApiNotFoundResponse({ description: 'Reminder does not exist' })
-  @ApiBody({ type: UploadReminderImageDto })
-  @ApiResponse({ type: ImageResponse })
-  @UsePipes(new ValidationPipe({ whitelist: true }))
-  async uploadImage(@Body() dto: UploadReminderImageDto, @Req() req) {
-    return await this.reminderService.uploadReminderImage(dto, req.user.uid);
-  }
   @Put()
   @UseGuards(UserGuard)
   @ApiBearerAuth()
   @ApiBadRequestResponse({ description: 'Invalid Recurring Interval | Start date cannot be in the past' })
   @ApiMethodNotAllowedResponse({ description: 'You do not have permission to access this elderly' })
+  @ApiUnsupportedMediaTypeResponse({ description: 'Image too large | Invalid Image type' })
   @ApiConflictResponse({ description: 'Reminder cannot have both custom and predefined recursion' })
   @ApiNotFoundResponse({ description: 'Reminder does not exist' })
   @ApiBody({ type: UpdateReminderDto })
