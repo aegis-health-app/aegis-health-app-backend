@@ -134,9 +134,9 @@ export class ReminderService {
     if (schedule.customRecursion || schedule.recursion) this.schedulerService.scheduleRecurringJob(schedule, jobCallback);
     else {
       this.schedulerService.scheduleJob(reminder.rid.toString(), schedule.startDate, jobCallback);
-      if (reminder.importanceLevel === 'Mid') {
+      if (reminder.importanceLevel === ImportanceLevel.MEDIUM) {
         this.schedulerService.scheduleInterval(reminder.rid.toString(), schedule.startDate, { maxIteration: 3, interval: 600000 }, jobCallback);
-      } else if (reminder.importanceLevel === 'High') {
+      } else if (reminder.importanceLevel === ImportanceLevel.HIGH) {
         this.schedulerService.scheduleInterval(reminder.rid.toString(), schedule.startDate, { interval: 600000 }, jobCallback);
       }
     }
@@ -174,7 +174,7 @@ export class ReminderService {
         case RecurringInterval.EVERY_WEEK:
           recurrings.push({
             recurringDateOfMonth: 0,
-            recurringDay: startDate.getDay() ?? 7,
+            recurringDay: startDate.getDay() || 7,
             reminder: { rid: rid },
           });
           break;
