@@ -22,6 +22,7 @@ import { ALLOWED_PROFILE_FORMAT } from 'src/utils/global.constant';
 import { ImageDto } from 'src/utils/global.dto';
 import { Repository } from 'typeorm';
 import { CreateReminderDto, UpdateReminderDto, UploadReminderImageDto } from './dto/create-reminder.dto';
+import { ImportanceLevel } from './reminder.interface';
 
 @Injectable()
 export class ReminderService {
@@ -47,7 +48,7 @@ export class ReminderService {
       title: dto.title,
       note: dto.note,
       isRemindCaretaker: dto.isRemindCaretaker,
-      importanceLevel: dto.importanceLevel,
+      importanceLevel: dto.importanceLevel ?? ImportanceLevel.LOW,
       user: elderly,
       isDone: false,
       recurrings: [],
@@ -154,9 +155,9 @@ export class ReminderService {
   private getRecursion(rid: number, startDate: Date, recursion?: RecurringInterval, customRecursion?: Recursion): Partial<Recurring>[] {
     const recurrings = [];
     if (customRecursion?.days && customRecursion?.period === RecursionPeriod.WEEK) {
-      return customRecursion.days.map((day) => ({ recurringDateOfMonth: 0, recurringDay: day }));
+      return customRecursion.days.map((day) => ({ recurringDateOfMonth: 0, recurringDay: day, reminder: { rid } as Reminder }));
     } else if (customRecursion?.date && customRecursion?.period === RecursionPeriod.MONTH) {
-      return [{ recurringDateOfMonth: customRecursion.date }];
+      return [{ recurringDateOfMonth: customRecursion.date, reminder: { rid } as Reminder }];
     } else if (recursion) {
       switch (recursion) {
         case RecurringInterval.EVERY_DAY:

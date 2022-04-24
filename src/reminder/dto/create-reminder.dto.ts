@@ -19,6 +19,7 @@ export class CreateReminderDto {
   @IsString()
   note?: string;
   @ApiProperty({ enum: ['Low', 'Medium', 'High'] })
+  @IsOptional()
   @IsString()
   importanceLevel: ImportanceLevel;
   @ApiPropertyOptional({ enum: ['EVERY_DAY', 'EVERY_MONTH', 'EVERY_WEEK'] })

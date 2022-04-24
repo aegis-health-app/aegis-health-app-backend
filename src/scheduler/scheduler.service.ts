@@ -117,7 +117,11 @@ export class SchedulerService {
         exp = `0 ${dateUtc.getMinutes()} ${dateUtc.getHours()} ${dateCsv} * *`;
         break;
       case RecursionPeriod.WEEK:
-        const dayCsv = recursion.days ? this.toCsvString(recursion.days) : dateUtc.getDay().toString();
+        const tempDays = recursion.days?.map((d) => {
+          if (d === 7) return 0;
+          return d;
+        });
+        const dayCsv = tempDays ? this.toCsvString(tempDays) : dateUtc.getDay().toString();
         exp = `0 ${dateUtc.getMinutes()} ${dateUtc.getHours()} * * ${dayCsv}`;
         break;
       default:
