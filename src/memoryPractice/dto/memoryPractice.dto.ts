@@ -67,11 +67,10 @@ export class ElderlyWithCaretakerDto {
 export class SelectQuestionDto extends ElderlyWithCaretakerDto {
   @ApiProperty()
   @IsString()
-  mid: string
+  mid: string;
 }
 
-export class EditSelectionDto extends SelectQuestionDto {
-}
+export class EditSelectionDto extends SelectQuestionDto {}
 
 export class UploadImageDto {
   @ApiProperty()

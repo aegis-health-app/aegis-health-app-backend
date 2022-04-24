@@ -65,14 +65,12 @@ export class MemoryPracticeService {
 
   async editSelection(eid: number, mid: string, isSelected: string): Promise<string> {
     const question = await this.memoryPracticeQuestionRepository.findOne({ where: { uid: eid, mid: mid } });
-    if (!question)
-      throw new HttpException('This question cannot be found', HttpStatus.BAD_REQUEST);
-    const isSelectedBoolean = (isSelected === 'true');
-    await this.memoryPracticeQuestionRepository.update(mid,
-      {
-        isSelected: isSelectedBoolean
-      })
-    return 'Complete'
+    if (!question) throw new HttpException('This question cannot be found', HttpStatus.BAD_REQUEST);
+    const isSelectedBoolean = isSelected === 'true';
+    await this.memoryPracticeQuestionRepository.update(mid, {
+      isSelected: isSelectedBoolean,
+    });
+    return 'Complete';
   }
 
   async createQuestion(createQuestion: CreateQuestion): Promise<string> {
@@ -109,9 +107,8 @@ export class MemoryPracticeService {
 
   async editQuestion(editQuestion: EditQuestion): Promise<string> {
     const mid = editQuestion.mid;
-    const question = await this.memoryPracticeQuestionRepository.findOne({ where: { mid: mid } })
-    if (!question)
-      throw new HttpException("This mid doesn't exist", HttpStatus.BAD_REQUEST);
+    const question = await this.memoryPracticeQuestionRepository.findOne({ where: { mid: mid } });
+    if (!question) throw new HttpException("This mid doesn't exist", HttpStatus.BAD_REQUEST);
     const uid = editQuestion.elderlyuid;
     let imageid;
     if (editQuestion.image) {

@@ -2,13 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { CronExpression, SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob } from 'cron';
 import moment from 'moment';
-import { RecurringInterval, Recursion, RecursionPeriod, Schedule } from './interface/scheduler.interface';
+import { JobType, RecurringInterval, Recursion, RecursionPeriod, Repetition, Schedule } from './interface/scheduler.interface';
 
 @Injectable()
 export class SchedulerService {
   constructor(private schedulerRegistry: SchedulerRegistry) {}
   scheduleRecurringJob(schedule: Schedule, callback: () => void) {
-    if (moment(schedule.startDate).utcOffset(0).milliseconds() < Date.now()) throw new RangeError('Invalid Date: date should be after present');
     const job = this.addRecurringJob(schedule, callback);
     this.scheduleJob(schedule.name, schedule.startDate, () => {
       if (schedule.customRecursion && schedule.customRecursion.days) {
@@ -21,23 +20,69 @@ export class SchedulerService {
     });
   }
   scheduleJob(jobName: string, startDate: Date, callback: () => void) {
-    if (moment(startDate).utcOffset(0).milliseconds() < Date.now()) throw new RangeError('Invalid Date: date should be after present');
     const name = `${jobName}-timeout`;
     const timeDiff = moment(startDate).utcOffset(0).diff(moment(), 'milliseconds');
     this.addTimeout(name, timeDiff, callback);
   }
+  scheduleInterval(jobName: string, startDate: Date, repetition: Repetition, callback: () => void) {
+    const name = `${jobName}-interval`;
+    let iteration = 0;
+    const intervalCallback = () => {
+      callback();
+      iteration++;
+      if (repetition.maxIteration && iteration >= repetition.maxIteration) this.deleteJob(jobName, JobType.INTERVAL);
+    };
+    this.scheduleJob(name, startDate, () => {
+      const interval = setInterval(intervalCallback, repetition.interval);
+      try {
+        this.schedulerRegistry.addInterval(name, interval);
+      } catch (e) {
+        this.schedulerRegistry.deleteInterval(name);
+        this.schedulerRegistry.addInterval(name, interval);
+      }
+    });
+  }
   private addTimeout(name: string, ms: number, callback: () => void) {
     const timeout = setTimeout(callback, ms);
-    if (this.schedulerRegistry.getTimeouts().find((timeoutName) => timeoutName === name)) this.schedulerRegistry.deleteTimeout(name);
-    this.schedulerRegistry.addTimeout(name, timeout);
+    try {
+      this.schedulerRegistry.addTimeout(name, timeout);
+    } catch (e) {
+      this.schedulerRegistry.deleteTimeout(name);
+      this.schedulerRegistry.addTimeout(name, timeout);
+    }
+    return timeout;
   }
   private addRecurringJob({ name, recursion, customRecursion, startDate }: Schedule, callback: () => void) {
     const jobId = `${name}-recurring`;
-    if (this.schedulerRegistry.getCronJobs().has(jobId)) this.schedulerRegistry.deleteCronJob(jobId);
     const cronExp = recursion ? this.getPredefinedCronExpression(recursion, startDate) : this.getCustomCronExpression(customRecursion, startDate);
     const job = new CronJob(cronExp, callback);
-    this.schedulerRegistry.addCronJob(jobId, job);
+    try {
+      this.schedulerRegistry.addCronJob(jobId, job);
+    } catch (e) {
+      this.schedulerRegistry.deleteCronJob(jobId);
+      this.schedulerRegistry.addCronJob(jobId, job);
+    }
     return job;
+  }
+  deleteJob(name: string, jobType: JobType, shouldFail?: boolean) {
+    const jobName = `${name}-${jobType}`;
+    try {
+      switch (jobType) {
+        case JobType.INTERVAL:
+          this.schedulerRegistry.deleteInterval(jobName);
+          break;
+        case JobType.INTERVAL_TIMEOUT || JobType.TIMEOUT:
+          this.schedulerRegistry.deleteTimeout(jobName);
+          break;
+        case JobType.RECURRING:
+          this.schedulerRegistry.deleteCronJob(jobName);
+          break;
+      }
+      return true;
+    } catch (e) {
+      if (shouldFail) throw new Error('Job not found');
+      return false;
+    }
   }
   private getPredefinedCronExpression(interval: RecurringInterval, date: Date): string {
     const dateUtc = moment(date).utcOffset(0).toDate();
@@ -72,7 +117,11 @@ export class SchedulerService {
         exp = `0 ${dateUtc.getMinutes()} ${dateUtc.getHours()} ${dateCsv} * *`;
         break;
       case RecursionPeriod.WEEK:
-        const dayCsv = recursion.days ? this.toCsvString(recursion.days) : dateUtc.getDay().toString();
+        const tempDays = recursion.days?.map((d) => {
+          if (d === 7) return 0;
+          return d;
+        });
+        const dayCsv = tempDays ? this.toCsvString(tempDays) : dateUtc.getDay().toString();
         exp = `0 ${dateUtc.getMinutes()} ${dateUtc.getHours()} * * ${dayCsv}`;
         break;
       default:
