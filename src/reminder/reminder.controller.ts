@@ -42,7 +42,7 @@ export class ReminderController {
   @ApiBody({ type: UpdateReminderDto })
   @ApiResponse({ type: SimpleStatusResponse })
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  async update(@Body() updateReminderDto: UpdateReminderDto, @Req() req) {
-    return { status: (await this.reminderService.update(updateReminderDto, req.user.uid)) ? 'success' : 'fail' };
+  async update(@Body() { image, ...rest }: UpdateReminderDto, @Req() req) {
+    return { status: (await this.reminderService.update(rest, req.user.uid, image)) ? 'success' : 'fail' };
   }
 }

@@ -36,11 +36,11 @@ export class ReminderService {
   async create(dto: CreateReminderDto, uid: number) {
     if (dto.customRecursion && dto.recursion) throw new ConflictException('Reminder cannot have both custom and predefied recursion');
     if (moment(dto.startingDateTime).utcOffset(0).valueOf() < Date.now()) throw new BadRequestException('Start date cannot be in the past');
-    const user = await this.userService.findOne(
+    const elderly = await this.userService.findOne(
       { uid: dto.eid ?? uid },
-      { relations: dto.isRemindCaretaker ? ['takenCareBy'] : undefined, shouldBeElderly: true }
+      { relations: dto.isRemindCaretaker || dto.eid ? ['takenCareBy'] : undefined, shouldBeElderly: true }
     );
-    if (dto.eid && !user.takenCareBy.find((caretaker) => caretaker.uid === uid))
+    if (dto.eid && !elderly.takenCareBy.find((caretaker) => caretaker.uid === uid))
       throw new MethodNotAllowedException('You do not have permission to access this elderly');
     const payload = this.reminderRepository.create({
       startingDateTime: moment(dto.startingDateTime).set('seconds', 0).format('YYYY-MM-DD hh:mm:ss'),
@@ -48,7 +48,7 @@ export class ReminderService {
       note: dto.note,
       isRemindCaretaker: dto.isRemindCaretaker,
       importanceLevel: dto.importanceLevel,
-      user: user,
+      user: elderly,
       isDone: false,
       recurrings: [],
     });
@@ -70,7 +70,7 @@ export class ReminderService {
     return reminder;
   }
 
-  async update(dto: UpdateReminderDto, uid: number) {
+  async update(dto: UpdateReminderDto, uid: number, image?: ImageDto) {
     if (dto.customRecursion && dto.recursion) throw new ConflictException('Reminder cannot have both custom and predefied recursion');
     if (moment(dto.startingDateTime).utcOffset(0).valueOf() < Date.now()) throw new BadRequestException('Start date cannot be in the past');
     const reminder = await this.reminderRepository.findOne({ rid: dto.rid }, { relations: ['user'] });
@@ -78,14 +78,18 @@ export class ReminderService {
     if (uid !== reminder.user.uid && !(await this.userService.checkRelationship(reminder.user.uid, uid)))
       throw new ForbiddenException('You do not have permission to access this reminder');
     let newRecursion = undefined;
-    if (dto.recursion || dto.customRecursion)
-      newRecursion = this.getRecursion(reminder.rid, dto.startingDateTime ?? reminder.startingDateTime, dto.recursion, dto.customRecursion);
+    if (dto.recursion || dto.customRecursion) {
+      newRecursion = await this.recurringRepository.save(
+        this.getRecursion(reminder.rid, dto.startingDateTime ?? reminder.startingDateTime, dto.recursion, dto.customRecursion)
+      );
+    }
     const updatedReminder = await this.reminderRepository.save({
       ...dto,
-      imageid: dto.image ? await this.uploadReminderImage(reminder.rid, dto.image) : undefined,
-      recurrings: newRecursion ?? reminder.recurrings,
+      imageid: image ? await this.uploadReminderImage(reminder.rid, image) : undefined,
+      recurrings: newRecursion,
       startingDateTime: dto.startingDateTime ? moment(dto.startingDateTime).set('seconds', 0).format('YYYY-MM-DD hh:mm:ss') : undefined,
     });
+    if (!dto) return updatedReminder; //if only image needs to be updated
     if (dto.customRecursion === null || dto.recursion === null) {
       this.schedulerService.deleteJob(updatedReminder.rid.toString(), JobType.RECURRING);
     }
@@ -93,15 +97,13 @@ export class ReminderService {
       this.schedulerService.deleteJob(updatedReminder.rid.toString(), JobType.INTERVAL_TIMEOUT);
       this.schedulerService.deleteJob(updatedReminder.rid.toString(), JobType.INTERVAL);
     }
-    if (dto.customRecursion || dto.recursion || dto.startingDateTime) {
-      const schedule: Schedule = {
-        customRecursion: dto.customRecursion,
-        recursion: dto.recursion,
-        startDate: dto.startingDateTime ?? reminder.startingDateTime,
-        name: updatedReminder.rid.toString(),
-      };
-      this.scheduleReminder(updatedReminder, schedule);
-    }
+    const schedule: Schedule = {
+      customRecursion: dto.customRecursion,
+      recursion: dto.recursion,
+      startDate: dto.startingDateTime ?? reminder.startingDateTime,
+      name: updatedReminder.rid.toString(),
+    };
+    this.scheduleReminder(updatedReminder, schedule);
     return updatedReminder;
   }
 
