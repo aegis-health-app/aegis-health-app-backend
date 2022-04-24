@@ -88,7 +88,7 @@ export class MemoryPracticeService {
     await this.memoryPracticeQuestionRepository.save({
       mid: nextID.toString(),
       question: createQuestion.question,
-      isSelected: true,
+      isSelected: false,
       imageid: imageid,
       uid: createQuestion.elderlyuid,
     });
@@ -107,8 +107,8 @@ export class MemoryPracticeService {
 
   async editQuestion(editQuestion: EditQuestion): Promise<string> {
     const mid = editQuestion.mid;
-    if (!(await this.memoryPracticeQuestionRepository.findOne({ where: { mid: mid } })))
-      throw new HttpException("This mid doesn't exist", HttpStatus.BAD_REQUEST);
+    const question = await this.memoryPracticeQuestionRepository.findOne({ where: { mid: mid } });
+    if (!question) throw new HttpException("This mid doesn't exist", HttpStatus.BAD_REQUEST);
     const uid = editQuestion.elderlyuid;
     let imageid;
     if (editQuestion.image) {
@@ -124,7 +124,7 @@ export class MemoryPracticeService {
       { mid, uid },
       {
         question: editQuestion.question,
-        isSelected: true,
+        isSelected: question.isSelected,
         imageid: imageid,
       }
     );

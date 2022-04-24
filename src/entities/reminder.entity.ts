@@ -7,7 +7,7 @@ export class Reminder {
   @PrimaryGeneratedColumn()
   rid: number;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'datetime' })
   startingDateTime: Date;
 
   @Column()
