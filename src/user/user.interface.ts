@@ -69,3 +69,9 @@ export class PersonalInfo {
   @IsOptional()
   vaccine: string;
 }
+
+export interface ForgotPassword {
+  phoneNo: string
+  // enteredPin: string
+  newPassword: string
+}
