@@ -24,7 +24,7 @@ export class Recursion {
   @ApiPropertyOptional()
   days?: (1 | 2 | 3 | 4 | 5 | 6 | 7)[];
   @ApiPropertyOptional()
-  date?: number;
+  dates?: number[];
 }
 export class Repetition {
   maxIteration?: number;

@@ -158,8 +158,8 @@ export class ReminderService {
     const recurrings = [];
     if (customRecursion?.days && customRecursion?.period === RecursionPeriod.WEEK) {
       return customRecursion.days.map((day) => ({ recurringDateOfMonth: 0, recurringDay: day, reminder: { rid } as Reminder }));
-    } else if (customRecursion?.date && customRecursion?.period === RecursionPeriod.MONTH) {
-      return [{ recurringDateOfMonth: customRecursion.date, reminder: { rid } as Reminder }];
+    } else if (customRecursion?.dates && customRecursion?.period === RecursionPeriod.MONTH) {
+      return customRecursion.dates.map((date) => ({ recurringDateOfMonth: date, recurringDay: 0, reminder: { rid } as Reminder }));
     } else if (recursion) {
       switch (recursion) {
         case RecurringInterval.EVERY_DAY:
