@@ -18,7 +18,7 @@ export class ReminderController {
     @ApiNotFoundResponse({ description: "Reminder not found" })
     @UseGuards(ElderlyGuard)
     @UsePipes(new ValidationPipe({ whitelist: true }))
-    @Delete('delete/elderly')
+    @Delete('elderly')
     async deleteReminderElderly(@Res() res, @Body() body: DeleteReminderDto): Promise<string> {
         await this.reminderService.deleteReminder(body.rid)
         return res.status(200).json({
@@ -35,7 +35,7 @@ export class ReminderController {
     @ApiNotFoundResponse({ description: "Reminder not found" })
     @UseGuards(CaretakerGuard)
     @UsePipes(new ValidationPipe({ whitelist: true }))
-    @Delete('delete/caretaker/:eid')
+    @Delete('caretaker/:eid')
     async deleteReminderCaretaker(@Param("eid") eid: number, @Res() res, @Req() req, @Body() body: DeleteReminderDto): Promise<string> {
         await this.userService.checkRelationship(eid, req.user.uid)
         await this.reminderService.deleteReminder(body.rid)

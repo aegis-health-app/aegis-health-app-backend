@@ -3,7 +3,7 @@ export interface Recurring {
     recurringDay: number
 }
 
-export interface Reminder {
+export interface GetReminder {
     rid: number
     startingDateTime: Date
     title: string
@@ -12,9 +12,6 @@ export interface Reminder {
     importanceLevel: string
     imageid: string
     isDone: boolean
-}
-
-export interface GetReminder extends Reminder {
     recurrings: Recurring[]
 }
 
