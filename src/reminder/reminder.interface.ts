@@ -5,7 +5,7 @@ export interface Recurring {
 
 export interface Reminder {
     rid: number
-    startingDate: Date
+    startingDateTime: Date
     title: string
     note: string
     isRemindCaretaker: boolean

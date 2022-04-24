@@ -28,7 +28,7 @@ export class ReminderDto {
 
   @ApiProperty()
   @IsDate()
-  startingDate: Date
+  startingDateTime: Date
 
   @ApiProperty()
   @IsString()

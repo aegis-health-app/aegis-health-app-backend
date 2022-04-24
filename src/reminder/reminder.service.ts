@@ -36,10 +36,10 @@ export class ReminderService {
             where: {
                 uid: uid,
                 isDone: true,
-                startingDate: MoreThanOrEqual(currentDate)
+                startingDateTime: MoreThanOrEqual(currentDate)
             },
             order: {
-                startingDate: "DESC"
+                startingDateTime: "DESC"
             }
         })
 
@@ -48,7 +48,7 @@ export class ReminderService {
         for (let i = 0; i < 9; i++) {
             const listReminderEachDate: ModifiedReminder[] = []
             for (const reminder of reminders) {
-                if (reminder.startingDate.getDate() === currentDate.getDate()) {
+                if (reminder.startingDateTime.getDate() === currentDate.getDate()) {
                     listReminderEachDate.push({
                         rid: reminder.rid,
                         title: reminder.title,
@@ -56,8 +56,8 @@ export class ReminderService {
                         isRemindCaretaker: reminder.isRemindCaretaker,
                         importanceLevel: reminder.importanceLevel,
                         imageid: reminder.imageid,
-                        hour: reminder.startingDate.getHours(),
-                        minute: reminder.startingDate.getMinutes()
+                        hour: reminder.startingDateTime.getHours(),
+                        minute: reminder.startingDateTime.getMinutes()
                     })
                     reminders.splice(reminders.indexOf(reminder), 1) //don't know if this gonna increase the speed or decrease
                 }
@@ -77,16 +77,16 @@ export class ReminderService {
             where: {
                 uid: uid,
                 isDone: false,
-                startingDate: LessThan(currentDate),
+                startingDateTime: LessThan(currentDate),
                 recurrings: [] // not sure is this gonna work
             },
             order: {
-                startingDate: "ASC"
+                startingDateTime: "ASC"
             }
         })
         const dateList = []
         for (const overdueReminder of overdueReminders) {
-            const date = new Date(overdueReminder.startingDate)
+            const date = new Date(overdueReminder.startingDateTime)
             date.setHours(0, 0, 0)
             if (!dateList.includes(date)) {
                 dateList.push(date)
@@ -96,7 +96,7 @@ export class ReminderService {
         for (const date of dateList) {
             const listReminderEachDate: ModifiedReminder[] = []
             for (const overdueReminder of overdueReminders) {
-                const overdueDate = new Date(overdueReminder.startingDate)
+                const overdueDate = new Date(overdueReminder.startingDateTime)
                 overdueDate.setHours(0, 0, 0)
                 if (overdueDate === date) {
                     listReminderEachDate.push({
@@ -106,8 +106,8 @@ export class ReminderService {
                         isRemindCaretaker: overdueReminder.isRemindCaretaker,
                         importanceLevel: overdueReminder.importanceLevel,
                         imageid: overdueReminder.imageid,
-                        hour: overdueReminder.startingDate.getHours(),
-                        minute: overdueReminder.startingDate.getMinutes()
+                        hour: overdueReminder.startingDateTime.getHours(),
+                        minute: overdueReminder.startingDateTime.getMinutes()
                     })
                     overdueReminders.splice(overdueReminders.indexOf(overdueReminder), 1)
                 }
@@ -127,10 +127,10 @@ export class ReminderService {
             where: {
                 uid: uid,
                 isDone: false,
-                startingDate: Between(currentDate, nextWeekDate)
+                startingDateTime: Between(currentDate, nextWeekDate)
             },
             order: {
-                startingDate: "ASC"
+                startingDateTime: "ASC"
             }
         })
         currentDate.setMinutes(currentDate.getMinutes() + 1)
@@ -140,7 +140,7 @@ export class ReminderService {
         for (let i = 0; i < 8; i++) {
             const listReminderEachDate: ModifiedReminder[] = []
             for (const futureReminder of futureReminders) {
-                if (futureReminder.startingDate.getDate() === tempDate.getDate()) {
+                if (futureReminder.startingDateTime.getDate() === tempDate.getDate()) {
                     listReminderEachDate.push({
                         rid: futureReminder.rid,
                         title: futureReminder.title,
@@ -148,8 +148,8 @@ export class ReminderService {
                         isRemindCaretaker: futureReminder.isRemindCaretaker,
                         importanceLevel: futureReminder.importanceLevel,
                         imageid: futureReminder.imageid,
-                        hour: futureReminder.startingDate.getHours(),
-                        minute: futureReminder.startingDate.getMinutes()
+                        hour: futureReminder.startingDateTime.getHours(),
+                        minute: futureReminder.startingDateTime.getMinutes()
                     })
                     futureReminders.splice(futureReminders.indexOf(futureReminder), 1)
                 }
@@ -166,7 +166,7 @@ export class ReminderService {
             })
             if (i === 0) {
                 for (const recurringReminder of recurringReminders) {
-                    const reminderDate = recurringReminder.reminder.startingDate
+                    const reminderDate = recurringReminder.reminder.startingDateTime
                     if ((reminderDate.getTime() < currentDate.getTime()) &&
                         ((reminderDate.getHours() * 60 + reminderDate.getMinutes()) >= (currentDate.getHours() * 60 + currentDate.getMinutes()))) {
                         listReminderEachDate.push({
@@ -176,14 +176,14 @@ export class ReminderService {
                             isRemindCaretaker: recurringReminder.reminder.isRemindCaretaker,
                             importanceLevel: recurringReminder.reminder.importanceLevel,
                             imageid: recurringReminder.reminder.imageid,
-                            hour: recurringReminder.reminder.startingDate.getHours(),
-                            minute: recurringReminder.reminder.startingDate.getMinutes()
+                            hour: recurringReminder.reminder.startingDateTime.getHours(),
+                            minute: recurringReminder.reminder.startingDateTime.getMinutes()
                         })
                     }
                 }
             } else {
                 for (const recurringReminder of recurringReminders) {
-                    if (recurringReminder.reminder.startingDate.getTime() < tempDate.getTime()) {
+                    if (recurringReminder.reminder.startingDateTime.getTime() < tempDate.getTime()) {
                         listReminderEachDate.push({
                             rid: recurringReminder.reminder.rid,
                             title: recurringReminder.reminder.title,
@@ -191,8 +191,8 @@ export class ReminderService {
                             isRemindCaretaker: recurringReminder.reminder.isRemindCaretaker,
                             importanceLevel: recurringReminder.reminder.importanceLevel,
                             imageid: recurringReminder.reminder.imageid,
-                            hour: recurringReminder.reminder.startingDate.getHours(),
-                            minute: recurringReminder.reminder.startingDate.getMinutes()
+                            hour: recurringReminder.reminder.startingDateTime.getHours(),
+                            minute: recurringReminder.reminder.startingDateTime.getMinutes()
                         })
                     }
                 }
