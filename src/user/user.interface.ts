@@ -50,6 +50,7 @@ export class PersonalInfo {
   isElderly: boolean;
   @ApiProperty()
   @Expose()
+  @IsOptional()
   healthCondition: string;
   @ApiProperty({ enum: ['A', 'B', 'O', 'AB', 'N/A'] })
   @Expose()
@@ -57,11 +58,14 @@ export class PersonalInfo {
   bloodType: string;
   @ApiProperty()
   @Expose()
+  @IsOptional()
   personalMedication: string;
   @ApiProperty()
   @Expose()
+  @IsOptional()
   allergy: string;
   @ApiProperty()
   @Expose()
+  @IsOptional()
   vaccine: string;
 }
