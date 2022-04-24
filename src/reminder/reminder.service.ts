@@ -79,12 +79,7 @@ export class ReminderService {
       throw new ForbiddenException('You do not have permission to access this reminder');
     let newRecursion = undefined;
     if (dto.recursion || dto.customRecursion)
-      newRecursion = this.getRecursion(
-        reminder.rid,
-        dto.startingDateTime ?? new Date(reminder.startingDateTime.toNumber()),
-        dto.recursion,
-        dto.customRecursion
-      );
+      newRecursion = this.getRecursion(reminder.rid, dto.startingDateTime ?? reminder.startingDateTime, dto.recursion, dto.customRecursion);
     const updatedReminder = await this.reminderRepository.save({
       ...dto,
       imageid: dto.image ? await this.uploadReminderImage(reminder.rid, dto.image) : undefined,
@@ -102,7 +97,7 @@ export class ReminderService {
       const schedule: Schedule = {
         customRecursion: dto.customRecursion,
         recursion: dto.recursion,
-        startDate: dto.startingDateTime ?? new Date(reminder.startingDateTime.toNumber()),
+        startDate: dto.startingDateTime ?? reminder.startingDateTime,
         name: updatedReminder.rid.toString(),
       };
       this.scheduleReminder(updatedReminder, schedule);

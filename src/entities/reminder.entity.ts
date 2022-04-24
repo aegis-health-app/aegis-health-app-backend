@@ -8,7 +8,7 @@ export class Reminder {
   rid: number;
 
   @Column({ type: 'date' })
-  startingDateTime: Timestamp;
+  startingDateTime: Date;
 
   @Column()
   title: string;
