@@ -68,6 +68,11 @@ export class PersonalInfo {
 
 export interface ForgotPassword {
   phoneNo: string
-  // enteredPin: string
   newPassword: string
+}
+
+export interface OTP {
+  status: string;
+  token: string;
+  refno: string;
 }

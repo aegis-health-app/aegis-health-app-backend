@@ -28,6 +28,7 @@ import {
   UpdateUserProfileDto,
   UploadProfileRequest,
   ForgotPasswordDto,
+  OtpRequestDTO,
 } from './dto/user.dto';
 import {
   ApiBadRequestResponse,
@@ -177,19 +178,14 @@ export class UserController {
   @ApiOkResponse({ description: 'Phone number exists' })
   @ApiBadRequestResponse({ description: 'This phone number does not exist' })
   @Get('/verifyPhoneNoExist/:phoneNo')
-  async verifyPasswordExist(@Param('phoneNo') phoneNo: string, @Res() res): Promise<string> {
-    await this.userService.verifyPhoneNoExist(phoneNo)
-    return res.status(200).json({
-      statusCode: 200,
-      message: "Phone number exists"
-    })
+  async verifyPasswordExist(@Param('phoneNo') phoneNo: string, @Res() res): Promise<OtpRequestDTO> {
+    return await this.userService.verifyPhoneNoExist(phoneNo)
   }
 
   @ApiOperation({ description: 'Change password of an account that is not signed in' })
   @ApiBody({ type: ForgotPasswordDto })
   @ApiOkResponse({ description: 'Changed forgot password successfully' })
   @ApiBadRequestResponse({ description: 'New password entered is the old password' })
-  // @ApiForbiddenResponse({ description: 'PIN entered is incorrect' })
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @Put('/forgotPassword')
   async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto, @Req() req, @Res() res): Promise<string> {
