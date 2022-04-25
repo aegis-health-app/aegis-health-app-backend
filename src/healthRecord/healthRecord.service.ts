@@ -24,6 +24,8 @@ import {
   healthTableDataRawInterface,
   HealthDataRawInterface,
   HealthAnalyticsDataRawInterface,
+  HealthColumnInterface,
+  HealthColumnRawInterface,
 } from './healthRecord.interface';
 
 @Injectable()
@@ -128,6 +130,31 @@ export class HealthRecordService {
     return;
   }
 
+  async getHealthColumns(uid: number, healthRecordName: string): Promise<HealthColumnInterface> {
+    const healthDataQuery = getManager()
+    .createQueryBuilder()
+    .select('hr.hrName', 'hrName')
+    .addSelect('hc.columnName', 'columnName')
+    .addSelect('hc.unit', 'unit')
+    .from(HealthRecord, 'hr')
+    .innerJoin(HealthColumn, 'hc', 'hr.uid = hc.uid AND hr.hrName = hc.hrName')
+    .where('hr.uid = :uid', { uid: uid })
+    .andWhere('hr.hrName = :hrName', { hrName: healthRecordName })
+
+    const healthDataRaw:HealthColumnRawInterface[] = await healthDataQuery.getRawMany();
+    const response: HealthColumnInterface = {
+      columnNames: [],
+      units: []
+    }
+    if (healthDataRaw && healthDataRaw.length) {
+      healthDataRaw.forEach(r => {
+          response.columnNames.push(r.columnName)
+          response.units.push(r.unit)
+      })
+    }
+    return response
+  }
+
   async getHealthTable(uid: number, healthRecordName: string): Promise<HealthRecordTableDto> {
     const result: HealthRecordTableDto = {
       imageId: '',
@@ -152,7 +179,12 @@ export class HealthRecordService {
       .orderBy("DATE_FORMAT(hd.timestamp, '%Y-%m-%d %H:%i:%S')");
 
     const healthDataRaw: healthTableDataRawInterface[] = await healthDataQuery.getRawMany();
-    if (!healthDataRaw.length) return result;
+    if (!healthDataRaw.length) {
+      const healthColumnRaw = await this.getHealthColumns(uid, healthRecordName)
+      result.columnNames = healthColumnRaw.columnNames
+      result.units = healthColumnRaw.units
+      return result;
+    }
 
     const distinctValueByColumns = this.extractDistinctValueByColumns<healthTableDataRawInterface, { columnName: string; unit: string }>(
       healthDataRaw,

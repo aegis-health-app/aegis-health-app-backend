@@ -65,3 +65,13 @@ export interface HealthDataRawInterface {
   value: number;
   timestamp: Date;
 }
+
+export interface HealthColumnInterface {
+  columnNames: string[],
+  units: string[]
+}
+export interface HealthColumnRawInterface {
+  hrName: string,
+  columnName: string,
+  unit: string
+}
