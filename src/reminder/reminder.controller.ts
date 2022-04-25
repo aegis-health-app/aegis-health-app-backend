@@ -69,8 +69,8 @@ export class ReminderController {
   @UseGuards(ElderlyGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @Delete('elderly')
-  async deleteReminderElderly(@Res() res, @Body() body: DeleteReminderDto): Promise<string> {
-    await this.reminderService.deleteReminder(body.rid);
+  async deleteReminderElderly(@Res() res, @Body() body: DeleteReminderDto, @Req() req): Promise<string> {
+    await this.reminderService.deleteReminder(body.rid, req.user.uid);
     return res.status(200).json({
       statusCode: 200,
       message: 'Deleted reminder from the database successfully',
@@ -88,7 +88,7 @@ export class ReminderController {
   @Delete('caretaker/:eid')
   async deleteReminderCaretaker(@Param('eid') eid: number, @Res() res, @Req() req, @Body() body: DeleteReminderDto): Promise<string> {
     await this.userService.checkRelationship(eid, req.user.uid);
-    await this.reminderService.deleteReminder(body.rid);
+    await this.reminderService.deleteReminder(body.rid, eid);
     return res.status(200).json({
       statusCode: 200,
       message: 'Deleted reminder from the database successfully',
@@ -102,9 +102,9 @@ export class ReminderController {
   @ApiNotFoundResponse({ description: 'Reminder not found' })
   @UseGuards(ElderlyGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  @Get('get/elderly')
-  async getReminderElderly(@Body() body: GetReminderDto): Promise<ReminderDto> {
-    return await this.reminderService.getReminder(body.rid);
+  @Get('elderly')
+  async getReminderElderly(@Body() body: GetReminderDto, @Req() req): Promise<ReminderDto> {
+    return await this.reminderService.getReminder(body.rid, req.user.uid);
   }
 
   @ApiUnauthorizedResponse({ description: 'Must login to use this endpoints' })
@@ -115,10 +115,10 @@ export class ReminderController {
   @ApiNotFoundResponse({ description: 'Reminder not found' })
   @UseGuards(CaretakerGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  @Get('get/caretaker/:eid')
+  @Get('caretaker/:eid')
   async getReminderCaretaker(@Param('eid') eid: number, @Req() req, @Body() body: GetReminderDto): Promise<ReminderDto> {
     await this.userService.checkRelationship(eid, req.user.uid);
-    return await this.reminderService.getReminder(body.rid);
+    return await this.reminderService.getReminder(body.rid, eid);
   }
 
   @ApiUnauthorizedResponse({ description: 'Must login to use this endpoints' })
@@ -127,7 +127,7 @@ export class ReminderController {
   @ApiBody({ type: GetFinishedReminderDto })
   @UseGuards(ElderlyGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  @Get('get/finishedReminder/elderly')
+  @Get('finishedReminder/elderly')
   async getFinishedReminderElderly(@Body() body: GetFinishedReminderDto, @Req() req): Promise<ListReminderEachDateDto[]> {
     return await this.reminderService.getFinishedReminder(body.currentDate, req.user.id);
   }
@@ -139,7 +139,7 @@ export class ReminderController {
   @ApiBody({ type: GetFinishedReminderDto })
   @UseGuards(CaretakerGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  @Get('get/finishedReminder/caretaker/:eid')
+  @Get('finishedReminder/caretaker/:eid')
   async getFinishedReminderCaretaker(
     @Param('eid') eid: number,
     @Req() req,
@@ -155,7 +155,7 @@ export class ReminderController {
   @ApiBody({ type: GetUnFinishedReminderDto })
   @UseGuards(ElderlyGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  @Get('get/unfinishedReminder/elderly')
+  @Get('unfinishedReminder/elderly')
   async getUnfinishedReminderElderly(@Body() body: GetUnFinishedReminderDto, @Req() req): Promise<ListUnfinishedReminderDto> {
     return await this.reminderService.getUnfinishedReminder(body.currentDate, req.user.id);
   }
@@ -167,7 +167,7 @@ export class ReminderController {
   @ApiBody({ type: GetUnFinishedReminderDto })
   @UseGuards(CaretakerGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  @Get('get/unfinishedReminder/caretaker/:eid')
+  @Get('unfinishedReminder/caretaker/:eid')
   async getUnfinishedReminderCaretaker(
     @Param('eid') eid: number,
     @Req() req,
@@ -186,8 +186,8 @@ export class ReminderController {
   @UseGuards(ElderlyGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @Put('markAsNotComplete/elderly')
-  async markAsNotCompleteElderly(@Res() res, @Body() body: MarkAsNotCompleteDto): Promise<string> {
-    await this.reminderService.markAsNotComplete(body.rid);
+  async markAsNotCompleteElderly(@Res() res, @Body() body: MarkAsNotCompleteDto, @Req() req): Promise<string> {
+    await this.reminderService.markAsNotComplete(body.rid, req.user.uid);
     return res.status(200).json({
       statusCode: 200,
       message: 'Mark reminder as not complete from the database successfully',
@@ -206,7 +206,7 @@ export class ReminderController {
   @Put('markAsNotComplete/caretaker/:eid')
   async markAsNotCompleteCaretaker(@Param('eid') eid: number, @Res() res, @Req() req, @Body() body: MarkAsNotCompleteDto): Promise<string> {
     await this.userService.checkRelationship(eid, req.user.uid);
-    await this.reminderService.markAsNotComplete(body.rid);
+    await this.reminderService.markAsNotComplete(body.rid, eid);
     return res.status(200).json({
       statusCode: 200,
       message: 'Mark reminder as not complete from the database successfully',
@@ -225,8 +225,8 @@ export class ReminderController {
   @UseGuards(ElderlyGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @Put('markAsComplete/elderly')
-  async markAsCompleteElderly(@Res() res, @Body() body: MarkAsCompleteDto): Promise<string> {
-    await this.reminderService.markAsComplete(body.rid, body.currentDate);
+  async markAsCompleteElderly(@Res() res, @Body() body: MarkAsCompleteDto, @Req() req): Promise<string> {
+    await this.reminderService.markAsComplete(body.rid, body.currentDate, req.user.uid);
     return res.status(200).json({
       statusCode: 200,
       message: 'Mark reminder as complete from the database successfully',
@@ -248,7 +248,7 @@ export class ReminderController {
   @Put('markAsComplete/caretaker/:eid')
   async markAsCompleteCaretaker(@Param('eid') eid: number, @Res() res, @Req() req, @Body() body: MarkAsCompleteDto): Promise<string> {
     await this.userService.checkRelationship(eid, req.user.uid);
-    await this.reminderService.markAsComplete(body.rid, body.currentDate);
+    await this.reminderService.markAsComplete(body.rid, body.currentDate, eid);
     return res.status(200).json({
       statusCode: 200,
       message: 'Mark reminder as complete from the database successfully',
