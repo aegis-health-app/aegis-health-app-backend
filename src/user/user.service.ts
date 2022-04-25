@@ -10,7 +10,7 @@ import { Role } from 'src/common/roles';
 import { GoogleCloudStorage } from 'src/google-cloud/google-storage.service';
 import { ALLOWED_PROFILE_FORMAT } from 'src/utils/global.constant';
 import { BucketName } from 'src/google-cloud/google-cloud.interface';
-import { ForgotPassword } from './user.interface';
+import { ForgotPassword, OTP } from './user.interface';
 import * as bcrypt from 'bcrypt'
 import { OtpService } from 'src/otp/otp.service';
 
@@ -157,11 +157,12 @@ export class UserService {
     return { url: imageid };
   }
 
-  async verifyPhoneNoExist(phoneNo: string): Promise<string> {
+  async verifyPhoneNoExist(phoneNo: string): Promise<OTP> {
     const phone = await this.userRepository.findOne({ where: { phone: phoneNo } })
     if (!phone)
       throw new HttpException('This phone number does not exist', HttpStatus.BAD_REQUEST);
-    return 'Complete'
+    const OTP = this.otpService.getOtp(phoneNo)
+    return OTP
   }
 
   async hashPassword(password: string): Promise<string> {
@@ -173,10 +174,6 @@ export class UserService {
   }
 
   async forgotPassword(forgotPassword: ForgotPassword): Promise<string> {
-    // const otpVerified = this.otpService.verifyOtp(token, forgotPassword.enteredPin)
-    // if (!otpVerified)
-    //   throw new HttpException("PIN entered is incorrect", HttpStatus.FORBIDDEN)
-
     const uid = (await this.userRepository.findOne({ where: { phone: forgotPassword.phoneNo } })).uid
     const realOldPassword = (await this.userRepository.findOne({ where: { uid: uid } })).password
     const isMatched = await this.comparePassword(forgotPassword.newPassword, realOldPassword)

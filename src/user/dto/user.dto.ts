@@ -86,10 +86,19 @@ export class ForgotPasswordDto {
   @ApiProperty()
   @IsString()
   phoneNo: string
-  // @ApiProperty(({ minLength: 6, maxLength: 6 }))
-  // @IsString()
-  // enteredPin: string
   @ApiProperty()
   @IsString()
   newPassword: string
+}
+
+export class OtpRequestDTO {
+  @ApiProperty()
+  @IsString()
+  status: string;
+  @ApiProperty()
+  @IsString()
+  token: string;
+  @ApiProperty()
+  @IsString()
+  refno: string;
 }
