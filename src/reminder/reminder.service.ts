@@ -319,8 +319,6 @@ export class ReminderService {
       const listReminderEachDate: ModifiedFutureReminder[] = [];
       for (const futureReminder of futureReminders) {
         if (futureReminder.startingDateTime.getDate() === tempDate.getDate()) {
-          let recurringStatus = true
-          if (futureReminder.recurrings.length === 0) recurringStatus = false
           listReminderEachDate.push({
             rid: futureReminder.rid,
             title: futureReminder.title,
@@ -330,7 +328,7 @@ export class ReminderService {
             imageid: futureReminder.imageid,
             hour: futureReminder.startingDateTime.getHours(),
             minute: futureReminder.startingDateTime.getMinutes(),
-            isRecurring: recurringStatus,
+            isRecurring: !(futureReminder.recurrings.length === 0),
           });
           futureReminders.splice(futureReminders.indexOf(futureReminder), 1);
         }
