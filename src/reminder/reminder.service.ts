@@ -24,7 +24,7 @@ import { ALLOWED_PROFILE_FORMAT } from 'src/utils/global.constant';
 import { ImageDto } from 'src/utils/global.dto';
 import { Between, LessThan, MoreThanOrEqual, Repository } from 'typeorm';
 import { CreateReminderDto, UpdateReminderDto, UploadReminderImageDto } from './dto/create-reminder.dto';
-import { GetReminder, ImportanceLevel, ListReminderEachDate, ListUnfinishedReminder, ModifiedReminder } from './reminder.interface';
+import { GetReminder, ImportanceLevel, ListReminderEachDate, ListReminderEachFutureDate, ListUnfinishedReminder, ModifiedFutureReminder, ModifiedReminder } from './reminder.interface';
 
 @Injectable()
 export class ReminderService {
@@ -314,9 +314,9 @@ export class ReminderService {
     currentDate.setMinutes(currentDate.getMinutes() + 1);
     const tempDate = new Date(currentDate);
     tempDate.setHours(0, 0, 0);
-    const future: ListReminderEachDate[] = [];
+    const future: ListReminderEachFutureDate[] = [];
     for (let i = 0; i < 8; i++) {
-      const listReminderEachDate: ModifiedReminder[] = [];
+      const listReminderEachDate: ModifiedFutureReminder[] = [];
       for (const futureReminder of futureReminders) {
         if (futureReminder.startingDateTime.getDate() === tempDate.getDate()) {
           listReminderEachDate.push({
@@ -328,6 +328,7 @@ export class ReminderService {
             imageid: futureReminder.imageid,
             hour: futureReminder.startingDateTime.getHours(),
             minute: futureReminder.startingDateTime.getMinutes(),
+            isRecurring: !(futureReminder.recurrings.length === 0),
           });
           futureReminders.splice(futureReminders.indexOf(futureReminder), 1);
         }
@@ -355,6 +356,7 @@ export class ReminderService {
               imageid: recurringReminder.reminder.imageid,
               hour: recurringReminder.reminder.startingDateTime.getHours(),
               minute: recurringReminder.reminder.startingDateTime.getMinutes(),
+              isRecurring: true,
             });
           }
         }
@@ -370,6 +372,7 @@ export class ReminderService {
               imageid: recurringReminder.reminder.imageid,
               hour: recurringReminder.reminder.startingDateTime.getHours(),
               minute: recurringReminder.reminder.startingDateTime.getMinutes(),
+              isRecurring: true,
             });
           }
         }

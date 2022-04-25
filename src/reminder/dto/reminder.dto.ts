@@ -109,14 +109,30 @@ export class ListReminderEachDateDto {
   reminder: Array<ModifiedReminderDto>;
 }
 
+export class ModifiedFutureReminderDto extends ModifiedReminderDto {
+  @ApiProperty()
+  @IsBoolean()
+  isRecurring: boolean;
+}
+
+export class ListReminderEachFutureDateDto {
+  @ApiProperty()
+  @IsDate()
+  date: Date;
+
+  @ApiProperty({ type: [ModifiedFutureReminderDto] })
+  @IsArray()
+  reminder: Array<ModifiedFutureReminderDto>;
+}
+
 export class ListUnfinishedReminderDto {
   @ApiProperty({ type: [ListReminderEachDateDto] })
   @IsArray()
   overdue: Array<ListReminderEachDateDto>;
 
-  @ApiProperty({ type: [ListReminderEachDateDto] })
+  @ApiProperty({ type: [ListReminderEachFutureDateDto] })
   @IsArray()
-  future: Array<ListReminderEachDateDto>;
+  future: Array<ListReminderEachFutureDateDto>;
 }
 
 export class MarkAsNotCompleteDto extends DeleteReminderDto {}

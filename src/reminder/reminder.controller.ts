@@ -97,7 +97,7 @@ export class ReminderController {
 
   @ApiUnauthorizedResponse({ description: 'Must login to use this endpoints' })
   @ApiForbiddenResponse({ description: 'Must be elderly to use this endpoints' })
-  @ApiOkResponse({ description: 'Get reminder from the database succesfully' })
+  @ApiOkResponse({ description: 'Get reminder from the database succesfully', type: ReminderDto })
   @ApiBody({ type: GetReminderDto })
   @ApiNotFoundResponse({ description: 'Reminder not found' })
   @UseGuards(ElderlyGuard)
@@ -109,7 +109,7 @@ export class ReminderController {
 
   @ApiUnauthorizedResponse({ description: 'Must login to use this endpoints' })
   @ApiForbiddenResponse({ description: 'Must be caretaker to use this endpoints' })
-  @ApiOkResponse({ description: 'Get reminder from the database succesfully' })
+  @ApiOkResponse({ description: 'Get reminder from the database succesfully', type: ReminderDto })
   @ApiBadRequestResponse({ description: "Caretaker doesn't have access to this elderly" })
   @ApiBody({ type: GetReminderDto })
   @ApiNotFoundResponse({ description: 'Reminder not found' })
@@ -123,7 +123,7 @@ export class ReminderController {
 
   @ApiUnauthorizedResponse({ description: 'Must login to use this endpoints' })
   @ApiForbiddenResponse({ description: 'Must be elderly to use this endpoints' })
-  @ApiOkResponse({ description: 'Get finished reminder from the database succesfully' })
+  @ApiOkResponse({ description: 'Get finished reminder from the database succesfully', type: [ListReminderEachDateDto] })
   @ApiBody({ type: GetFinishedReminderDto })
   @UseGuards(ElderlyGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
@@ -134,7 +134,7 @@ export class ReminderController {
 
   @ApiUnauthorizedResponse({ description: 'Must login to use this endpoints' })
   @ApiForbiddenResponse({ description: 'Must be caretaker to use this endpoints' })
-  @ApiOkResponse({ description: 'Get finished reminder from the database succesfully' })
+  @ApiOkResponse({ description: 'Get finished reminder from the database succesfully', type: [ListReminderEachDateDto] })
   @ApiBadRequestResponse({ description: "Caretaker doesn't have access to this elderly" })
   @ApiBody({ type: GetFinishedReminderDto })
   @UseGuards(CaretakerGuard)
@@ -151,7 +151,7 @@ export class ReminderController {
 
   @ApiUnauthorizedResponse({ description: 'Must login to use this endpoints' })
   @ApiForbiddenResponse({ description: 'Must be elderly to use this endpoints' })
-  @ApiOkResponse({ description: 'Get unfinished reminder from the database succesfully' })
+  @ApiOkResponse({ description: 'Get unfinished reminder from the database succesfully', type: ListUnfinishedReminderDto })
   @ApiBody({ type: GetUnFinishedReminderDto })
   @UseGuards(ElderlyGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
@@ -162,7 +162,7 @@ export class ReminderController {
 
   @ApiUnauthorizedResponse({ description: 'Must login to use this endpoints' })
   @ApiForbiddenResponse({ description: 'Must be caretaker to use this endpoints' })
-  @ApiOkResponse({ description: 'Get unfinished reminder from the database succesfully' })
+  @ApiOkResponse({ description: 'Get unfinished reminder from the database succesfully', type: ListUnfinishedReminderDto })
   @ApiBadRequestResponse({ description: "Caretaker doesn't have access to this elderly" })
   @ApiBody({ type: GetUnFinishedReminderDto })
   @UseGuards(CaretakerGuard)
