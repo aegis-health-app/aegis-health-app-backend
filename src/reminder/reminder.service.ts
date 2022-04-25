@@ -70,7 +70,7 @@ export class ReminderService {
       startDate: dto.startingDateTime,
       name: reminder.rid.toString(),
     };
-    this.scheduleReminder(reminder, schedule);
+    await this.scheduleReminder(reminder, schedule, uid);
     return reminder;
   }
 
@@ -107,11 +107,12 @@ export class ReminderService {
       startDate: dto.startingDateTime ?? reminder.startingDateTime,
       name: updatedReminder.rid.toString(),
     };
-    this.scheduleReminder(updatedReminder, schedule);
+    await this.scheduleReminder(updatedReminder, schedule, uid);
     return updatedReminder;
   }
 
-  scheduleReminder(reminder: Reminder, schedule: Schedule) {
+  async scheduleReminder(reminder: Reminder, schedule: Schedule, modifierId: number) {
+    const modifier = await this.userService.findOne({ uid: modifierId });
     const jobCallback = () => {
       const message: NotificationMessage = {
         data: {
@@ -120,6 +121,8 @@ export class ReminderService {
           isDone: reminder.isDone,
           startingDateTime: reminder.startingDateTime,
           user: reminder.user.uid,
+          rid: reminder.rid,
+          from: `${modifier.fname} ${modifier.lname}`,
         },
         notification: {
           title: reminder.title,
@@ -418,7 +421,7 @@ export class ReminderService {
     if (!reminder.isDone) throw new HttpException('This reminder is not yet completed', HttpStatus.CONFLICT);
     reminder.isDone = false;
     const schedule = this.getScheduleFromRecurring(reminder.rid, reminder.recurrings, reminder.startingDateTime);
-    this.scheduleReminder(reminder, schedule);
+    await this.scheduleReminder(reminder, schedule, uid);
     await this.reminderRepository.save(reminder);
     return 'Complete';
   }
