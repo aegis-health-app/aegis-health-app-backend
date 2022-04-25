@@ -94,7 +94,7 @@ export class ReminderService {
       startingDateTime: dto.startingDateTime ? moment(dto.startingDateTime).set('seconds', 0).format('YYYY-MM-DD hh:mm:ss') : undefined,
     });
     if (!dto) return updatedReminder; //if only image needs to be updated
-    if (dto.customRecursion === null || dto.recursion === null) {
+    if (dto.recursion) {
       this.schedulerService.deleteJob(updatedReminder.rid.toString(), JobType.RECURRING);
     }
     if (dto.importanceLevel) {
