@@ -46,12 +46,12 @@ export class SettingService {
     return true;
   }
 
-  async changePhoneNumber(phoneInterface: ChangePhoneNo, uid: number, token: string): Promise<boolean> {
+  async changePhoneNumber(phoneInterface: ChangePhoneNo, uid: number): Promise<boolean> {
     const oldPhoneNumber = (await this.findOne(uid)).phone
     const newPhoneNumber = phoneInterface.newPhone
     if (oldPhoneNumber === newPhoneNumber)
       throw new HttpException("Old phone number is the new phone number", HttpStatus.BAD_REQUEST)
-    const otpVerified = this.otpService.verifyOtp(token, phoneInterface.enteredPin)
+    const otpVerified = this.otpService.verifyOtp(phoneInterface.token, phoneInterface.enteredPin)
     if (!otpVerified)
       throw new HttpException("PIN entered is incorrect", HttpStatus.FORBIDDEN)
     this.userRepository.update(uid, { phone: newPhoneNumber })

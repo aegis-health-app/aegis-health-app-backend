@@ -38,7 +38,7 @@ export class SettingController {
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @Put("/changePhoneNumber")
   async changePhoneNumber(@Body() phoneDto: ChangePhoneNoDto, @Req() req, @Res() res): Promise<string> {
-    await this.settingService.changePhoneNumber(phoneDto, req.user.uid, phoneDto.token)
+    await this.settingService.changePhoneNumber(phoneDto, req.user.uid)
     return res.status(200).json({
       statusCode: 200,
       message: "Changed phone number successfully"
