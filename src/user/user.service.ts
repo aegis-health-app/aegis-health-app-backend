@@ -160,7 +160,7 @@ export class UserService {
   async verifyPhoneNoExist(phoneNo: string): Promise<OTP> {
     const phone = await this.userRepository.findOne({ where: { phone: phoneNo } })
     if (!phone)
-      throw new HttpException('This phone number does not exist', HttpStatus.BAD_REQUEST);
+      throw new HttpException('This phone number does not exist', HttpStatus.NOT_FOUND);
     const OTP = this.otpService.getOtp(phoneNo)
     return OTP
   }
