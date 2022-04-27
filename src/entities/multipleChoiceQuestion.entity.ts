@@ -26,7 +26,7 @@ export class MultipleChoiceQuestion {
   correctAnswer: string;
 
   @PrimaryColumn()
-  mid: string;
+  mid: number;
 
   @OneToOne(
     () => MemoryPracticeQuestion,

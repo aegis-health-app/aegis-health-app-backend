@@ -1,9 +1,9 @@
-import { Entity, CreateDateColumn, Column, ManyToOne, Timestamp, JoinColumn } from 'typeorm';
+import { Entity, CreateDateColumn, Column, ManyToOne, Timestamp, JoinColumn, PrimaryColumn } from 'typeorm';
 import { MemoryPracticeQuestion } from './memoryPracticeQuestion.entity';
 
 @Entity({ name: 'MemoryPracticeAnswer' })
 export class MemoryPracticeAnswer {
-  @CreateDateColumn({ primary: true, type: 'timestamp' })
+  @PrimaryColumn({ type: 'timestamp' })
   timestamp: Date;
 
   @Column()
