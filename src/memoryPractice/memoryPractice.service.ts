@@ -38,7 +38,7 @@ export class MemoryPracticeService {
     };
   }
 
-  async getSelectedQuestion(eid: number, mid: string): Promise<QuestionDetails> {
+  async getSelectedQuestion(eid: number, mid: number): Promise<QuestionDetails> {
     const question = await this.memoryPracticeQuestionRepository.findOne({ where: { uid: eid, mid: mid } });
     if (!question) throw new HttpException('This question cannot be found', HttpStatus.BAD_REQUEST);
     const MCQ = await this.multipleChoiceQuestionRepository.findOne({ where: { mid: mid } });
@@ -63,7 +63,7 @@ export class MemoryPracticeService {
     }
   }
 
-  async editSelection(eid: number, mid: string, isSelected: string): Promise<string> {
+  async editSelection(eid: number, mid: number, isSelected: string): Promise<string> {
     const question = await this.memoryPracticeQuestionRepository.findOne({ where: { uid: eid, mid: mid } });
     if (!question) throw new HttpException('This question cannot be found', HttpStatus.BAD_REQUEST);
     const isSelectedBoolean = isSelected === 'true';
@@ -86,7 +86,7 @@ export class MemoryPracticeService {
     }
     const nextID = (await this.memoryPracticeQuestionRepository.query('SELECT MAX(mid) AS max FROM MemoryPracticeQuestion'))[0].max + 1;
     await this.memoryPracticeQuestionRepository.save({
-      mid: nextID.toString(),
+      mid: nextID,
       question: createQuestion.question,
       isSelected: false,
       imageid: imageid,
@@ -140,7 +140,7 @@ export class MemoryPracticeService {
         choice3: editQuestion.choice3,
         choice4: editQuestion.choice4,
         correctAnswer: editQuestion.correctAnswer,
-        mid: mid,
+        mid: mid
       });
     } else {
       await this.multipleChoiceQuestionRepository.update(mid, {
@@ -154,7 +154,7 @@ export class MemoryPracticeService {
     return 'Complete';
   }
 
-  async deleteQuestion(mid: string): Promise<string> {
+  async deleteQuestion(mid: number): Promise<string> {
     const deleteQuestion = await this.memoryPracticeQuestionRepository.findOne({ where: { mid: mid } });
     if (!deleteQuestion) throw new HttpException("This question doesn't exist", HttpStatus.BAD_REQUEST);
     await this.memoryPracticeQuestionRepository.delete(deleteQuestion);

@@ -1,5 +1,5 @@
 export interface Question {
-  mid: string;
+  mid: number;
   question: string;
   isSelected: boolean;
   imageid: string;
@@ -41,7 +41,7 @@ export interface CreateQuestion {
 }
 
 export interface EditQuestion extends CreateQuestion {
-  mid: string;
+  mid: number;
 }
 
 export interface MultipleChoiceQuestion {

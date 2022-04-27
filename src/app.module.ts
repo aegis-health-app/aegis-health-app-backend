@@ -33,7 +33,7 @@ import { ReminderModule } from './reminder/reminder.module';
         password: process.env.DBPASSWORD,
         database: 'aegis',
         entities: ['dist/**/*.entity{.ts,.js}'],
-        synchronize: false,
+        synchronize: true,
       }),
     }),
     HomeModule,
