@@ -254,4 +254,10 @@ export class ReminderController {
       message: 'Mark reminder as complete from the database successfully',
     });
   }
+  //for frontend (FILM) to test notification
+  //TODO: remove this before production
+  @Get('/test/:rid')
+  async testReminderNotification(@Param('rid') rid: number) {
+    return await this.reminderService.testNotification(rid);
+  }
 }

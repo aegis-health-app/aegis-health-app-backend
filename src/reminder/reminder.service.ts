@@ -444,4 +444,28 @@ export class ReminderService {
     this.schedulerService.deleteJob(rid.toString(), JobType.TIMEOUT);
     this.schedulerService.deleteJob(rid.toString(), JobType.RECURRING);
   }
+  //for frontend (FILM) to test notification
+  //TODO: remove this before production
+  async testNotification(rid: number) {
+    const reminder = await this.reminderRepository.findOne({ rid }, { relations: ['user'] });
+    const message: NotificationMessage = {
+      data: {
+        title: reminder.title,
+        note: reminder.note,
+        isDone: reminder.isDone,
+        startingDateTime: reminder.startingDateTime,
+        user: `${reminder.user.fname} ${reminder.user.lname}`,
+        rid: reminder.rid,
+      },
+      notification: {
+        title: reminder.title,
+        body: reminder.note,
+      },
+    };
+    if (reminder.isRemindCaretaker) {
+      const receivers = reminder.user.takenCareBy.map((caretaker) => caretaker.uid);
+      receivers.push(reminder.user.uid);
+      return await this.notificationService.notifyMany(receivers, message);
+    } else return await this.notificationService.notifyOne(reminder.user.uid, message);
+  }
 }
