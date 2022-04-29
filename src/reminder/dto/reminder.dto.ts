@@ -1,5 +1,9 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsBoolean, IsDate, IsNumber, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsArray, IsBoolean, IsDate, IsDateString, IsNumber, IsOptional, IsString } from 'class-validator';
+import { RecurringInterval, Recursion } from 'src/scheduler/interface/scheduler.interface';
+import { ImageDto } from 'src/utils/global.dto';
+import { ImportanceLevel } from '../reminder.interface';
+import { CreateReminderDto } from './create-reminder.dto';
 
 export class DeleteReminderDto {
   @ApiProperty()
@@ -21,40 +25,32 @@ export class RecurringDto {
 
 export class ReminderDto {
   @ApiProperty()
-  @IsNumber()
-  rid: number;
-
-  @ApiProperty()
-  @IsDate()
-  startingDateTime: Date;
-
-  @ApiProperty()
   @IsString()
   title: string;
-
   @ApiProperty()
-  @IsString()
-  note: string;
-
+  @IsDateString()
+  startingDateTime: Date;
   @ApiProperty()
   @IsBoolean()
   isRemindCaretaker: boolean;
-
   @ApiProperty()
   @IsString()
-  importanceLevel: string;
-
+  note: string;
+  @ApiProperty({ enum: ['Low', 'Medium', 'High'] })
+  @IsString()
+  importanceLevel: ImportanceLevel;
+  @ApiPropertyOptional({ enum: ['EVERY_DAY', 'EVERY_MONTH', 'EVERY_WEEK'] })
+  @IsOptional()
+  recursion?: RecurringInterval;
+  @ApiPropertyOptional()
+  @IsOptional()
+  customRecursion?: Recursion;
+  @ApiProperty()
+  @IsNumber()
+  uid: number;
   @ApiProperty()
   @IsString()
   imageid: string;
-
-  @ApiProperty()
-  @IsBoolean()
-  isDone: boolean;
-
-  @ApiProperty({ type: [RecurringDto] })
-  @IsArray()
-  recurrings: Array<RecurringDto>;
 }
 
 export class GetFinishedReminderDto {

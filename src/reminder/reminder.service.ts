@@ -24,7 +24,16 @@ import { ALLOWED_PROFILE_FORMAT } from 'src/utils/global.constant';
 import { ImageDto } from 'src/utils/global.dto';
 import { Between, LessThan, MoreThanOrEqual, Repository } from 'typeorm';
 import { CreateReminderDto, UpdateReminderDto, UploadReminderImageDto } from './dto/create-reminder.dto';
-import { GetReminder, ImportanceLevel, ListReminderEachDate, ListReminderEachFutureDate, ListUnfinishedReminder, ModifiedFutureReminder, ModifiedReminder } from './reminder.interface';
+import { ReminderDto } from './dto/reminder.dto';
+import {
+  GetReminder,
+  ImportanceLevel,
+  ListReminderEachDate,
+  ListReminderEachFutureDate,
+  ListUnfinishedReminder,
+  ModifiedFutureReminder,
+  ModifiedReminder,
+} from './reminder.interface';
 
 @Injectable()
 export class ReminderService {
@@ -61,7 +70,7 @@ export class ReminderService {
       await this.reminderRepository.save(reminder);
     }
     reminder.recurrings = await this.recurringRepository.save(
-      this.getRecursion(reminder.rid, dto.startingDateTime, dto.recursion, dto.customRecursion)
+      this.getRecursionForDb(reminder.rid, dto.startingDateTime, dto.recursion, dto.customRecursion)
     );
     const schedule: Schedule = {
       customRecursion: dto.customRecursion,
@@ -69,7 +78,7 @@ export class ReminderService {
       startDate: dto.startingDateTime,
       name: reminder.rid.toString(),
     };
-    this.scheduleReminder(reminder, schedule);
+    await this.scheduleReminder(reminder, schedule);
     return reminder;
   }
 
@@ -83,7 +92,7 @@ export class ReminderService {
     let newRecursion = undefined;
     if (dto.recursion || dto.customRecursion) {
       newRecursion = await this.recurringRepository.save(
-        this.getRecursion(reminder.rid, dto.startingDateTime ?? reminder.startingDateTime, dto.recursion, dto.customRecursion)
+        this.getRecursionForDb(reminder.rid, dto.startingDateTime ?? reminder.startingDateTime, dto.recursion, dto.customRecursion)
       );
     }
     const updatedReminder = await this.reminderRepository.save({
@@ -93,7 +102,7 @@ export class ReminderService {
       startingDateTime: dto.startingDateTime ? moment(dto.startingDateTime).set('seconds', 0).format('YYYY-MM-DD hh:mm:ss') : undefined,
     });
     if (!dto) return updatedReminder; //if only image needs to be updated
-    if (dto.customRecursion === null || dto.recursion === null) {
+    if (dto.recursion) {
       this.schedulerService.deleteJob(updatedReminder.rid.toString(), JobType.RECURRING);
     }
     if (dto.importanceLevel) {
@@ -106,11 +115,12 @@ export class ReminderService {
       startDate: dto.startingDateTime ?? reminder.startingDateTime,
       name: updatedReminder.rid.toString(),
     };
-    this.scheduleReminder(updatedReminder, schedule);
+    await this.scheduleReminder(updatedReminder, schedule);
     return updatedReminder;
   }
 
-  scheduleReminder(reminder: Reminder, schedule: Schedule) {
+  async scheduleReminder(reminder: Reminder, schedule: Schedule) {
+    const elderly = await this.userService.findOne({ uid: reminder.user.uid });
     const jobCallback = () => {
       const message: NotificationMessage = {
         data: {
@@ -118,7 +128,8 @@ export class ReminderService {
           note: reminder.note,
           isDone: reminder.isDone,
           startingDateTime: reminder.startingDateTime,
-          user: reminder.user.uid,
+          user: `${elderly.fname} ${elderly.lname}`,
+          rid: reminder.rid,
         },
         notification: {
           title: reminder.title,
@@ -153,8 +164,30 @@ export class ReminderService {
     const imgUrl = await this.googleCloudStorage.uploadImage(rid, buffer, BucketName.Reminder);
     return imgUrl;
   }
-
-  private getRecursion(rid: number, startDate: Date, recursion?: RecurringInterval, customRecursion?: Recursion): Partial<Recurring>[] {
+  private getScheduleFromRecurring(rid: number, recurrings: Recurring[], startDate: Date): Schedule {
+    const days = [];
+    const dates = [];
+    let recursion;
+    recurrings.forEach((recurring) => {
+      if (recurring.recurringDateOfMonth) dates.push(recurring.recurringDateOfMonth);
+      if (recurring.recurringDay) dates.push(recurring.recurringDay);
+    });
+    const customRecursion: Recursion = {
+      dates,
+      days,
+      period: dates.length ? RecursionPeriod.MONTH : RecursionPeriod.WEEK,
+    };
+    if (customRecursion.dates.length === 1) recursion = RecurringInterval.EVERY_MONTH;
+    else if (customRecursion.days.length === 1) recursion = RecurringInterval.EVERY_WEEK;
+    else if (customRecursion.days.length === 7) recursion = RecurringInterval.EVERY_DAY;
+    return {
+      startDate: startDate,
+      name: rid.toString(),
+      customRecursion: recursion ? customRecursion : undefined,
+      recursion: recursion,
+    };
+  }
+  private getRecursionForDb(rid: number, startDate: Date, recursion?: RecurringInterval, customRecursion?: Recursion): Partial<Recurring>[] {
     const recurrings = [];
     if (customRecursion?.days && customRecursion?.period === RecursionPeriod.WEEK) {
       return customRecursion.days.map((day) => ({ recurringDateOfMonth: 0, recurringDay: day, reminder: { rid } as Reminder }));
@@ -192,19 +225,20 @@ export class ReminderService {
     return recurrings;
   }
 
-  async deleteReminder(rid: number): Promise<string> {
-    const reminder = await this.reminderRepository.findOne({ where: { rid: rid } });
+  async deleteReminder(rid: number, uid: number): Promise<string> {
+    const reminder = await this.reminderRepository.findOne({ where: { rid: rid, uid: uid } });
     if (!reminder) throw new HttpException('Reminder not found', HttpStatus.NOT_FOUND);
-
     await this.reminderRepository.delete(reminder);
+    this.clearReminderJobs(reminder.rid);
     return 'Complete';
   }
 
-  async getReminder(rid: number): Promise<GetReminder> {
-    const reminder = await this.reminderRepository.findOne({ where: { rid: rid } });
+  async getReminder(rid: number, uid: number): Promise<ReminderDto> {
+    const reminder = await this.reminderRepository.findOne({ where: { rid: rid, uid: uid }, relations: ['recurring'] });
     if (!reminder) throw new HttpException('Reminder not found', HttpStatus.NOT_FOUND);
-
-    return reminder;
+    delete reminder.recurrings;
+    const schedule = this.getScheduleFromRecurring(reminder.rid, reminder.recurrings, reminder.startingDateTime);
+    return { ...reminder, ...schedule, importanceLevel: reminder.importanceLevel as ImportanceLevel, uid };
   }
 
   async getFinishedReminder(currentDate: Date, uid: number): Promise<ListReminderEachDate[]> {
@@ -391,18 +425,19 @@ export class ReminderService {
     };
   }
 
-  async markAsNotComplete(rid: number): Promise<string> {
-    const reminder = await this.reminderRepository.findOne({ where: { rid: rid } });
+  async markAsNotComplete(rid: number, uid: number): Promise<string> {
+    const reminder = await this.reminderRepository.findOne({ where: { rid: rid, uid }, relations: ['recurring'] });
     if (!reminder) throw new HttpException('Reminder not found', HttpStatus.NOT_FOUND);
     if (!reminder.isDone) throw new HttpException('This reminder is not yet completed', HttpStatus.CONFLICT);
     reminder.isDone = false;
-
+    const schedule = this.getScheduleFromRecurring(reminder.rid, reminder.recurrings, reminder.startingDateTime);
+    await this.scheduleReminder(reminder, schedule);
     await this.reminderRepository.save(reminder);
     return 'Complete';
   }
 
-  async markAsComplete(rid: number, currentDate: Date): Promise<string> {
-    const reminder = await this.reminderRepository.findOne({ where: { rid: rid } });
+  async markAsComplete(rid: number, currentDate: Date, uid: number): Promise<string> {
+    const reminder = await this.reminderRepository.findOne({ where: { rid: rid, uid } });
     if (!reminder) throw new HttpException('Reminder not found', HttpStatus.NOT_FOUND);
     if (reminder.isDone) throw new HttpException('This reminder is already completed', HttpStatus.CONFLICT);
     if (reminder.startingDateTime.getTime() - currentDate.getTime() > 1800000)
@@ -410,8 +445,38 @@ export class ReminderService {
     if (reminder.recurrings.length !== 0) throw new HttpException('Can not mark reminder that have recurring', HttpStatus.CONFLICT);
     // not sure about reminder.recurrings.length
     reminder.isDone = true;
-
     await this.reminderRepository.save(reminder);
+    this.clearReminderJobs(reminder.rid);
     return 'Complete';
+  }
+  private clearReminderJobs(rid: number): void {
+    this.schedulerService.deleteJob(rid.toString(), JobType.INTERVAL);
+    this.schedulerService.deleteJob(rid.toString(), JobType.INTERVAL_TIMEOUT);
+    this.schedulerService.deleteJob(rid.toString(), JobType.TIMEOUT);
+    this.schedulerService.deleteJob(rid.toString(), JobType.RECURRING);
+  }
+  //for frontend (FILM) to test notification
+  //TODO: remove this before production
+  async testNotification(rid: number) {
+    const reminder = await this.reminderRepository.findOne({ rid }, { relations: ['user'] });
+    const message: NotificationMessage = {
+      data: {
+        title: reminder.title,
+        note: reminder.note,
+        isDone: reminder.isDone,
+        startingDateTime: reminder.startingDateTime,
+        user: `${reminder.user.fname} ${reminder.user.lname}`,
+        rid: reminder.rid,
+      },
+      notification: {
+        title: reminder.title,
+        body: reminder.note,
+      },
+    };
+    if (reminder.isRemindCaretaker) {
+      const receivers = reminder.user.takenCareBy.map((caretaker) => caretaker.uid);
+      receivers.push(reminder.user.uid);
+      return await this.notificationService.notifyMany(receivers, message);
+    } else return await this.notificationService.notifyOne(reminder.user.uid, message);
   }
 }
