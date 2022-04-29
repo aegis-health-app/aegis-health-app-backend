@@ -4,8 +4,8 @@ import { Type } from 'class-transformer';
 
 export class Question {
   @ApiProperty()
-  @IsString()
-  mid: string;
+  @IsNumber()
+  mid: number;
   @ApiProperty()
   @IsString()
   question: string;
@@ -66,8 +66,8 @@ export class ElderlyWithCaretakerDto {
 
 export class SelectQuestionDto extends ElderlyWithCaretakerDto {
   @ApiProperty()
-  @IsString()
-  mid: string;
+  @IsNumber()
+  mid: number;
 }
 
 export class EditSelectionDto extends SelectQuestionDto {}
@@ -122,14 +122,14 @@ export class CreateQuestionDto extends ElderlyWithCaretakerDto {
 
 export class EditQuestionDto extends CreateQuestionDto {
   @ApiProperty()
-  @IsString()
-  mid: string;
+  @IsNumber()
+  mid: number;
 }
 
 export class DeleteQuestionDto extends ElderlyWithCaretakerDto {
   @ApiProperty()
-  @IsString()
-  mid: string;
+  @IsNumber()
+  mid: number;
 }
 
 export class multipleChoiceQuestion {

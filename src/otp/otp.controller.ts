@@ -1,24 +1,26 @@
-import { Body, Controller, Post, Get, Param } from '@nestjs/common';
+import { Body, Controller, Post, Get, Param, HttpCode, ValidationPipe, UsePipes } from '@nestjs/common';
 import { OtpService } from './otp.service';
 import { ApiParam, ApiBody, ApiOkResponse, ApiBadRequestResponse } from '@nestjs/swagger';
-import { OtpDTO } from './dto/otp.dto';
+import { VerifyOtpDTO, RequestOtpResponseDTO } from './dto/otp.dto';
 @Controller('otp')
 export class OtpController {
   constructor(private otpService: OtpService) {}
 
   @ApiParam({ name: 'phoneNumber', type: String, description: "user's phone number" })
-  @ApiOkResponse({ description: 'OTP Successfully Sent' })
+  @ApiOkResponse({ description: 'OTP Successfully Sent', type: RequestOtpResponseDTO })
   @ApiBadRequestResponse({ description: 'Failed Requesting OTP' })
   @Get('/request/:phoneNumber')
-  getOTP(@Param('phoneNumber') phoneNumber: string) {
-    return this.otpService.getOtp(phoneNumber);
+  async getOTP(@Param('phoneNumber') phoneNumber: string) {
+    return await this.otpService.getOtp(phoneNumber);
   }
 
-  @ApiBody({ type: OtpDTO })
+  @ApiBody({ type: VerifyOtpDTO })
+  @HttpCode(200)
   @ApiOkResponse({ description: 'Verified Successfully' })
   @ApiBadRequestResponse({ description: 'Failed Verifying OTP' })
+  @UsePipes(new ValidationPipe({ whitelist: true }))
   @Post('/verifyOtp')
-  verifyOTP(@Body() body: { token: string; pin: string }) {
-    return this.otpService.verifyOtp(body.token, body.pin);
+  async verifyOTP(@Body() body: { token: string; pin: string }) {
+    return await this.otpService.verifyOtp(body.token, body.pin);
   }
 }

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException, UnsupportedMediaTypeException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException, UnsupportedMediaTypeException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entities/user.entity';
 import { FindConditions, FindOneOptions, Repository } from 'typeorm';
@@ -10,13 +10,18 @@ import { Role } from 'src/common/roles';
 import { GoogleCloudStorage } from 'src/google-cloud/google-storage.service';
 import { ALLOWED_PROFILE_FORMAT } from 'src/utils/global.constant';
 import { BucketName } from 'src/google-cloud/google-cloud.interface';
+import { ForgotPassword, OTP } from './user.interface';
+import * as bcrypt from 'bcrypt'
+import { OtpService } from 'src/otp/otp.service';
+
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
     private authService: AuthService,
-    private googleStorageService: GoogleCloudStorage
-  ) {}
+    private googleStorageService: GoogleCloudStorage,
+    private otpService: OtpService,
+  ) { }
 
   schemaToDto(schema: User, dtoClass: IDto<any>) {
     return plainToInstance(dtoClass, schema, { excludeExtraneousValues: true });
@@ -150,5 +155,31 @@ export class UserService {
       imageid: imageUrl,
     });
     return { url: imageid };
+  }
+
+  async verifyPhoneNoExist(phoneNo: string): Promise<OTP> {
+    const phone = await this.userRepository.findOne({ where: { phone: phoneNo } })
+    if (!phone)
+      throw new HttpException('This phone number does not exist', HttpStatus.NOT_FOUND);
+    const OTP = this.otpService.getOtp(phoneNo)
+    return OTP
+  }
+
+  async hashPassword(password: string): Promise<string> {
+    return await bcrypt.hash(password, Number(process.env.HASH_SALT));
+  }
+
+  async comparePassword(data: string, encrypted: string) {
+    return await bcrypt.compare(data, encrypted);
+  }
+
+  async forgotPassword(forgotPassword: ForgotPassword): Promise<string> {
+    const uid = (await this.userRepository.findOne({ where: { phone: forgotPassword.phoneNo } })).uid
+    const realOldPassword = (await this.userRepository.findOne({ where: { uid: uid } })).password
+    const isMatched = await this.comparePassword(forgotPassword.newPassword, realOldPassword)
+    if (isMatched)
+      throw new HttpException("New password entered is the old password", HttpStatus.BAD_REQUEST)
+    await this.userRepository.update(uid, { password: await this.hashPassword(forgotPassword.newPassword) })
+    return 'Complete'
   }
 }

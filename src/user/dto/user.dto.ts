@@ -36,10 +36,10 @@ export class UserDto extends PartialType(PersonalInfo) {
   phone: string;
 }
 export interface IDto<T> {
-  new (): T;
+  new(): T;
 }
 
-export class UpdateUserProfileDto extends PartialType(PersonalInfo) {}
+export class UpdateUserProfileDto extends PartialType(PersonalInfo) { }
 export class CreateUserResponse {
   @ApiProperty()
   @IsNumber()
@@ -80,4 +80,25 @@ export class UploadProfileRequest {
   @ApiProperty()
   @IsNumber()
   size: number;
+}
+
+export class ForgotPasswordDto {
+  @ApiProperty()
+  @IsString()
+  phoneNo: string
+  @ApiProperty()
+  @IsString()
+  newPassword: string
+}
+
+export class OtpRequestDTO {
+  @ApiProperty()
+  @IsString()
+  status: string;
+  @ApiProperty()
+  @IsString()
+  token: string;
+  @ApiProperty()
+  @IsString()
+  refno: string;
 }

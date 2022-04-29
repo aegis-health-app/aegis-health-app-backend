@@ -31,12 +31,21 @@ export interface ModifiedReminder {
   minute: number;
 }
 
+export interface ModifiedFutureReminder extends ModifiedReminder {
+  isRecurring: boolean;
+}
+
 export interface ListReminderEachDate {
   date: Date;
   reminder: ModifiedReminder[];
 }
 
+export interface ListReminderEachFutureDate {
+  date: Date;
+  reminder: ModifiedFutureReminder[];
+}
+
 export interface ListUnfinishedReminder {
   overdue: ListReminderEachDate[];
-  future: ListReminderEachDate[];
+  future: ListReminderEachFutureDate[];
 }

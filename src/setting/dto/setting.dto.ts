@@ -6,14 +6,17 @@ export class ChangePasswordDto {
   @IsString()
   oldPassword: string
   @ApiProperty()
-  @IsString() 
+  @IsString()
   newPassword: string
 }
 export class ChangePhoneNoDto {
   @ApiProperty()
   @IsString()
   newPhone: string
-  @ApiProperty(({minLength: 6, maxLength: 6}))
+  @ApiProperty(({ minLength: 6, maxLength: 6 }))
   @IsString()
   enteredPin: string
+  @ApiProperty()
+  @IsString()
+  token: string
 }

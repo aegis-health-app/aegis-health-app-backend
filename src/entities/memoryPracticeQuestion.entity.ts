@@ -9,7 +9,7 @@ export class MemoryPracticeQuestion {
   uid: number;
 
   @PrimaryGeneratedColumn()
-  mid: string;
+  mid: number;
 
   @Column()
   question: string;

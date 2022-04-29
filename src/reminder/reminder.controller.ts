@@ -109,7 +109,7 @@ export class ReminderController {
 
   @ApiUnauthorizedResponse({ description: 'Must login to use this endpoints' })
   @ApiForbiddenResponse({ description: 'Must be caretaker to use this endpoints' })
-  @ApiOkResponse({ description: 'Get reminder from the database succesfully' })
+  @ApiOkResponse({ description: 'Get reminder from the database succesfully', type: ReminderDto })
   @ApiBadRequestResponse({ description: "Caretaker doesn't have access to this elderly" })
   @ApiNotFoundResponse({ description: 'Reminder not found' })
   @UseGuards(CaretakerGuard)
@@ -133,7 +133,7 @@ export class ReminderController {
 
   @ApiUnauthorizedResponse({ description: 'Must login to use this endpoints' })
   @ApiForbiddenResponse({ description: 'Must be caretaker to use this endpoints' })
-  @ApiOkResponse({ description: 'Get finished reminder from the database succesfully' })
+  @ApiOkResponse({ description: 'Get finished reminder from the database succesfully', type: [ListReminderEachDateDto] })
   @ApiBadRequestResponse({ description: "Caretaker doesn't have access to this elderly" })
   @ApiQuery({ type: GetFinishedReminderDto })
   @UseGuards(CaretakerGuard)
@@ -161,7 +161,7 @@ export class ReminderController {
 
   @ApiUnauthorizedResponse({ description: 'Must login to use this endpoints' })
   @ApiForbiddenResponse({ description: 'Must be caretaker to use this endpoints' })
-  @ApiOkResponse({ description: 'Get unfinished reminder from the database succesfully' })
+  @ApiOkResponse({ description: 'Get unfinished reminder from the database succesfully', type: ListUnfinishedReminderDto })
   @ApiBadRequestResponse({ description: "Caretaker doesn't have access to this elderly" })
   @ApiQuery({ type: GetUnFinishedReminderDto })
   @UseGuards(CaretakerGuard)

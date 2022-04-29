@@ -12,6 +12,10 @@ import {
   Patch,
   UseInterceptors,
   UploadedFile,
+  Put,
+  Res,
+  Req,
+  Param,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import {
@@ -23,6 +27,8 @@ import {
   UploadProfileResponse,
   UpdateUserProfileDto,
   UploadProfileRequest,
+  ForgotPasswordDto,
+  OtpRequestDTO,
 } from './dto/user.dto';
 import {
   ApiBadRequestResponse,
@@ -31,7 +37,9 @@ import {
   ApiConflictResponse,
   ApiCreatedResponse,
   ApiForbiddenResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
+  ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
   ApiUnsupportedMediaTypeResponse,
@@ -43,7 +51,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 @ApiTags('user')
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService, private readonly authService: AuthService) {}
+  constructor(private readonly userService: UserService, private readonly authService: AuthService) { }
 
   @ApiBearerAuth()
   @UseGuards(UserGuard)
@@ -166,4 +174,28 @@ export class UserController {
     const imageUrl = await this.userService.uploadProfilePicture(req.user.uid, dto);
     return imageUrl;
   }
+
+  @ApiOperation({ description: 'Verify that the phone number exists' })
+  @ApiOkResponse({ description: 'Phone number exists' })
+  @ApiBadRequestResponse({ description: 'Failed Requesting OTP' })
+  @ApiNotFoundResponse({ description: 'This phone number does not exist' })
+  @Get('/verifyPhoneNoExist/:phoneNo')
+  async verifyPasswordExist(@Param('phoneNo') phoneNo: string): Promise<OtpRequestDTO> {
+    return await this.userService.verifyPhoneNoExist(phoneNo)
+  }
+
+  @ApiOperation({ description: 'Change password of an account that is not signed in' })
+  @ApiBody({ type: ForgotPasswordDto })
+  @ApiOkResponse({ description: 'Changed forgot password successfully' })
+  @ApiBadRequestResponse({ description: 'New password entered is the old password' })
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  @Put('/forgotPassword')
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto, @Res() res): Promise<string> {
+    await this.userService.forgotPassword(forgotPasswordDto)
+    return res.status(200).json({
+      statusCode: 200,
+      message: "Changed forgot password successfully"
+    })
+  }
+
 }
