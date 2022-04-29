@@ -33,6 +33,7 @@ export class CreateReminderDto {
   @IsNumber()
   eid?: number;
   @ApiProperty()
+  @IsNotEmptyObject()
   image: ImageDto;
 }
 
