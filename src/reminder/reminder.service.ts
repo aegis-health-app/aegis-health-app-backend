@@ -54,8 +54,9 @@ export class ReminderService {
     );
     if (dto.eid && !elderly.takenCareBy.find((caretaker) => caretaker.uid === uid))
       throw new MethodNotAllowedException('You do not have permission to access this elderly');
+    const startingDateTime = new Date(dto.startingDateTime);
     const payload = this.reminderRepository.create({
-      startingDateTime: moment(dto.startingDateTime).set('seconds', 0).format('YYYY-MM-DD hh:mm:ss'),
+      startingDateTime: moment(startingDateTime).set('seconds', 0).format('YYYY-MM-DD hh:mm:ss'),
       title: dto.title,
       note: dto.note,
       isRemindCaretaker: dto.isRemindCaretaker,
@@ -70,12 +71,12 @@ export class ReminderService {
       await this.reminderRepository.save(reminder);
     }
     reminder.recurrings = await this.recurringRepository.save(
-      this.getRecursionForDb(reminder.rid, dto.startingDateTime, dto.recursion, dto.customRecursion)
+      this.getRecursionForDb(reminder.rid, startingDateTime, dto.recursion, dto.customRecursion)
     );
     const schedule: Schedule = {
       customRecursion: dto.customRecursion,
       recursion: dto.recursion,
-      startDate: dto.startingDateTime,
+      startDate: startingDateTime,
       name: reminder.rid.toString(),
     };
     await this.scheduleReminder(reminder, schedule);
@@ -84,7 +85,9 @@ export class ReminderService {
 
   async update(dto: UpdateReminderDto, uid: number, image?: ImageDto) {
     if (dto.customRecursion && dto.recursion) throw new ConflictException('Reminder cannot have both custom and predefied recursion');
-    if (moment(dto.startingDateTime).utcOffset(0).valueOf() < Date.now()) throw new BadRequestException('Start date cannot be in the past');
+    if (dto.startingDateTime && moment(dto.startingDateTime).utcOffset(0).valueOf() < Date.now())
+      throw new BadRequestException('Start date cannot be in the past');
+    const startingDateTime = dto.startingDateTime ? new Date(dto.startingDateTime) : undefined;
     const reminder = await this.reminderRepository.findOne({ rid: dto.rid }, { relations: ['user'] });
     if (!reminder) throw new NotFoundException('Reminder does not exist');
     if (uid !== reminder.user.uid && !(await this.userService.checkRelationship(reminder.user.uid, uid)))
@@ -92,14 +95,14 @@ export class ReminderService {
     let newRecursion = undefined;
     if (dto.recursion || dto.customRecursion) {
       newRecursion = await this.recurringRepository.save(
-        this.getRecursionForDb(reminder.rid, dto.startingDateTime ?? reminder.startingDateTime, dto.recursion, dto.customRecursion)
+        this.getRecursionForDb(reminder.rid, startingDateTime ?? reminder.startingDateTime, dto.recursion, dto.customRecursion)
       );
     }
     const updatedReminder = await this.reminderRepository.save({
       ...dto,
       imageid: image ? await this.uploadReminderImage(reminder.rid, image) : undefined,
       recurrings: newRecursion,
-      startingDateTime: dto.startingDateTime ? moment(dto.startingDateTime).set('seconds', 0).format('YYYY-MM-DD hh:mm:ss') : undefined,
+      startingDateTime: startingDateTime ? moment(startingDateTime).set('seconds', 0).format('YYYY-MM-DD hh:mm:ss') : undefined,
     });
     if (!dto) return updatedReminder; //if only image needs to be updated
     if (dto.recursion) {
@@ -112,7 +115,7 @@ export class ReminderService {
     const schedule: Schedule = {
       customRecursion: dto.customRecursion,
       recursion: dto.recursion,
-      startDate: dto.startingDateTime ?? reminder.startingDateTime,
+      startDate: startingDateTime ?? reminder.startingDateTime,
       name: updatedReminder.rid.toString(),
     };
     await this.scheduleReminder(updatedReminder, schedule);
