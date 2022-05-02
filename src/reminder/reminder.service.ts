@@ -45,13 +45,20 @@ export class ReminderService {
     private googleCloudStorage: GoogleCloudStorage,
     private userService: UserService
   ) {}
+  async findOneAndPopulateUser(rid: number, shouldJoinCaretaker = true) {
+    const query = this.reminderRepository
+      .createQueryBuilder('reminder')
+      .where('reminder.rid = :rid', { rid: rid })
+      .leftJoinAndSelect('reminder.user', 'user');
+    if (shouldJoinCaretaker) query.leftJoinAndSelect('user.takenCareBy', 'caretakers', 'reminder.isRemindCaretaker=:t', { t: true });
+    const reminder = await query.getOne();
+    if (!reminder) throw new NotFoundException('Reminder does not exist');
+    return reminder;
+  }
   async create(dto: CreateReminderDto, uid: number) {
     if (dto.customRecursion && dto.recursion) throw new ConflictException('Reminder cannot have both custom and predefied recursion');
     if (moment(dto.startingDateTime).utcOffset(0).valueOf() < Date.now()) throw new BadRequestException('Start date cannot be in the past');
-    const elderly = await this.userService.findOne(
-      { uid: dto.eid ?? uid },
-      { relations: dto.isRemindCaretaker || dto.eid ? ['takenCareBy'] : undefined, shouldBeElderly: true }
-    );
+    const elderly = await this.userService.findOne({ uid: dto.eid ?? uid }, { shouldBeElderly: true });
     if (dto.eid && !elderly.takenCareBy.find((caretaker) => caretaker.uid === uid))
       throw new MethodNotAllowedException('You do not have permission to access this elderly');
     const startingDateTime = new Date(dto.startingDateTime);
@@ -123,35 +130,38 @@ export class ReminderService {
   }
 
   async scheduleReminder(reminder: Reminder, schedule: Schedule) {
-    const elderly = await this.userService.findOne({ uid: reminder.user.uid });
+    let joinedReminder = reminder;
+    if (!reminder.user || (reminder.isRemindCaretaker && !reminder.user.takenCareBy))
+      joinedReminder = await this.findOneAndPopulateUser(reminder.rid, reminder.isRemindCaretaker);
+    const elderly = joinedReminder.user;
     const jobCallback = () => {
       const message: NotificationMessage = {
         data: {
-          title: reminder.title,
-          note: reminder.note,
-          isDone: reminder.isDone,
-          startingDateTime: reminder.startingDateTime,
+          title: joinedReminder.title,
+          note: joinedReminder.note,
+          isDone: joinedReminder.isDone.toString(),
+          startingDateTime: joinedReminder.startingDateTime.toDateString(),
           user: `${elderly.fname} ${elderly.lname}`,
-          rid: reminder.rid,
+          rid: joinedReminder.rid.toString(),
         },
         notification: {
-          title: reminder.title,
-          body: reminder.note,
+          title: joinedReminder.title,
+          body: joinedReminder.note,
         },
       };
-      if (reminder.isRemindCaretaker) {
-        const receivers = reminder.user.takenCareBy.map((caretaker) => caretaker.uid);
-        receivers.push(reminder.user.uid);
+      if (joinedReminder.isRemindCaretaker) {
+        const receivers = joinedReminder.user.takenCareBy.map((caretaker) => caretaker.uid);
+        receivers.push(joinedReminder.user.uid);
         this.notificationService.notifyMany(receivers, message);
-      } else this.notificationService.notifyOne(reminder.user.uid, message);
+      } else this.notificationService.notifyOne(joinedReminder.user.uid, message);
     };
     if (schedule.customRecursion || schedule.recursion) this.schedulerService.scheduleRecurringJob(schedule, jobCallback);
     else {
-      this.schedulerService.scheduleJob(reminder.rid.toString(), schedule.startDate, jobCallback);
-      if (reminder.importanceLevel === ImportanceLevel.MEDIUM) {
-        this.schedulerService.scheduleInterval(reminder.rid.toString(), schedule.startDate, { maxIteration: 3, interval: 600000 }, jobCallback);
-      } else if (reminder.importanceLevel === ImportanceLevel.HIGH) {
-        this.schedulerService.scheduleInterval(reminder.rid.toString(), schedule.startDate, { interval: 600000 }, jobCallback);
+      this.schedulerService.scheduleJob(joinedReminder.rid.toString(), schedule.startDate, jobCallback);
+      if (joinedReminder.importanceLevel === ImportanceLevel.MEDIUM) {
+        this.schedulerService.scheduleInterval(joinedReminder.rid.toString(), schedule.startDate, { maxIteration: 3, interval: 600000 }, jobCallback);
+      } else if (joinedReminder.importanceLevel === ImportanceLevel.HIGH) {
+        this.schedulerService.scheduleInterval(joinedReminder.rid.toString(), schedule.startDate, { interval: 600000 }, jobCallback);
       }
     }
   }
@@ -461,15 +471,15 @@ export class ReminderService {
   //for frontend (FILM) to test notification
   //TODO: remove this before production
   async testNotification(rid: number) {
-    const reminder = await this.reminderRepository.findOne({ rid }, { relations: ['user'] });
+    const reminder = await this.findOneAndPopulateUser(rid);
     const message: NotificationMessage = {
       data: {
         title: reminder.title,
         note: reminder.note,
-        isDone: reminder.isDone,
-        startingDateTime: reminder.startingDateTime,
+        isDone: reminder.isDone.toString(),
+        startingDateTime: reminder.startingDateTime.toString(),
         user: `${reminder.user.fname} ${reminder.user.lname}`,
-        rid: reminder.rid,
+        rid: reminder.rid.toString(),
       },
       notification: {
         title: reminder.title,
