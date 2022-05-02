@@ -55,8 +55,8 @@ export class ReminderDto {
 
 export class GetFinishedReminderDto {
   @ApiProperty()
-  @IsDate()
-  currentDate: Date;
+  @IsDateString()
+  currentDate: string;
 }
 
 export class GetUnFinishedReminderDto extends GetFinishedReminderDto {}
@@ -135,6 +135,6 @@ export class MarkAsNotCompleteDto extends DeleteReminderDto {}
 
 export class MarkAsCompleteDto extends DeleteReminderDto {
   @ApiProperty()
-  @IsDate()
-  currentDate: Date;
+  @IsDateString()
+  currentDate: string;
 }

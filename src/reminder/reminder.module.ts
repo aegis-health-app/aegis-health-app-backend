@@ -7,7 +7,6 @@ import { Reminder } from 'src/entities/reminder.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GoogleModule } from 'src/google-cloud/google.module';
 import { User } from 'src/entities/user.entity';
-
 import { UserModule } from 'src/user/user.module';
 import { Recurring } from 'src/entities/recurring.entity';
 
