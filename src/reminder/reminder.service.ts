@@ -45,13 +45,13 @@ export class ReminderService {
     private googleCloudStorage: GoogleCloudStorage,
     private userService: UserService
   ) {}
-  async findOneAndPopulateUser(rid: number) {
-    const reminder = await this.reminderRepository
+  async findOneAndPopulateUser(rid: number, shouldJoinCaretaker = true) {
+    const query = this.reminderRepository
       .createQueryBuilder('reminder')
       .where('reminder.rid = :rid', { rid: rid })
-      .leftJoinAndSelect('reminder.user', 'user')
-      .leftJoinAndSelect('user.takenCareBy', 'caretakers', 'reminder.isRemindCaretaker=:t', { t: true })
-      .getOne();
+      .leftJoinAndSelect('reminder.user', 'user');
+    if (shouldJoinCaretaker) query.leftJoinAndSelect('user.takenCareBy', 'caretakers', 'reminder.isRemindCaretaker=:t', { t: true });
+    const reminder = await query.getOne();
     if (!reminder) throw new NotFoundException('Reminder does not exist');
     return reminder;
   }
@@ -132,7 +132,7 @@ export class ReminderService {
   async scheduleReminder(reminder: Reminder, schedule: Schedule) {
     let joinedReminder = reminder;
     if (!reminder.user || (reminder.isRemindCaretaker && !reminder.user.takenCareBy))
-      joinedReminder = await this.findOneAndPopulateUser(reminder.rid);
+      joinedReminder = await this.findOneAndPopulateUser(reminder.rid, reminder.isRemindCaretaker);
     const elderly = joinedReminder.user;
     const jobCallback = () => {
       const message: NotificationMessage = {
