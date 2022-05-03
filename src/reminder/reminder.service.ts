@@ -183,7 +183,7 @@ export class ReminderService {
     let recursion;
     recurrings.forEach((recurring) => {
       if (recurring.recurringDateOfMonth) dates.push(recurring.recurringDateOfMonth);
-      if (recurring.recurringDay) dates.push(recurring.recurringDay);
+      if (recurring.recurringDay) days.push(recurring.recurringDay);
     });
     const customRecursion: Recursion = {
       dates,
@@ -196,7 +196,7 @@ export class ReminderService {
     return {
       startDate: startDate,
       name: rid.toString(),
-      customRecursion: recursion ? customRecursion : undefined,
+      customRecursion: !recursion ? customRecursion : undefined,
       recursion: recursion,
     };
   }
@@ -239,7 +239,13 @@ export class ReminderService {
   }
 
   async deleteReminder(rid: number, uid: number): Promise<string> {
-    const reminder = await this.reminderRepository.findOne({ where: { rid: rid, uid: uid } });
+    const reminder = await this.reminderRepository
+    .createQueryBuilder('reminder')
+    .leftJoinAndSelect('reminder.user', 'user')
+    .where('user.uid = :uid', { uid: uid })
+    .andWhere('reminder.rid = :rid', { rid: rid })
+    .getOne();
+
     if (!reminder) throw new HttpException('Reminder not found', HttpStatus.NOT_FOUND);
     await this.reminderRepository.delete(reminder);
     this.clearReminderJobs(reminder.rid);
@@ -247,26 +253,31 @@ export class ReminderService {
   }
 
   async getReminder(rid: number, uid: number): Promise<ReminderDto> {
-    const reminder = await this.reminderRepository.findOne({ where: { rid: rid, uid: uid }, relations: ['recurring'] });
+    const reminder = await this.reminderRepository
+    .createQueryBuilder('reminder')
+    .leftJoinAndSelect('reminder.user', 'user')
+    .where('user.uid = :uid', { uid: uid })
+    .andWhere('reminder.rid = :rid', { rid: rid })
+    .leftJoinAndSelect('reminder.recurrings', 'recurring')
+    .getOne();
+    
     if (!reminder) throw new HttpException('Reminder not found', HttpStatus.NOT_FOUND);
-    delete reminder.recurrings;
     const schedule = this.getScheduleFromRecurring(reminder.rid, reminder.recurrings, reminder.startingDateTime);
     return { ...reminder, ...schedule, importanceLevel: reminder.importanceLevel as ImportanceLevel, uid };
   }
 
   async getFinishedReminder(currentDate: Date, uid: number): Promise<ListReminderEachDate[]> {
     currentDate.setDate(currentDate.getDate() - 7);
-    currentDate.setHours(0, 0, 0);
-    const reminders: Reminder[] = await this.reminderRepository.find({
-      where: {
-        uid: uid,
-        isDone: true,
-        startingDateTime: MoreThanOrEqual(currentDate),
-      },
-      order: {
-        startingDateTime: 'DESC',
-      },
-    });
+    currentDate.setUTCHours(0, 0, 0);
+
+    const reminders: Reminder[] = await this.reminderRepository
+    .createQueryBuilder('finishedReminder')
+    .leftJoinAndSelect('finishedReminder.user', 'user')
+    .where('user.uid = :uid', { uid: uid })
+    .andWhere('finishedReminder.isDone = :isDone', { isDone: true })
+    .andWhere('finishedReminder.startingDateTime >= :currentDate', {currentDate: moment(currentDate).set('seconds', 0).format('YYYY-MM-DD hh:mm:ss').toString()})
+    .orderBy('startingDateTime', 'DESC')
+    .getMany();
 
     currentDate.setDate(currentDate.getDate() + 8);
     const listReminderGroupByDate: ListReminderEachDate[] = [];
@@ -284,11 +295,11 @@ export class ReminderService {
             hour: reminder.startingDateTime.getHours(),
             minute: reminder.startingDateTime.getMinutes(),
           });
-          reminders.splice(reminders.indexOf(reminder), 1); //don't know if this gonna increase the speed or decrease
+          reminders.splice(reminders.indexOf(reminder), 1);
         }
       }
       listReminderGroupByDate.push({
-        date: currentDate,
+        date: new Date(currentDate),
         reminder: listReminderEachDate,
       });
       currentDate.setDate(currentDate.getDate() - 1);
@@ -298,22 +309,24 @@ export class ReminderService {
 
   async getUnfinishedReminder(currentDate: Date, uid: number): Promise<ListUnfinishedReminder> {
     // Get Overdue part
-    const overdueReminders: Reminder[] = await this.reminderRepository.find({
-      where: {
-        uid: uid,
-        isDone: false,
-        startingDateTime: LessThan(currentDate),
-        recurrings: [], // not sure is this gonna work
-      },
-      order: {
-        startingDateTime: 'ASC',
-      },
-    });
+
+    let overdueReminders: Reminder[] = await this.reminderRepository
+    .createQueryBuilder('reminder')
+    .leftJoinAndSelect('reminder.user', 'user')
+    .leftJoinAndSelect('reminder.recurrings', 'recurring')
+    .where('user.uid = :uid', { uid: uid })
+    .andWhere('reminder.isDone = :isDone', { isDone: false })
+    .andWhere('reminder.startingDateTime < :currentDate', {currentDate: moment(currentDate).set('seconds', 0).format('YYYY-MM-DD hh:mm:ss').toString()})
+    .orderBy('startingDateTime', 'ASC')
+    .getMany();
+
+    overdueReminders = overdueReminders.filter((reminder) => reminder.recurrings.length===0)
+    
     const dateList = [];
     for (const overdueReminder of overdueReminders) {
       const date = new Date(overdueReminder.startingDateTime);
-      date.setHours(0, 0, 0);
-      if (!dateList.includes(date)) {
+      date.setUTCHours(0, 0, 0);
+      if (!(dateList.find((temp) => temp.getTime() === date.getTime()))) {
         dateList.push(date);
       }
     }
@@ -322,8 +335,8 @@ export class ReminderService {
       const listReminderEachDate: ModifiedReminder[] = [];
       for (const overdueReminder of overdueReminders) {
         const overdueDate = new Date(overdueReminder.startingDateTime);
-        overdueDate.setHours(0, 0, 0);
-        if (overdueDate === date) {
+        overdueDate.setUTCHours(0, 0, 0);
+        if (overdueDate.getTime() === date.getTime()) {
           listReminderEachDate.push({
             rid: overdueReminder.rid,
             title: overdueReminder.title,
@@ -346,21 +359,24 @@ export class ReminderService {
     // Get Future part
     const nextWeekDate = new Date(currentDate);
     nextWeekDate.setDate(nextWeekDate.getDate() + 8);
-    nextWeekDate.setHours(0, 0, 0);
+    nextWeekDate.setUTCHours(0, 0, 0);
     currentDate.setMinutes(currentDate.getMinutes() - 1);
-    const futureReminders: Reminder[] = await this.reminderRepository.find({
-      where: {
-        uid: uid,
-        isDone: false,
-        startingDateTime: Between(currentDate, nextWeekDate),
-      },
-      order: {
-        startingDateTime: 'ASC',
-      },
-    });
+    
+    const futureReminders: Reminder[] = await this.reminderRepository
+    .createQueryBuilder('reminder')
+    .leftJoinAndSelect('reminder.user', 'user')
+    .leftJoinAndSelect('reminder.recurrings', 'recurring')
+    .where('user.uid = :uid', { uid: uid })
+    .andWhere('reminder.isDone = :isDone', { isDone: false })
+    .andWhere('reminder.startingDateTime between :currentDate and :nextWeekDate', 
+    {currentDate: moment(currentDate).set('seconds', 0).format('YYYY-MM-DD hh:mm:ss').toString(),
+    nextWeekDate: moment(nextWeekDate).set('seconds', 0).format('YYYY-MM-DD hh:mm:ss').toString() })
+    .orderBy('startingDateTime', 'ASC')
+    .getMany();
+
     currentDate.setMinutes(currentDate.getMinutes() + 1);
     const tempDate = new Date(currentDate);
-    tempDate.setHours(0, 0, 0);
+    tempDate.setUTCHours(0, 0, 0);
     const future: ListReminderEachFutureDate[] = [];
     for (let i = 0; i < 8; i++) {
       const listReminderEachDate: ModifiedFutureReminder[] = [];
@@ -386,6 +402,7 @@ export class ReminderService {
       const recurringDateOfMonth = tempDate.getDate();
       const recurringReminders: Recurring[] = await this.recurringRepository.find({
         where: [{ recurringDateOfMonth: recurringDateOfMonth }, { recurringDay: recurringDay }],
+        relations: ["reminder"]
       });
       if (i === 0) {
         for (const recurringReminder of recurringReminders) {
@@ -439,24 +456,40 @@ export class ReminderService {
   }
 
   async markAsNotComplete(rid: number, uid: number): Promise<string> {
-    const reminder = await this.reminderRepository.findOne({ where: { rid: rid, uid }, relations: ['recurring'] });
+    const reminder = await this.reminderRepository
+    .createQueryBuilder('reminder')
+    .leftJoinAndSelect('reminder.user', 'user')
+    .where('user.uid = :uid', { uid: uid })
+    .andWhere('reminder.rid = :rid', { rid: rid })
+    .getOne();
+
     if (!reminder) throw new HttpException('Reminder not found', HttpStatus.NOT_FOUND);
     if (!reminder.isDone) throw new HttpException('This reminder is not yet completed', HttpStatus.CONFLICT);
     reminder.isDone = false;
-    const schedule = this.getScheduleFromRecurring(reminder.rid, reminder.recurrings, reminder.startingDateTime);
-    await this.scheduleReminder(reminder, schedule);
+    if (moment(reminder.startingDateTime).utcOffset(0).milliseconds() > Date.now()) {
+      await this.scheduleReminder(reminder, { 
+      startDate: reminder.startingDateTime, name: reminder.rid.toString() 
+      });
+    }
     await this.reminderRepository.save(reminder);
     return 'Complete';
   }
 
   async markAsComplete(rid: number, currentDate: Date, uid: number): Promise<string> {
-    const reminder = await this.reminderRepository.findOne({ where: { rid: rid, uid } });
+    const reminder = await this.reminderRepository
+    .createQueryBuilder('reminder')
+    .leftJoinAndSelect('reminder.user', 'user')
+    .leftJoinAndSelect('reminder.recurrings', 'recurring')
+    .where('user.uid = :uid', { uid: uid })
+    .andWhere('reminder.rid = :rid', { rid: rid })
+    .getOne();
+
     if (!reminder) throw new HttpException('Reminder not found', HttpStatus.NOT_FOUND);
     if (reminder.isDone) throw new HttpException('This reminder is already completed', HttpStatus.CONFLICT);
     if (reminder.startingDateTime.getTime() - currentDate.getTime() > 1800000)
       throw new HttpException('Can not mark reminder in advance over 30 minutes', HttpStatus.CONFLICT);
     if (reminder.recurrings.length !== 0) throw new HttpException('Can not mark reminder that have recurring', HttpStatus.CONFLICT);
-    // not sure about reminder.recurrings.length
+
     reminder.isDone = true;
     await this.reminderRepository.save(reminder);
     this.clearReminderJobs(reminder.rid);
