@@ -101,8 +101,8 @@ export class ReminderController {
   @UseGuards(ElderlyGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @Get('elderly/:rid')
-  async getReminderElderly(@Param() rid: number, @Req() req): Promise<ReminderDto> {
-    return await this.reminderService.getReminder(rid, req.user.uid);
+  async getReminderElderly(@Param("rid") rid: number, @Req() req): Promise<ReminderDto> {
+    return await this.reminderService.getReminder((rid), req.user.uid);
   }
 
   @ApiUnauthorizedResponse({ description: 'Must login to use this endpoints' })
@@ -127,7 +127,7 @@ export class ReminderController {
   @Post('finishedReminder/elderly')
   async getFinishedReminderElderly(@Body() body: GetFinishedReminderDto, @Req() req): Promise<ListReminderEachDateDto[]> {
     const date = new Date(body.currentDate)
-    return await this.reminderService.getFinishedReminder(date, req.user.id);
+    return await this.reminderService.getFinishedReminder(date, req.user.uid);
   }
 
   @ApiUnauthorizedResponse({ description: 'Must login to use this endpoints' })
@@ -145,7 +145,7 @@ export class ReminderController {
   ): Promise<ListReminderEachDateDto[]> {
     await this.userService.checkRelationship(eid, req.user.uid);
     const date = new Date(body.currentDate)
-    return await this.reminderService.getFinishedReminder(date, req.user.id);
+    return await this.reminderService.getFinishedReminder(date, req.user.uid);
   }
 
   @ApiUnauthorizedResponse({ description: 'Must login to use this endpoints' })
@@ -157,7 +157,7 @@ export class ReminderController {
   @Post('unfinishedReminder/elderly')
   async getUnfinishedReminderElderly(@Body() body: GetUnFinishedReminderDto, @Req() req): Promise<ListUnfinishedReminderDto> {
     const date = new Date(body.currentDate)
-    return await this.reminderService.getUnfinishedReminder(date, req.user.id);
+    return await this.reminderService.getUnfinishedReminder(date, req.user.uid);
   }
 
   @ApiUnauthorizedResponse({ description: 'Must login to use this endpoints' })
@@ -175,7 +175,7 @@ export class ReminderController {
   ): Promise<ListUnfinishedReminderDto> {
     await this.userService.checkRelationship(eid, req.user.uid);
     const date = new Date(body.currentDate)
-    return await this.reminderService.getUnfinishedReminder(date, req.user.id);
+    return await this.reminderService.getUnfinishedReminder(date, req.user.uid);
   }
 
   @ApiConflictResponse({ description: 'This reminder is not yet completed' })
