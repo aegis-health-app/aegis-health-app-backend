@@ -57,7 +57,7 @@ export class ReminderService {
   }
   async create(dto: CreateReminderDto, uid: number) {
     if (dto.customRecursion && dto.recursion) throw new ConflictException('Reminder cannot have both custom and predefied recursion');
-    if (moment(dto.startingDateTime).utcOffset(0).valueOf() < Date.now()) throw new BadRequestException('Start date cannot be in the past');
+    if (moment(dto.startingDateTime).utcOffset(-7).valueOf() < Date.now()) throw new BadRequestException('Start date cannot be in the past');
     const elderly = await this.userService.findOne({ uid: dto.eid ?? uid }, { shouldBeElderly: true });
     if (dto.eid && !elderly.takenCareBy.find((caretaker) => caretaker.uid === uid))
       throw new MethodNotAllowedException('You do not have permission to access this elderly');
@@ -83,7 +83,7 @@ export class ReminderService {
     const schedule: Schedule = {
       customRecursion: dto.customRecursion,
       recursion: dto.recursion,
-      startDate: startingDateTime.utcOffset(-7).toDate(),
+      startDate: startingDateTime.add(-7, 'h').toDate(),
       name: reminder.rid.toString(),
     };
     await this.scheduleReminder(reminder, schedule);
@@ -92,7 +92,7 @@ export class ReminderService {
 
   async update(dto: UpdateReminderDto, uid: number, image?: ImageDto) {
     if (dto.customRecursion && dto.recursion) throw new ConflictException('Reminder cannot have both custom and predefied recursion');
-    if (dto.startingDateTime && moment(dto.startingDateTime).utcOffset(0).valueOf() < Date.now())
+    if (dto.startingDateTime && moment(dto.startingDateTime).utcOffset(-7).valueOf() < Date.now())
       throw new BadRequestException('Start date cannot be in the past');
     const startingDateTime = dto.startingDateTime ? moment(new Date(dto.startingDateTime)).set('seconds', 0) : undefined;
     const reminder = await this.reminderRepository.findOne({ rid: dto.rid }, { relations: ['user'] });
@@ -127,7 +127,7 @@ export class ReminderService {
     const schedule: Schedule = {
       customRecursion: dto.customRecursion,
       recursion: dto.recursion,
-      startDate: startingDateTime ? startingDateTime.utcOffset(-7).toDate() : reminder.startingDateTime,
+      startDate: startingDateTime ? startingDateTime.add(-7, 'h').toDate() : reminder.startingDateTime,
       name: updatedReminder.rid.toString(),
     };
     await this.scheduleReminder(updatedReminder, schedule);
