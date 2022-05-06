@@ -85,17 +85,16 @@ export class SchedulerService {
     }
   }
   private getPredefinedCronExpression(interval: RecurringInterval, date: Date): string {
-    const dateUtc = moment(date).utcOffset(0).toDate();
     let exp = '';
     switch (interval) {
       case RecurringInterval.EVERY_DAY:
-        exp = `0 ${dateUtc.getMinutes()} ${dateUtc.getHours()} * * *`;
+        exp = `0 ${date.getMinutes()} ${date.getHours()} * * *`;
         break;
       case RecurringInterval.EVERY_MONTH:
-        exp = `0 ${dateUtc.getMinutes()} ${dateUtc.getHours()} ${dateUtc.getDate()} * *`;
+        exp = `0 ${date.getMinutes()} ${date.getHours()} ${date.getDate()} * *`;
         break;
       case RecurringInterval.EVERY_WEEK:
-        exp = `0 ${dateUtc.getMinutes()} ${dateUtc.getHours()} * * ${dateUtc.getDay()}`;
+        exp = `0 ${date.getMinutes()} ${date.getHours()} * * ${date.getDay()}`;
         break;
       case RecurringInterval.EVERY_10_MINUTES:
         exp = CronExpression.EVERY_10_MINUTES;
@@ -109,20 +108,19 @@ export class SchedulerService {
     return tempArr.reduce((acc, curr) => `${acc},${curr}`);
   }
   private getCustomCronExpression(recursion: Recursion, date: Date): string {
-    const dateUtc = moment(date).utcOffset(0).toDate();
     let exp = '';
     switch (recursion.period) {
       case RecursionPeriod.MONTH:
-        const dateCsv = recursion.dates ? this.toCsvString(recursion.dates) : dateUtc.getDate();
-        exp = `0 ${dateUtc.getMinutes()} ${dateUtc.getHours()} ${dateCsv} * *`;
+        const dateCsv = recursion.dates ? this.toCsvString(recursion.dates) : date.getDate();
+        exp = `0 ${date.getMinutes()} ${date.getHours()} ${dateCsv} * *`;
         break;
       case RecursionPeriod.WEEK:
         const tempDays = recursion.days?.map((d) => {
           if (d === 7) return 0;
           return d;
         });
-        const dayCsv = tempDays ? this.toCsvString(tempDays) : dateUtc.getDay().toString();
-        exp = `0 ${dateUtc.getMinutes()} ${dateUtc.getHours()} * * ${dayCsv}`;
+        const dayCsv = tempDays ? this.toCsvString(tempDays) : date.getDay().toString();
+        exp = `0 ${date.getMinutes()} ${date.getHours()} * * ${dayCsv}`;
         break;
       default:
         throw new Error('Invalid Enum value: RecursionPeriod');

@@ -101,8 +101,8 @@ export class ReminderController {
   @UseGuards(ElderlyGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @Get('elderly/:rid')
-  async getReminderElderly(@Param("rid") rid: number, @Req() req): Promise<ReminderDto> {
-    return await this.reminderService.getReminder((rid), req.user.uid);
+  async getReminderElderly(@Param('rid') rid: number, @Req() req): Promise<ReminderDto> {
+    return await this.reminderService.getReminder(rid, req.user.uid);
   }
 
   @ApiUnauthorizedResponse({ description: 'Must login to use this endpoints' })
@@ -126,7 +126,7 @@ export class ReminderController {
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @Post('finishedReminder/elderly')
   async getFinishedReminderElderly(@Body() body: GetFinishedReminderDto, @Req() req): Promise<ListReminderEachDateDto[]> {
-    const date = new Date(body.currentDate)
+    const date = new Date(body.currentDate);
     return await this.reminderService.getFinishedReminder(date, req.user.uid);
   }
 
@@ -144,7 +144,7 @@ export class ReminderController {
     @Body() body: GetFinishedReminderDto
   ): Promise<ListReminderEachDateDto[]> {
     await this.userService.checkRelationship(eid, req.user.uid);
-    const date = new Date(body.currentDate)
+    const date = new Date(body.currentDate);
     return await this.reminderService.getFinishedReminder(date, req.user.uid);
   }
 
@@ -156,7 +156,7 @@ export class ReminderController {
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @Post('unfinishedReminder/elderly')
   async getUnfinishedReminderElderly(@Body() body: GetUnFinishedReminderDto, @Req() req): Promise<ListUnfinishedReminderDto> {
-    const date = new Date(body.currentDate)
+    const date = new Date(body.currentDate);
     return await this.reminderService.getUnfinishedReminder(date, req.user.uid);
   }
 
@@ -174,7 +174,7 @@ export class ReminderController {
     @Body() body: GetUnFinishedReminderDto
   ): Promise<ListUnfinishedReminderDto> {
     await this.userService.checkRelationship(eid, req.user.uid);
-    const date = new Date(body.currentDate)
+    const date = new Date(body.currentDate);
     return await this.reminderService.getUnfinishedReminder(date, req.user.uid);
   }
 
@@ -227,7 +227,7 @@ export class ReminderController {
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @Put('markAsComplete/elderly')
   async markAsCompleteElderly(@Res() res, @Body() body: MarkAsCompleteDto, @Req() req): Promise<string> {
-    const date = new Date(body.currentDate)
+    const date = new Date(body.currentDate);
     await this.reminderService.markAsComplete(body.rid, date, req.user.uid);
     return res.status(200).json({
       statusCode: 200,
@@ -250,7 +250,7 @@ export class ReminderController {
   @Put('markAsComplete/caretaker/:eid')
   async markAsCompleteCaretaker(@Param('eid') eid: number, @Res() res, @Req() req, @Body() body: MarkAsCompleteDto): Promise<string> {
     await this.userService.checkRelationship(eid, req.user.uid);
-    const date = new Date(body.currentDate)
+    const date = new Date(body.currentDate);
     await this.reminderService.markAsComplete(body.rid, date, eid);
     return res.status(200).json({
       statusCode: 200,
