@@ -58,7 +58,7 @@ export class ReminderService {
   async create(dto: CreateReminderDto, uid: number) {
     if (dto.customRecursion && dto.recursion) throw new ConflictException('Reminder cannot have both custom and predefied recursion');
     if (moment(dto.startingDateTime).utcOffset(-7).valueOf() < Date.now()) throw new BadRequestException('Start date cannot be in the past');
-    const elderly = await this.userService.findOne({ uid: dto.eid ?? uid }, { shouldBeElderly: true });
+    const elderly = await this.userService.findOne({ uid: dto.eid ?? uid }, { shouldBeElderly: true, relations: ['takenCareBy'] });
     if (dto.eid && !elderly.takenCareBy.find((caretaker) => caretaker.uid === uid))
       throw new MethodNotAllowedException('You do not have permission to access this elderly');
     const startingDateTime = moment(new Date(dto.startingDateTime)).set('seconds', 0);
@@ -173,7 +173,7 @@ export class ReminderService {
   }
 
   private async uploadReminderImage(rid: number, image: ImageDto) {
-    if (!image || !ALLOWED_PROFILE_FORMAT.includes(image.type)) {
+    if (!image || !ALLOWED_PROFILE_FORMAT.includes(image.type) || !image.base64) {
       throw new UnsupportedMediaTypeException('Invalid image type');
     }
     const buffer = Buffer.from(image.base64, 'base64');

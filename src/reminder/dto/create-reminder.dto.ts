@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsDate, IsDateString, IsNotEmpty, IsNotEmptyObject, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsDate, IsDateString, IsDefined, IsNotEmpty, IsNotEmptyObject, IsNumber, IsOptional, IsString } from 'class-validator';
 import { RecurringInterval, Recursion } from 'src/scheduler/interface/scheduler.interface';
 import { ImageDto } from 'src/utils/global.dto';
 import { ImportanceLevel } from '../reminder.interface';
@@ -35,6 +35,7 @@ export class CreateReminderDto {
   eid?: number;
   @ApiProperty()
   @IsOptional()
+  @IsDefined()
   image?: ImageDto;
 }
 
