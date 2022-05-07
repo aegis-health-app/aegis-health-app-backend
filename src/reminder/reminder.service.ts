@@ -498,7 +498,7 @@ export class ReminderService {
 
     if (!reminder) throw new HttpException('Reminder not found', HttpStatus.NOT_FOUND);
     if (reminder.isDone) throw new HttpException('This reminder is already completed', HttpStatus.CONFLICT);
-    if (reminder.startingDateTime.getTime() - currentDate.getTime() > 1800000)
+    if (moment(reminder.startingDateTime).add(-7, 'h').toDate().getTime() - currentDate.getTime() > 1800000)
       throw new HttpException('Can not mark reminder in advance over 30 minutes', HttpStatus.CONFLICT);
     if (reminder.recurrings.length !== 0) throw new HttpException('Can not mark reminder that have recurring', HttpStatus.CONFLICT);
 
