@@ -390,9 +390,10 @@ export class ReminderService {
     tempDate.setUTCHours(0, 0, 0);
     const future: ListReminderEachFutureDate[] = [];
     for (let i = 0; i < 8; i++) {
+      const futureDate = new Date(tempDate);
       const listReminderEachDate: ModifiedFutureReminder[] = [];
       for (const futureReminder of futureReminders) {
-        if (futureReminder.startingDateTime.getDate() === tempDate.getDate()) {
+        if (futureReminder.startingDateTime.getDate() === futureDate.getDate()) {
           listReminderEachDate.push({
             rid: futureReminder.rid,
             title: futureReminder.title,
@@ -409,8 +410,8 @@ export class ReminderService {
       }
 
       // Recurring Part
-      const recurringDay = tempDate.getDay() || 7;
-      const recurringDateOfMonth = tempDate.getDate();
+      const recurringDay = futureDate.getDay() || 7;
+      const recurringDateOfMonth = futureDate.getDate();
       const recurringReminders: Recurring[] = await this.recurringRepository.find({
         where: [{ recurringDateOfMonth: recurringDateOfMonth }, { recurringDay: recurringDay }],
         relations: ['reminder'],
@@ -437,7 +438,7 @@ export class ReminderService {
         }
       } else {
         for (const recurringReminder of recurringReminders) {
-          if (recurringReminder.reminder.startingDateTime.getTime() < tempDate.getTime()) {
+          if (recurringReminder.reminder.startingDateTime.getTime() < futureDate.getTime()) {
             listReminderEachDate.push({
               rid: recurringReminder.reminder.rid,
               title: recurringReminder.reminder.title,
@@ -453,7 +454,7 @@ export class ReminderService {
         }
       }
       future.push({
-        date: tempDate,
+        date: futureDate,
         reminder: listReminderEachDate.sort(function (a, b) {
           return a.hour * 60 + a.minute - b.hour * 60 - b.minute;
         }),
