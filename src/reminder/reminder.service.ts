@@ -86,7 +86,7 @@ export class ReminderService {
       startDate: startingDateTime.add(-7, 'h').toDate(),
       name: reminder.rid.toString(),
     };
-    await this.scheduleReminder(reminder, schedule);
+    await this.scheduleReminder({ ...reminder, startingDateTime: new Date(reminder.startingDateTime) }, schedule);
     return reminder;
   }
 
