@@ -303,7 +303,6 @@ export class ReminderService {
             hour: reminder.startingDateTime.getHours(),
             minute: reminder.startingDateTime.getMinutes(),
           });
-          reminders.splice(reminders.indexOf(reminder), 1);
         }
       }
       listReminderGroupByDate.push({
@@ -357,7 +356,6 @@ export class ReminderService {
             hour: overdueReminder.startingDateTime.getHours(),
             minute: overdueReminder.startingDateTime.getMinutes(),
           });
-          overdueReminders.splice(overdueReminders.indexOf(overdueReminder), 1);
         }
       }
       overdue.push({
@@ -405,7 +403,6 @@ export class ReminderService {
             minute: futureReminder.startingDateTime.getMinutes(),
             isRecurring: !(futureReminder.recurrings.length === 0),
           });
-          futureReminders.splice(futureReminders.indexOf(futureReminder), 1);
         }
       }
 
