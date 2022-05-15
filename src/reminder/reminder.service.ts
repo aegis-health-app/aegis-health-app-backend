@@ -413,7 +413,7 @@ export class ReminderService {
       const recurringDay = futureDate.getDay() || 7;
       const recurringDateOfMonth = futureDate.getDate();
       const recurringReminders: Recurring[] = await this.recurringRepository.find({
-        where: [{ recurringDateOfMonth: recurringDateOfMonth }, { recurringDay: recurringDay }],
+        where: [{ recurringDateOfMonth: recurringDateOfMonth , uid: uid}, { recurringDay: recurringDay , uid:uid}],
         relations: ['reminder'],
       });
       if (i === 0) {
