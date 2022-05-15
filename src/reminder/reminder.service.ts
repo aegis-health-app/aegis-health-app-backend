@@ -412,42 +412,48 @@ export class ReminderService {
       // Recurring Part
       const recurringDay = futureDate.getDay() || 7;
       const recurringDateOfMonth = futureDate.getDate();
-      const recurringReminders: Recurring[] = await this.recurringRepository.find({
-        where: [{ recurringDateOfMonth: recurringDateOfMonth }, { recurringDay: recurringDay }],
-        relations: ['reminder'],
-      });
+      const recurringReminders: Reminder[] = await this.reminderRepository
+      .createQueryBuilder('reminder')
+      .leftJoinAndSelect('reminder.user', 'user')
+      .leftJoinAndSelect('reminder.recurrings', 'recurring')
+      .where('user.uid = :uid', { uid: uid })
+      .andWhere('recurring.recurringDateOfMonth = :recurringDateOfMonth', { recurringDateOfMonth: recurringDateOfMonth })
+      .orWhere('recurring.recurringDay = :recurringDay', { recurringDay: recurringDay })
+      .getMany();
+
+
       if (i === 0) {
         for (const recurringReminder of recurringReminders) {
-          const reminderDate = recurringReminder.reminder.startingDateTime;
+          const reminderDate = recurringReminder.startingDateTime;
           if (
             reminderDate.getTime() < currentDate.getTime() &&
             reminderDate.getHours() * 60 + reminderDate.getMinutes() >= currentDate.getHours() * 60 + currentDate.getMinutes()
           ) {
             listReminderEachDate.push({
-              rid: recurringReminder.reminder.rid,
-              title: recurringReminder.reminder.title,
-              note: recurringReminder.reminder.note,
-              isRemindCaretaker: recurringReminder.reminder.isRemindCaretaker,
-              importanceLevel: recurringReminder.reminder.importanceLevel,
-              imageid: recurringReminder.reminder.imageid,
-              hour: recurringReminder.reminder.startingDateTime.getHours(),
-              minute: recurringReminder.reminder.startingDateTime.getMinutes(),
+              rid: recurringReminder.rid,
+              title: recurringReminder.title,
+              note: recurringReminder.note,
+              isRemindCaretaker: recurringReminder.isRemindCaretaker,
+              importanceLevel: recurringReminder.importanceLevel,
+              imageid: recurringReminder.imageid,
+              hour: recurringReminder.startingDateTime.getHours(),
+              minute: recurringReminder.startingDateTime.getMinutes(),
               isRecurring: true,
             });
           }
         }
       } else {
         for (const recurringReminder of recurringReminders) {
-          if (recurringReminder.reminder.startingDateTime.getTime() < futureDate.getTime()) {
+          if (recurringReminder.startingDateTime.getTime() < futureDate.getTime()) {
             listReminderEachDate.push({
-              rid: recurringReminder.reminder.rid,
-              title: recurringReminder.reminder.title,
-              note: recurringReminder.reminder.note,
-              isRemindCaretaker: recurringReminder.reminder.isRemindCaretaker,
-              importanceLevel: recurringReminder.reminder.importanceLevel,
-              imageid: recurringReminder.reminder.imageid,
-              hour: recurringReminder.reminder.startingDateTime.getHours(),
-              minute: recurringReminder.reminder.startingDateTime.getMinutes(),
+              rid: recurringReminder.rid,
+              title: recurringReminder.title,
+              note: recurringReminder.note,
+              isRemindCaretaker: recurringReminder.isRemindCaretaker,
+              importanceLevel: recurringReminder.importanceLevel,
+              imageid: recurringReminder.imageid,
+              hour: recurringReminder.startingDateTime.getHours(),
+              minute: recurringReminder.startingDateTime.getMinutes(),
               isRecurring: true,
             });
           }
