@@ -417,8 +417,7 @@ export class ReminderService {
       .leftJoinAndSelect('reminder.user', 'user')
       .leftJoinAndSelect('reminder.recurrings', 'recurring')
       .where('user.uid = :uid', { uid: uid })
-      .andWhere('recurring.recurringDateOfMonth = :recurringDateOfMonth', { recurringDateOfMonth: recurringDateOfMonth })
-      .orWhere('recurring.recurringDay = :recurringDay', { recurringDay: recurringDay })
+      .andWhere('(recurring.recurringDateOfMonth = :recurringDateOfMonth OR recurring.recurringDay = :recurringDay)', {recurringDateOfMonth: recurringDateOfMonth, recurringDay: recurringDay})
       .getMany();
 
 
